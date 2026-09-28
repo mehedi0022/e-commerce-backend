@@ -1,0 +1,108 @@
+// use prisma-8
+enum AccountTokenType {
+  @@type("pg/text@1")
+  PASSWORD_RESET = "PASSWORD_RESET"
+  EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
+}
+
+// Database-driven RBAC foundation. `User.role` remains temporarily during the
+// expand/backfill rollout; `rbacRole` becomes the authorization source once
+// existing users have been migrated.
+model Role {
+  id              Int                  @id @default(autoincrement())
+  key             String               @unique
+  name            String               @unique
+  rank            Int                  @unique
+  isSystem        Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@index([rank])
+  @@map("role")
+}
+
+model Permission {
+  id              Int                  @id @default(autoincrement())
+  key             String               @unique
+  module          String
+  action          String
+  description     String?
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+  rolePermissions RolePermission[]
+
+  @@unique([module, action])
+  @@index([module])
+  @@map("permission")
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+  role         Role       @relation(fields:[roleId], references:[id], onDelete: Cascade)
+  permission   Permission @relation(fields:[permissionId], references:[id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("rolePermission")
+}
+
+model User {
+  id              Int                  @id @default(autoincrement())
+  email           String               @unique
+  userName        String?
+  fullName        String?
+  password        String
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+  roleId          Int
+  rbacRole        Role                 @relation(fields:[roleId], references:[id], onDelete: Restrict)
+  isActive        Boolean              @default(true)
+  emailVerifiedAt DateTime?
+
+  sessions        Session[]
+  accountTokens   AccountToken[]
+
+  @@index([roleId])
+  @@map("user")
+}
+
+model Session {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  jti               String    @unique @default(uuid())
+  familyId          String    @default(uuid())
+  refreshTokenHash  String    @unique
+  expiresAt         DateTime
+  revokedAt         DateTime?
+  consumedAt        DateTime?
+  replacedByJti     String?
+  absoluteExpiresAt DateTime
+  rememberMe        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  user              User      @relation(fields:[userId], references:[id])
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("session")
+}
+
+model AccountToken {
+  id         Int              @id @default(autoincrement())
+  userId     Int
+  type       AccountTokenType
+  tokenHash  String           @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  user       User             @relation(fields:[userId], references:[id])
+
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@map("accountToken")
+}
