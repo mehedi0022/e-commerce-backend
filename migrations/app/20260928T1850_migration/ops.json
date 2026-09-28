@@ -1,0 +1,647 @@
+[
+  {
+    "id": "dropConstraint.refund.refund_returnId_key",
+    "label": "Drop constraint \"refund_returnId_key\" on \"refund\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "refund_returnId_key",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"refund_returnId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_returnId_key",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"refund_returnId_key\"",
+        "sql": "ALTER TABLE \"public\".\"refund\" DROP CONSTRAINT \"refund_returnId_key\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"refund_returnId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_returnId_key",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.product_review",
+    "label": "Create table \"product_review\"",
+    "summary": "Creates table \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"product_review\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"product_review\"",
+        "sql": "CREATE TABLE \"public\".\"product_review\" (\n  \"approvedAt\" timestamptz,\n  \"comment\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isVerifiedPurchase\" bool DEFAULT true NOT NULL,\n  \"moderatedById\" int4,\n  \"orderItemId\" int4 NOT NULL,\n  \"productId\" int4 NOT NULL,\n  \"rating\" int4 NOT NULL,\n  \"rejectedAt\" timestamptz,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"title\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"product_review_status_check_56005a61\" CHECK (\"status\" IN ('PENDING', 'APPROVED', 'REJECTED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"product_review\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.product_review.product_review_orderItemId_key",
+    "label": "Add unique constraint on \"product_review\" (orderItemId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "product_review_orderItemId_key",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"product_review_orderItemId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_orderItemId_key",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"product_review_orderItemId_key\"",
+        "sql": "ALTER TABLE \"public\".\"product_review\" ADD CONSTRAINT \"product_review_orderItemId_key\" UNIQUE (\"orderItemId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"product_review_orderItemId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_orderItemId_key",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.product_review.product_review_userId_productId_key",
+    "label": "Add unique constraint on \"product_review\" (userId, productId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "product_review_userId_productId_key",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"product_review_userId_productId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_userId_productId_key",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"product_review_userId_productId_key\"",
+        "sql": "ALTER TABLE \"public\".\"product_review\" ADD CONSTRAINT \"product_review_userId_productId_key\" UNIQUE (\"userId\", \"productId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"product_review_userId_productId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_userId_productId_key",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_createdAt_idx_9575dbd7",
+    "label": "Create index \"product_review_createdAt_idx_9575dbd7\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_createdAt_idx_9575dbd7",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"product_review_createdAt_idx_9575dbd7\" ON \"public\".\"product_review\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_moderatedById_idx_4b155aa3",
+    "label": "Create index \"product_review_moderatedById_idx_4b155aa3\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_moderatedById_idx_4b155aa3",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_moderatedById_idx_4b155aa3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_moderatedById_idx_4b155aa3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_moderatedById_idx_4b155aa3\"",
+        "sql": "CREATE INDEX \"product_review_moderatedById_idx_4b155aa3\" ON \"public\".\"product_review\" (\"moderatedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_moderatedById_idx_4b155aa3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_moderatedById_idx_4b155aa3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_productId_idx_5858600a",
+    "label": "Create index \"product_review_productId_idx_5858600a\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_productId_idx_5858600a",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_productId_idx_5858600a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_productId_idx_5858600a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_productId_idx_5858600a\"",
+        "sql": "CREATE INDEX \"product_review_productId_idx_5858600a\" ON \"public\".\"product_review\" (\"productId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_productId_idx_5858600a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_productId_idx_5858600a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_productId_rating_idx_e3693ff8",
+    "label": "Create index \"product_review_productId_rating_idx_e3693ff8\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_productId_rating_idx_e3693ff8",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_productId_rating_idx_e3693ff8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_productId_rating_idx_e3693ff8\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_productId_rating_idx_e3693ff8\"",
+        "sql": "CREATE INDEX \"product_review_productId_rating_idx_e3693ff8\" ON \"public\".\"product_review\" (\"productId\", \"rating\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_productId_rating_idx_e3693ff8\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_productId_rating_idx_e3693ff8\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_productId_status_idx_285a0d76",
+    "label": "Create index \"product_review_productId_status_idx_285a0d76\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_productId_status_idx_285a0d76",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_productId_status_idx_285a0d76\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_productId_status_idx_285a0d76\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_productId_status_idx_285a0d76\"",
+        "sql": "CREATE INDEX \"product_review_productId_status_idx_285a0d76\" ON \"public\".\"product_review\" (\"productId\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_productId_status_idx_285a0d76\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_productId_status_idx_285a0d76\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_status_idx_e98638ab",
+    "label": "Create index \"product_review_status_idx_e98638ab\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_status_idx_e98638ab",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"product_review_status_idx_e98638ab\" ON \"public\".\"product_review\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_review.product_review_userId_idx_a489d58a",
+    "label": "Create index \"product_review_userId_idx_a489d58a\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_review_userId_idx_a489d58a",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_review_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_review_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"product_review_userId_idx_a489d58a\" ON \"public\".\"product_review\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_review_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_review_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund.refund_returnId_idx_721617a6",
+    "label": "Create index \"refund_returnId_idx_721617a6\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_returnId_idx_721617a6",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_returnId_idx_721617a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_returnId_idx_721617a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_returnId_idx_721617a6\"",
+        "sql": "CREATE INDEX \"refund_returnId_idx_721617a6\" ON \"public\".\"refund\" (\"returnId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_returnId_idx_721617a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_returnId_idx_721617a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_review.product_review_productId_fkey",
+    "label": "Add foreign key \"product_review_productId_fkey\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_review_productId_fkey",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_review_productId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_productId_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_review_productId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_review\"\nADD CONSTRAINT \"product_review_productId_fkey\"\nFOREIGN KEY (\"productId\")\nREFERENCES \"public\".\"product\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_review_productId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_productId_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_review.product_review_userId_fkey",
+    "label": "Add foreign key \"product_review_userId_fkey\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_review_userId_fkey",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_review_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_userId_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_review_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_review\"\nADD CONSTRAINT \"product_review_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_review_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_userId_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_review.product_review_orderItemId_fkey",
+    "label": "Add foreign key \"product_review_orderItemId_fkey\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_review_orderItemId_fkey",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_review_orderItemId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_orderItemId_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_review_orderItemId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_review\"\nADD CONSTRAINT \"product_review_orderItemId_fkey\"\nFOREIGN KEY (\"orderItemId\")\nREFERENCES \"public\".\"order_item\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_review_orderItemId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_orderItemId_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_review.product_review_moderatedById_fkey",
+    "label": "Add foreign key \"product_review_moderatedById_fkey\" on \"product_review\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_review_moderatedById_fkey",
+        "table": "product_review"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_review_moderatedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_moderatedById_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_review_moderatedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_review\"\nADD CONSTRAINT \"product_review_moderatedById_fkey\"\nFOREIGN KEY (\"moderatedById\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_review_moderatedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_review_moderatedById_fkey",
+          "public",
+          "\"public\".\"product_review\""
+        ]
+      }
+    ]
+  }
+]

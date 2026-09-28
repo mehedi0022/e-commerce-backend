@@ -16,7 +16,7 @@ describe.skipIf(!databaseTestsEnabled)("database-backed authorization", () => {
   beforeAll(async () => {
     process.env.DATABASE_URL = getTestDatabaseUrl();
     process.env.DATABASE_MIGRATION_URL = process.env.DATABASE_URL;
-    process.env.DATABASE_TLS_MODE = "disable";
+    process.env.DATABASE_TLS_MODE = "verify-full";
     [{ default: app }, dbModule, jwtUtils] = await Promise.all([
       import("../../src/app.js"),
       import("../../src/prisma/db.js"),
@@ -43,7 +43,6 @@ describe.skipIf(!databaseTestsEnabled)("database-backed authorization", () => {
     const user = await dbModule.db.orm.public.User.create({
       email: `${randomUUID()}@authorization.test`,
       password: "not-used-by-this-test",
-      role: "CUSTOMER",
       roleId: customerRole.id,
     });
     userId = user.id;
@@ -62,14 +61,14 @@ describe.skipIf(!databaseTestsEnabled)("database-backed authorization", () => {
       .set("Cookie", `accessToken=${accessToken}`);
     expect(denied.status).toBe(403);
 
-    await dbModule.db.orm.public.User.where({ id: userId }).update({ role: "ADMIN", roleId: adminRoleId });
+    await dbModule.db.orm.public.User.where({ id: userId }).update({ roleId: adminRoleId });
 
     const allowed = await request(app)
       .get("/api/v1/users")
       .set("Cookie", `accessToken=${accessToken}`);
     expect(allowed.status).toBe(200);
     expect(allowed.body.data).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: userId, role: "ADMIN" }),
+      expect.objectContaining({ id: userId, role: expect.objectContaining({ key: "ADMIN" }) }),
     ]));
   });
 });

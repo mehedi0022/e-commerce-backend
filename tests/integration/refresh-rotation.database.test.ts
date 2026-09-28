@@ -16,7 +16,7 @@ describe.skipIf(!databaseTestsEnabled)("refresh-session atomic rotation", () => 
   beforeAll(async () => {
     process.env.DATABASE_URL = getTestDatabaseUrl();
     process.env.DATABASE_MIGRATION_URL = process.env.DATABASE_URL;
-    process.env.DATABASE_TLS_MODE = "disable";
+    process.env.DATABASE_TLS_MODE = "verify-full";
     dbModule = await import("../../src/prisma/db.js");
     repository = await import(
       "../../src/modules/session/repositories/session.repository.js"
@@ -34,9 +34,12 @@ describe.skipIf(!databaseTestsEnabled)("refresh-session atomic rotation", () => 
   });
 
   const createUser = async () => {
+    const customerRole = await dbModule.db.orm.public.Role.select("id").first({ key: "CUSTOMER" });
+    if (!customerRole) throw new Error("Run the RBAC seeder before database integration tests");
     const user = await dbModule.db.orm.public.User.create({
       email: `${randomUUID()}@refresh.test`,
       password: "not-a-real-password-hash",
+      roleId: customerRole.id,
     });
     userIds.push(user.id);
     return user;

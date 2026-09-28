@@ -1,0 +1,7 @@
+import { z } from "zod";
+const reasons = z.enum(["DAMAGED", "DEFECTIVE", "WRONG_ITEM", "NOT_AS_DESCRIBED", "SIZE_OR_FIT", "CHANGED_MIND", "OTHER"]);
+export const createReturn = z.object({ params: z.object({ orderNumber: z.string().min(1) }), body: z.object({ items: z.array(z.object({ orderItemId: z.coerce.number().int().positive(), quantity: z.coerce.number().int().positive(), reason: reasons, customerNote: z.string().max(1000).optional() })).min(1), customerNote: z.string().max(1000).optional() }) });
+export const returnNumber = z.object({ params: z.object({ returnNumber: z.string().min(1) }) });
+export const transition = z.object({ params: z.object({ returnNumber: z.string().min(1) }), body: z.object({ status: z.enum(["APPROVED", "REJECTED", "IN_TRANSIT", "RECEIVED", "COMPLETED", "CANCELLED"]), note: z.string().max(1000).optional() }) });
+export const inspect = z.object({ params: z.object({ returnNumber: z.string().min(1), itemId: z.coerce.number().int().positive() }), body: z.object({ condition: z.enum(["UNOPENED", "GOOD", "DAMAGED", "DEFECTIVE", "USED"]), adminNote: z.string().max(1000).nullable().optional(), restockQuantity: z.coerce.number().int().min(0) }) });
+export const list = z.object({ query: z.object({ page: z.coerce.number().int().positive().default(1), limit: z.coerce.number().int().positive().max(100).default(20), status: z.enum(["REQUESTED", "APPROVED", "REJECTED", "IN_TRANSIT", "RECEIVED", "COMPLETED", "CANCELLED"]).optional() }) });

@@ -26,7 +26,7 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
   beforeAll(async () => {
     process.env.DATABASE_URL = getTestDatabaseUrl();
     process.env.DATABASE_MIGRATION_URL = process.env.DATABASE_URL;
-    process.env.DATABASE_TLS_MODE = "disable";
+    process.env.DATABASE_TLS_MODE = "verify-full";
     [
       { default: app },
       dbModule,
@@ -58,9 +58,12 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
 
   const createUser = async () => {
     const password = "Password1!";
+    const customerRole = await dbModule.db.orm.public.Role.select("id").first({ key: "CUSTOMER" });
+    if (!customerRole) throw new Error("Run the RBAC seeder before database integration tests");
     const user = await dbModule.db.orm.public.User.create({
       email: `${randomUUID()}@session.test`,
       password: await argon2.hash(password),
+      roleId: customerRole.id,
     });
     const result = { id: user.id, email: user.email, password };
     users.push(result);
@@ -69,8 +72,18 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
 
   const firstSetCookie = (response: request.Response) => {
     const header = response.headers["set-cookie"];
-    const value = Array.isArray(header) ? header[0] : header;
+    const value = Array.isArray(header)
+      ? header.find((cookie) => cookie.startsWith("refreshToken=")) ?? header[0]
+      : header;
     if (!value) throw new Error("Expected Set-Cookie header");
+    return value;
+  };
+  const accessSetCookie = (response: request.Response) => {
+    const header = response.headers["set-cookie"];
+    const value = Array.isArray(header)
+      ? header.find((cookie) => cookie.startsWith("accessToken="))
+      : undefined;
+    if (!value) throw new Error("Expected access token cookie");
     return value;
   };
 
@@ -90,8 +103,9 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
     });
     expect(response.status).toBe(200);
     return {
-      user,
-      accessToken: response.body.data.accessToken as string,
+        user,
+        accessToken: cookieToken(accessSetCookie(response)),
+        accessCookie: cookiePair(accessSetCookie(response)),
       setCookie: firstSetCookie(response),
     };
   };
@@ -129,7 +143,8 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
       });
       expect(response.status).toBe(200);
       return {
-        accessToken: response.body.data.accessToken as string,
+        accessToken: cookieToken(accessSetCookie(response)),
+        accessCookie: cookiePair(accessSetCookie(response)),
         cookie: cookiePair(firstSetCookie(response)),
       };
     };
@@ -139,8 +154,7 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
     const response = await request(app)
       .post("/api/v1/auth/logout-all")
       .set("Origin", frontendOrigin)
-      .set("Authorization", `Bearer ${first.accessToken}`)
-      .set("Cookie", first.cookie);
+      .set("Cookie", first.accessCookie);
     expect(response.status).toBe(200);
     expect(firstSetCookie(response)).toMatch(/Expires=Thu, 01 Jan 1970/i);
 

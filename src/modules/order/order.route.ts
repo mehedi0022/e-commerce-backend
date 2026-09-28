@@ -1,0 +1,18 @@
+import { Router } from "express";
+import { z } from "zod";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { permissions } from "../../auth/authorization.js";
+import { requirePermission } from "../../middlewares/authorization.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as c from "./controllers/order.controller.js";
+import { guestOrderAccessSchema } from "../checkout/validations/checkout.validation.js";
+const transitionSchema = z.object({ status: z.enum(["CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]), note: z.string().max(500).optional() });
+const router = Router();
+router.get("/orders/guest/:orderNumber", validate(z.object({ query: guestOrderAccessSchema })), c.guestDetail);
+router.use(authenticate);
+router.get("/orders", c.list);
+router.get("/orders/:orderNumber", c.detail);
+router.get("/admin/orders", requirePermission(permissions.ordersReadAny), c.adminList);
+router.get("/admin/orders/:orderNumber", requirePermission(permissions.ordersReadAny), c.adminDetail);
+router.patch("/admin/orders/:orderNumber/status", requirePermission(permissions.ordersManage), validate(z.object({ body: transitionSchema })), c.transition);
+export default router;

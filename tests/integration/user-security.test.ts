@@ -43,7 +43,7 @@ const rawUser: Record<string, unknown> = {
   userName: "starter-user",
   fullName: "Starter User",
   password: "",
-  role: "CUSTOMER",
+  roleId: 2,
   isActive: true,
   ...timestamps,
 };
@@ -62,12 +62,16 @@ const adminPermissionKeys = [
 ];
 
 const withRbacRole = (record: Record<string, unknown>) => {
-  const role = record.role as string;
+  const role = record.roleKey as string;
   const hasAllPermissions = role === "ADMIN" || role === "SUPER_ADMIN";
   return {
     ...record,
     rbacRole: {
+      id: record.roleId,
       key: role,
+      name: role,
+      rank: hasAllPermissions ? 100 : 10,
+      isSystem: true,
       rolePermissions: (hasAllPermissions ? adminPermissionKeys : []).map((key) => ({
         permission: { key },
       })),
@@ -86,11 +90,14 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  database.state.lookupUser = { ...rawUser, role: "CUSTOMER" };
+  database.state.lookupUser = { ...rawUser, roleKey: "CUSTOMER" };
   database.userSelect.mockImplementation((...fields: string[]) => {
     const collection = {
       first: vi.fn(async () => database.state.lookupUser ? withRbacRole(database.state.lookupUser) : null),
-      all: vi.fn(async () => [project(rawUser, fields)]),
+      all: vi.fn(async () => [{
+        ...project(rawUser, fields),
+        rbacRole: withRbacRole(rawUser).rbacRole,
+      }]),
       include: vi.fn(() => collection),
       create: vi.fn(async (data: Record<string, unknown>) =>
         project({ ...rawUser, ...data }, fields),
@@ -149,7 +156,7 @@ describe("user API security boundary", () => {
   });
 
   it("lets an admin list users and returns only public fields", async () => {
-    database.state.lookupUser = { ...rawUser, role: "ADMIN" };
+    database.state.lookupUser = { ...rawUser, roleKey: "ADMIN" };
     const token = jwt.signAccessToken({ userId: 2 });
     const response = await request(app)
       .get("/api/v1/users")
@@ -165,13 +172,14 @@ describe("user API security boundary", () => {
       "id",
       "isActive",
       "role",
+      "roleId",
       "updatedAt",
       "userName",
     ]);
   });
 
   it("bounds user-list pagination and returns accurate metadata", async () => {
-    database.state.lookupUser = { ...rawUser, role: "ADMIN" };
+    database.state.lookupUser = { ...rawUser, roleKey: "ADMIN" };
     const token = jwt.signAccessToken({ userId: 2 });
 
     const response = await request(app)
@@ -184,7 +192,7 @@ describe("user API security boundary", () => {
   });
 
   it("rejects unbounded, unsupported, and arbitrary user-list query parameters", async () => {
-    database.state.lookupUser = { ...rawUser, role: "ADMIN" };
+    database.state.lookupUser = { ...rawUser, roleKey: "ADMIN" };
     const token = jwt.signAccessToken({ userId: 2 });
 
     const [tooLarge, invalidSort, arbitraryFilter] = await Promise.all([
@@ -200,17 +208,17 @@ describe("user API security boundary", () => {
   });
 
   it("accepts only the allowlisted role filter", async () => {
-    database.state.lookupUser = { ...rawUser, role: "ADMIN" };
+    database.state.lookupUser = { ...rawUser, roleKey: "ADMIN" };
     const token = jwt.signAccessToken({ userId: 2 });
 
     const response = await request(app)
-      .get("/api/v1/users?role=CUSTOMER")
+      .get("/api/v1/users?roleId=2")
       .set("Cookie", `accessToken=${token}`);
 
     expect(response.status).toBe(200);
     expect(database.userSelect.mock.results.some((result) =>
       result.value.where.mock.calls.some(
-        (call: unknown[]) => (call[0] as { role?: string } | undefined)?.role === "CUSTOMER",
+        (call: unknown[]) => (call[0] as { roleId?: number } | undefined)?.roleId === 2,
       ),
     )).toBe(true);
   });
@@ -226,7 +234,7 @@ describe("user API security boundary", () => {
   });
 
   it("allows an admin to read another user", async () => {
-    database.state.lookupUser = { ...rawUser, role: "ADMIN" };
+    database.state.lookupUser = { ...rawUser, roleKey: "ADMIN" };
     const token = jwt.signAccessToken({ userId: 2 });
     const response = await request(app).get("/api/v1/users/1").set("Cookie", `accessToken=${token}`);
     expect(response.status).toBe(200);
@@ -258,14 +266,14 @@ describe("user API security boundary", () => {
     const forbidden = await request(app)
       .delete("/api/v1/users/1")
       .set("Cookie", `accessToken=${userToken}`);
-    database.state.lookupUser = { ...rawUser, role: "ADMIN" };
+    database.state.lookupUser = { ...rawUser, roleKey: "ADMIN" };
     const adminToken = jwt.signAccessToken({ userId: 2 });
     const deleted = await request(app)
       .delete("/api/v1/users/1")
       .set("Cookie", `accessToken=${adminToken}`);
 
-    expect(forbidden.status).toBe(404);
-    expect(deleted.status).toBe(404);
+    expect(forbidden.status).toBe(403);
+    expect(deleted.status).toBe(403);
   });
 
   it("validates protected user-creation input before authorization", async () => {

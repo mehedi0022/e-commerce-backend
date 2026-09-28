@@ -1,0 +1,1451 @@
+[
+  {
+    "id": "table.refund",
+    "label": "Create table \"refund\"",
+    "summary": "Creates table \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"refund\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"refund\"",
+        "sql": "CREATE TABLE \"public\".\"refund\" (\n  \"amount\" numeric(12,2) NOT NULL,\n  \"cancelledAt\" timestamptz,\n  \"completedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"failedAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"method\" text,\n  \"note\" text,\n  \"orderId\" int4 NOT NULL,\n  \"processedAt\" timestamptz,\n  \"processedById\" int4,\n  \"reason\" text,\n  \"refundNumber\" text NOT NULL,\n  \"returnId\" int4,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"refund_method_check_e3050dc7\" CHECK (\"method\" IN ('CASH', 'BANK_TRANSFER', 'MOBILE_BANKING', 'ORIGINAL_PAYMENT_METHOD', 'OTHER')),\n  CONSTRAINT \"refund_status_check_c85a3565\" CHECK (\"status\" IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"refund\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.refund_status_history",
+    "label": "Create table \"refund_status_history\"",
+    "summary": "Creates table \"refund_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "refund_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"refund_status_history\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"refund_status_history\"",
+        "sql": "CREATE TABLE \"public\".\"refund_status_history\" (\n  \"changedById\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"fromStatus\" text,\n  \"id\" SERIAL NOT NULL,\n  \"note\" text,\n  \"refundId\" int4 NOT NULL,\n  \"toStatus\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"refund_status_history_fromStatus_check_56975dbf\" CHECK (\"fromStatus\" IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED')),\n  CONSTRAINT \"refund_status_history_toStatus_check_8187a37d\" CHECK (\"toStatus\" IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"refund_status_history\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.return",
+    "label": "Create table \"return\"",
+    "summary": "Creates table \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"return\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"return\"",
+        "sql": "CREATE TABLE \"public\".\"return\" (\n  \"adminNote\" text,\n  \"approvedAt\" timestamptz,\n  \"cancelledAt\" timestamptz,\n  \"completedAt\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"customerNote\" text,\n  \"id\" SERIAL NOT NULL,\n  \"orderId\" int4 NOT NULL,\n  \"receivedAt\" timestamptz,\n  \"rejectedAt\" timestamptz,\n  \"requestedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"returnNumber\" text NOT NULL,\n  \"status\" text DEFAULT 'REQUESTED' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" int4,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"return_status_check_6ffe6862\" CHECK (\"status\" IN ('REQUESTED', 'APPROVED', 'REJECTED', 'IN_TRANSIT', 'RECEIVED', 'COMPLETED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"return\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.return_item",
+    "label": "Create table \"return_item\"",
+    "summary": "Creates table \"return_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "return_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"return_item\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"return_item\"",
+        "sql": "CREATE TABLE \"public\".\"return_item\" (\n  \"adminNote\" text,\n  \"condition\" text,\n  \"customerNote\" text,\n  \"id\" SERIAL NOT NULL,\n  \"orderItemId\" int4 NOT NULL,\n  \"quantity\" int4 NOT NULL,\n  \"reason\" text NOT NULL,\n  \"restockQuantity\" int4 DEFAULT 0 NOT NULL,\n  \"restockStatus\" text DEFAULT 'PENDING' NOT NULL,\n  \"returnId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"return_item_condition_check_775c8094\" CHECK (\"condition\" IN ('UNOPENED', 'GOOD', 'DAMAGED', 'DEFECTIVE', 'USED')),\n  CONSTRAINT \"return_item_reason_check_e9e2f3b2\" CHECK (\"reason\" IN ('DAMAGED', 'DEFECTIVE', 'WRONG_ITEM', 'NOT_AS_DESCRIBED', 'SIZE_OR_FIT', 'CHANGED_MIND', 'OTHER')),\n  CONSTRAINT \"return_item_restockStatus_check_05294ac9\" CHECK (\"restockStatus\" IN ('PENDING', 'RESTOCKED', 'NOT_RESTOCKABLE'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"return_item\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.return_status_history",
+    "label": "Create table \"return_status_history\"",
+    "summary": "Creates table \"return_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "return_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"return_status_history\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"return_status_history\"",
+        "sql": "CREATE TABLE \"public\".\"return_status_history\" (\n  \"changedById\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"fromStatus\" text,\n  \"id\" SERIAL NOT NULL,\n  \"note\" text,\n  \"returnId\" int4 NOT NULL,\n  \"toStatus\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"return_status_history_fromStatus_check_4f355bbd\" CHECK (\"fromStatus\" IN ('REQUESTED', 'APPROVED', 'REJECTED', 'IN_TRANSIT', 'RECEIVED', 'COMPLETED', 'CANCELLED')),\n  CONSTRAINT \"return_status_history_toStatus_check_158cd2f5\" CHECK (\"toStatus\" IN ('REQUESTED', 'APPROVED', 'REJECTED', 'IN_TRANSIT', 'RECEIVED', 'COMPLETED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"return_status_history\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.refund.refund_refundNumber_key",
+    "label": "Add unique constraint on \"refund\" (refundNumber)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "refund_refundNumber_key",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"refund_refundNumber_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_refundNumber_key",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"refund_refundNumber_key\"",
+        "sql": "ALTER TABLE \"public\".\"refund\" ADD CONSTRAINT \"refund_refundNumber_key\" UNIQUE (\"refundNumber\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"refund_refundNumber_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_refundNumber_key",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.refund.refund_returnId_key",
+    "label": "Add unique constraint on \"refund\" (returnId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "refund_returnId_key",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"refund_returnId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_returnId_key",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"refund_returnId_key\"",
+        "sql": "ALTER TABLE \"public\".\"refund\" ADD CONSTRAINT \"refund_returnId_key\" UNIQUE (\"returnId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"refund_returnId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_returnId_key",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.return.return_returnNumber_key",
+    "label": "Add unique constraint on \"return\" (returnNumber)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "return_returnNumber_key",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"return_returnNumber_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_returnNumber_key",
+          "public",
+          "\"public\".\"return\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"return_returnNumber_key\"",
+        "sql": "ALTER TABLE \"public\".\"return\" ADD CONSTRAINT \"return_returnNumber_key\" UNIQUE (\"returnNumber\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"return_returnNumber_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_returnNumber_key",
+          "public",
+          "\"public\".\"return\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.return_item.return_item_returnId_orderItemId_key",
+    "label": "Add unique constraint on \"return_item\" (returnId, orderItemId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "return_item_returnId_orderItemId_key",
+        "table": "return_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"return_item_returnId_orderItemId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_item_returnId_orderItemId_key",
+          "public",
+          "\"public\".\"return_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"return_item_returnId_orderItemId_key\"",
+        "sql": "ALTER TABLE \"public\".\"return_item\" ADD CONSTRAINT \"return_item_returnId_orderItemId_key\" UNIQUE (\"returnId\", \"orderItemId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"return_item_returnId_orderItemId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_item_returnId_orderItemId_key",
+          "public",
+          "\"public\".\"return_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund.refund_createdAt_idx_9575dbd7",
+    "label": "Create index \"refund_createdAt_idx_9575dbd7\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_createdAt_idx_9575dbd7",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"refund_createdAt_idx_9575dbd7\" ON \"public\".\"refund\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund.refund_orderId_idx_d284871b",
+    "label": "Create index \"refund_orderId_idx_d284871b\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_orderId_idx_d284871b",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_orderId_idx_d284871b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"refund_orderId_idx_d284871b\" ON \"public\".\"refund\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_orderId_idx_d284871b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_orderId_idx_d284871b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund.refund_processedById_idx_92dfd8d4",
+    "label": "Create index \"refund_processedById_idx_92dfd8d4\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_processedById_idx_92dfd8d4",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_processedById_idx_92dfd8d4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_processedById_idx_92dfd8d4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_processedById_idx_92dfd8d4\"",
+        "sql": "CREATE INDEX \"refund_processedById_idx_92dfd8d4\" ON \"public\".\"refund\" (\"processedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_processedById_idx_92dfd8d4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_processedById_idx_92dfd8d4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund.refund_status_idx_e98638ab",
+    "label": "Create index \"refund_status_idx_e98638ab\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_status_idx_e98638ab",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"refund_status_idx_e98638ab\" ON \"public\".\"refund\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund_status_history.refund_status_history_changedById_idx_d6e6aadb",
+    "label": "Create index \"refund_status_history_changedById_idx_d6e6aadb\" on \"refund_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_status_history_changedById_idx_d6e6aadb",
+        "table": "refund_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_status_history_changedById_idx_d6e6aadb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_status_history_changedById_idx_d6e6aadb\"",
+        "sql": "CREATE INDEX \"refund_status_history_changedById_idx_d6e6aadb\" ON \"public\".\"refund_status_history\" (\"changedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_status_history_changedById_idx_d6e6aadb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund_status_history.refund_status_history_refundId_createdAt_idx_df1e85fb",
+    "label": "Create index \"refund_status_history_refundId_createdAt_idx_df1e85fb\" on \"refund_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_status_history_refundId_createdAt_idx_df1e85fb",
+        "table": "refund_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_status_history_refundId_createdAt_idx_df1e85fb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history_refundId_createdAt_idx_df1e85fb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_status_history_refundId_createdAt_idx_df1e85fb\"",
+        "sql": "CREATE INDEX \"refund_status_history_refundId_createdAt_idx_df1e85fb\" ON \"public\".\"refund_status_history\" (\"refundId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_status_history_refundId_createdAt_idx_df1e85fb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history_refundId_createdAt_idx_df1e85fb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.refund_status_history.refund_status_history_refundId_idx_903a170a",
+    "label": "Create index \"refund_status_history_refundId_idx_903a170a\" on \"refund_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "refund_status_history_refundId_idx_903a170a",
+        "table": "refund_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"refund_status_history_refundId_idx_903a170a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history_refundId_idx_903a170a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"refund_status_history_refundId_idx_903a170a\"",
+        "sql": "CREATE INDEX \"refund_status_history_refundId_idx_903a170a\" ON \"public\".\"refund_status_history\" (\"refundId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"refund_status_history_refundId_idx_903a170a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"refund_status_history_refundId_idx_903a170a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return.return_createdAt_idx_9575dbd7",
+    "label": "Create index \"return_createdAt_idx_9575dbd7\" on \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_createdAt_idx_9575dbd7",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"return_createdAt_idx_9575dbd7\" ON \"public\".\"return\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return.return_orderId_idx_d284871b",
+    "label": "Create index \"return_orderId_idx_d284871b\" on \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_orderId_idx_d284871b",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_orderId_idx_d284871b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"return_orderId_idx_d284871b\" ON \"public\".\"return\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_orderId_idx_d284871b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_orderId_idx_d284871b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return.return_status_idx_e98638ab",
+    "label": "Create index \"return_status_idx_e98638ab\" on \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_status_idx_e98638ab",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"return_status_idx_e98638ab\" ON \"public\".\"return\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return.return_userId_idx_a489d58a",
+    "label": "Create index \"return_userId_idx_a489d58a\" on \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_userId_idx_a489d58a",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"return_userId_idx_a489d58a\" ON \"public\".\"return\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return_item.return_item_orderItemId_idx_99e2d9f7",
+    "label": "Create index \"return_item_orderItemId_idx_99e2d9f7\" on \"return_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_item_orderItemId_idx_99e2d9f7",
+        "table": "return_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_item_orderItemId_idx_99e2d9f7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_item_orderItemId_idx_99e2d9f7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_item_orderItemId_idx_99e2d9f7\"",
+        "sql": "CREATE INDEX \"return_item_orderItemId_idx_99e2d9f7\" ON \"public\".\"return_item\" (\"orderItemId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_item_orderItemId_idx_99e2d9f7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_item_orderItemId_idx_99e2d9f7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return_item.return_item_returnId_idx_721617a6",
+    "label": "Create index \"return_item_returnId_idx_721617a6\" on \"return_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_item_returnId_idx_721617a6",
+        "table": "return_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_item_returnId_idx_721617a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_item_returnId_idx_721617a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_item_returnId_idx_721617a6\"",
+        "sql": "CREATE INDEX \"return_item_returnId_idx_721617a6\" ON \"public\".\"return_item\" (\"returnId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_item_returnId_idx_721617a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_item_returnId_idx_721617a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return_status_history.return_status_history_changedById_idx_d6e6aadb",
+    "label": "Create index \"return_status_history_changedById_idx_d6e6aadb\" on \"return_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_status_history_changedById_idx_d6e6aadb",
+        "table": "return_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_status_history_changedById_idx_d6e6aadb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_status_history_changedById_idx_d6e6aadb\"",
+        "sql": "CREATE INDEX \"return_status_history_changedById_idx_d6e6aadb\" ON \"public\".\"return_status_history\" (\"changedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_status_history_changedById_idx_d6e6aadb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return_status_history.return_status_history_returnId_createdAt_idx_a8c4f9ee",
+    "label": "Create index \"return_status_history_returnId_createdAt_idx_a8c4f9ee\" on \"return_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_status_history_returnId_createdAt_idx_a8c4f9ee",
+        "table": "return_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_status_history_returnId_createdAt_idx_a8c4f9ee\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history_returnId_createdAt_idx_a8c4f9ee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_status_history_returnId_createdAt_idx_a8c4f9ee\"",
+        "sql": "CREATE INDEX \"return_status_history_returnId_createdAt_idx_a8c4f9ee\" ON \"public\".\"return_status_history\" (\"returnId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_status_history_returnId_createdAt_idx_a8c4f9ee\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history_returnId_createdAt_idx_a8c4f9ee\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.return_status_history.return_status_history_returnId_idx_721617a6",
+    "label": "Create index \"return_status_history_returnId_idx_721617a6\" on \"return_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "return_status_history_returnId_idx_721617a6",
+        "table": "return_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"return_status_history_returnId_idx_721617a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history_returnId_idx_721617a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"return_status_history_returnId_idx_721617a6\"",
+        "sql": "CREATE INDEX \"return_status_history_returnId_idx_721617a6\" ON \"public\".\"return_status_history\" (\"returnId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"return_status_history_returnId_idx_721617a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"return_status_history_returnId_idx_721617a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.refund.refund_orderId_fkey",
+    "label": "Add foreign key \"refund_orderId_fkey\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "refund_orderId_fkey",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"refund_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_orderId_fkey",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"refund_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"refund\"\nADD CONSTRAINT \"refund_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"order\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"refund_orderId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_orderId_fkey",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.refund.refund_returnId_fkey",
+    "label": "Add foreign key \"refund_returnId_fkey\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "refund_returnId_fkey",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"refund_returnId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_returnId_fkey",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"refund_returnId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"refund\"\nADD CONSTRAINT \"refund_returnId_fkey\"\nFOREIGN KEY (\"returnId\")\nREFERENCES \"public\".\"return\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"refund_returnId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_returnId_fkey",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.refund.refund_processedById_fkey",
+    "label": "Add foreign key \"refund_processedById_fkey\" on \"refund\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "refund_processedById_fkey",
+        "table": "refund"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"refund_processedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_processedById_fkey",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"refund_processedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"refund\"\nADD CONSTRAINT \"refund_processedById_fkey\"\nFOREIGN KEY (\"processedById\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"refund_processedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_processedById_fkey",
+          "public",
+          "\"public\".\"refund\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.refund_status_history.refund_status_history_refundId_fkey",
+    "label": "Add foreign key \"refund_status_history_refundId_fkey\" on \"refund_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "refund_status_history_refundId_fkey",
+        "table": "refund_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"refund_status_history_refundId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_status_history_refundId_fkey",
+          "public",
+          "\"public\".\"refund_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"refund_status_history_refundId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"refund_status_history\"\nADD CONSTRAINT \"refund_status_history_refundId_fkey\"\nFOREIGN KEY (\"refundId\")\nREFERENCES \"public\".\"refund\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"refund_status_history_refundId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_status_history_refundId_fkey",
+          "public",
+          "\"public\".\"refund_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.refund_status_history.refund_status_history_changedById_fkey",
+    "label": "Add foreign key \"refund_status_history_changedById_fkey\" on \"refund_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "refund_status_history_changedById_fkey",
+        "table": "refund_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"refund_status_history_changedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_status_history_changedById_fkey",
+          "public",
+          "\"public\".\"refund_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"refund_status_history_changedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"refund_status_history\"\nADD CONSTRAINT \"refund_status_history_changedById_fkey\"\nFOREIGN KEY (\"changedById\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"refund_status_history_changedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "refund_status_history_changedById_fkey",
+          "public",
+          "\"public\".\"refund_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.return.return_orderId_fkey",
+    "label": "Add foreign key \"return_orderId_fkey\" on \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "return_orderId_fkey",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"return_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_orderId_fkey",
+          "public",
+          "\"public\".\"return\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"return_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"return\"\nADD CONSTRAINT \"return_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"order\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"return_orderId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_orderId_fkey",
+          "public",
+          "\"public\".\"return\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.return.return_userId_fkey",
+    "label": "Add foreign key \"return_userId_fkey\" on \"return\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "return_userId_fkey",
+        "table": "return"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"return_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_userId_fkey",
+          "public",
+          "\"public\".\"return\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"return_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"return\"\nADD CONSTRAINT \"return_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"return_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_userId_fkey",
+          "public",
+          "\"public\".\"return\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.return_item.return_item_returnId_fkey",
+    "label": "Add foreign key \"return_item_returnId_fkey\" on \"return_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "return_item_returnId_fkey",
+        "table": "return_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"return_item_returnId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_item_returnId_fkey",
+          "public",
+          "\"public\".\"return_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"return_item_returnId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"return_item\"\nADD CONSTRAINT \"return_item_returnId_fkey\"\nFOREIGN KEY (\"returnId\")\nREFERENCES \"public\".\"return\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"return_item_returnId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_item_returnId_fkey",
+          "public",
+          "\"public\".\"return_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.return_item.return_item_orderItemId_fkey",
+    "label": "Add foreign key \"return_item_orderItemId_fkey\" on \"return_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "return_item_orderItemId_fkey",
+        "table": "return_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"return_item_orderItemId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_item_orderItemId_fkey",
+          "public",
+          "\"public\".\"return_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"return_item_orderItemId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"return_item\"\nADD CONSTRAINT \"return_item_orderItemId_fkey\"\nFOREIGN KEY (\"orderItemId\")\nREFERENCES \"public\".\"order_item\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"return_item_orderItemId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_item_orderItemId_fkey",
+          "public",
+          "\"public\".\"return_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.return_status_history.return_status_history_returnId_fkey",
+    "label": "Add foreign key \"return_status_history_returnId_fkey\" on \"return_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "return_status_history_returnId_fkey",
+        "table": "return_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"return_status_history_returnId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_status_history_returnId_fkey",
+          "public",
+          "\"public\".\"return_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"return_status_history_returnId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"return_status_history\"\nADD CONSTRAINT \"return_status_history_returnId_fkey\"\nFOREIGN KEY (\"returnId\")\nREFERENCES \"public\".\"return\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"return_status_history_returnId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_status_history_returnId_fkey",
+          "public",
+          "\"public\".\"return_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.return_status_history.return_status_history_changedById_fkey",
+    "label": "Add foreign key \"return_status_history_changedById_fkey\" on \"return_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "return_status_history_changedById_fkey",
+        "table": "return_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"return_status_history_changedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_status_history_changedById_fkey",
+          "public",
+          "\"public\".\"return_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"return_status_history_changedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"return_status_history\"\nADD CONSTRAINT \"return_status_history_changedById_fkey\"\nFOREIGN KEY (\"changedById\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"return_status_history_changedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "return_status_history_changedById_fkey",
+          "public",
+          "\"public\".\"return_status_history\""
+        ]
+      }
+    ]
+  }
+]

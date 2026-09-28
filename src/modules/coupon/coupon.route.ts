@@ -1,0 +1,17 @@
+import { Router } from "express";
+import { z } from "zod";
+import { authenticate, optionalAuthenticate } from "../../middlewares/auth.middleware.js";
+import { permissions } from "../../auth/authorization.js";
+import { requirePermission } from "../../middlewares/authorization.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as c from "./controllers/coupon.controller.js";
+import * as v from "./validations/coupon.validation.js";
+const router = Router();
+router.post("/coupons/validate", optionalAuthenticate, validate(v.validateCouponSchema), c.preview);
+router.use("/admin/coupons", authenticate, requirePermission(permissions.couponsManage));
+router.post("/admin/coupons", validate(v.createCouponSchema), c.create);
+router.get("/admin/coupons", validate(v.couponListSchema), c.list);
+router.get("/admin/coupons/:id", validate(v.couponIdSchema), c.detail);
+router.patch("/admin/coupons/:id", validate(v.updateCouponSchema), c.update);
+router.delete("/admin/coupons/:id", validate(v.couponIdSchema), c.remove);
+export default router;

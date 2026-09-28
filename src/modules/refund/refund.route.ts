@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { permissions } from "../../auth/authorization.js";
+import { requirePermission } from "../../middlewares/authorization.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as c from "./controllers/refund.controller.js";
+import * as v from "./validations/refund.validation.js";
+const router = Router(); router.use(authenticate, requirePermission(permissions.refundsRead));
+router.get("/admin/refunds", validate(v.list), c.list); router.get("/admin/refunds/:refundNumber", validate(v.number), c.detail);
+router.post("/admin/returns/:returnNumber/refunds", requirePermission(permissions.refundsCreate), validate(v.create), c.create);
+router.post("/admin/refunds/:refundNumber/transition", requirePermission(permissions.refundsTransition), validate(v.transition), c.transition);
+export default router;

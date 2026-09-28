@@ -115,6 +115,7 @@ const rawEnvSchema = z.object({
   UPLOAD_MAX_FILE_COUNT: z.coerce.number().int().positive().max(10).default(5),
   UPLOAD_ALLOWED_MIME_TYPES: z.string().default("image/jpeg,image/png,image/webp"),
   UPLOAD_CLOUDINARY_FOLDER: z.string().trim().regex(/^[a-zA-Z0-9][a-zA-Z0-9_/-]{0,119}$/).default("express-starter"),
+  RETURN_WINDOW_DAYS: z.coerce.number().int().positive().default(7),
 }).superRefine((value, context) => {
   for (const [key, url] of [["DATABASE_URL", value.DATABASE_URL], ["DATABASE_MIGRATION_URL", value.DATABASE_MIGRATION_URL]] as const) {
     if (!url) continue;
@@ -275,6 +276,7 @@ export const loadConfig = (source: NodeJS.ProcessEnv = process.env) => {
       allowedMimeTypes: value.UPLOAD_ALLOWED_MIME_TYPES.split(",").map((type) => type.trim()).filter(Boolean),
       cloudinaryFolder: value.UPLOAD_CLOUDINARY_FOLDER,
     },
+    returns: { windowDays: value.RETURN_WINDOW_DAYS },
   } as const;
 };
 

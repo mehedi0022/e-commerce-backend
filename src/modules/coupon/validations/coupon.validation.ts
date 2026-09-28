@@ -1,0 +1,11 @@
+import { z } from "zod";
+const money = z.coerce.number().min(0);
+const fields = { code: z.string().trim().min(1).max(50), name: z.string().trim().min(1).max(150), description: z.string().trim().max(500).nullable().optional(), discountType: z.enum(["PERCENTAGE", "FIXED_AMOUNT"]), discountValue: z.coerce.number().positive(), minimumOrderAmount: money.nullable().optional(), maximumDiscountAmount: money.nullable().optional(), usageLimit: z.coerce.number().int().positive().nullable().optional(), usageLimitPerUser: z.coerce.number().int().positive().nullable().optional(), startsAt: z.coerce.date().nullable().optional(), expiresAt: z.coerce.date().nullable().optional(), isActive: z.boolean().optional() };
+const rules = (x: any, ctx: z.RefinementCtx) => { if (x.discountType === "PERCENTAGE" && x.discountValue > 100) ctx.addIssue({ code: "custom", path: ["discountValue"], message: "Percentage cannot exceed 100" }); if (x.startsAt && x.expiresAt && x.expiresAt <= x.startsAt) ctx.addIssue({ code: "custom", path: ["expiresAt"], message: "expiresAt must be after startsAt" }); };
+const validate = z.object(fields).superRefine(rules);
+const updateFields = z.object(fields).partial().superRefine(rules);
+export const createCouponSchema = z.object({ body: validate });
+export const updateCouponSchema = z.object({ params: z.object({ id: z.coerce.number().int().positive() }), body: updateFields });
+export const couponIdSchema = z.object({ params: z.object({ id: z.coerce.number().int().positive() }) });
+export const couponListSchema = z.object({ query: z.object({ page: z.coerce.number().int().positive().default(1), limit: z.coerce.number().int().positive().max(100).default(20), search: z.string().optional(), discountType: z.enum(["PERCENTAGE", "FIXED_AMOUNT"]).optional(), isActive: z.coerce.boolean().optional() }) });
+export const validateCouponSchema = z.object({ body: z.object({ code: z.string().trim().min(1).max(50) }) });

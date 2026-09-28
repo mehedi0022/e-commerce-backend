@@ -1,0 +1,13 @@
+import type { Request, Response } from "express";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { paginatedResponse, successResponse } from "../../../utils/api-response.js";
+import { NotFoundError } from "../../../errors/AppError.js";
+import { ConflictError } from "../../../errors/AppError.js";
+import * as shipmentRepo from "../../shipment/repositories/shipment.repository.js";
+import * as service from "../services/order.service.js";
+export const list = asyncHandler(async (req: Request, res: Response) => { const q: any = req.query; const page = Number(q.page ?? 1), limit = Number(q.limit ?? 20); const rows = await service.customerList(req.auth!.userId, { ...q, page, limit }); res.json(paginatedResponse("Orders fetched successfully", rows as any[], { page, limit, total: rows.length, totalPages: rows.length === limit ? page + 1 : page })); });
+export const adminList = asyncHandler(async (req: Request, res: Response) => { const q: any = req.query; const page = Number(q.page ?? 1), limit = Number(q.limit ?? 20); const rows = await service.adminList({ ...q, page, limit }); res.json(paginatedResponse("Orders fetched successfully", rows as any[], { page, limit, total: rows.length, totalPages: rows.length === limit ? page + 1 : page })); });
+export const detail = asyncHandler(async (req: Request, res: Response) => res.json(successResponse("Order fetched successfully", await service.detail(String(req.params.orderNumber), req.auth!.userId))));
+export const guestDetail = asyncHandler(async (req: Request, res: Response) => res.json(successResponse("Order fetched successfully", await service.detail(String(req.params.orderNumber), undefined, String(req.query.accessToken ?? "")))));
+export const adminDetail = asyncHandler(async (req: Request, res: Response) => { const x: any = await (await import("../repositories/order.repository.js")).findByNumber(String(req.params.orderNumber)); if (!x) throw new NotFoundError("Order not found"); res.json(successResponse("Order fetched successfully", x)); });
+export const transition = asyncHandler(async (req: Request, res: Response) => { if (req.body.status === "SHIPPED" && await shipmentRepo.findByOrderNumber(String(req.params.orderNumber))) throw new ConflictError("Shipment workflow is required to ship this order"); res.json(successResponse("Order status updated successfully", await service.transition(String(req.params.orderNumber), req.body.status, req.auth!.userId, req.body.note))); });

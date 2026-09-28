@@ -35,6 +35,18 @@ export const permissions = {
   inventoryReadAny: "inventory:read:any",
   inventoryManage: "inventory:manage",
   shippingManage: "shipping:manage",
+  ordersReadAny: "orders:read:any",
+  ordersManage: "orders:manage",
+  couponsManage: "coupons:manage",
+  shipmentsManage: "shipments:manage",
+  returnsRead: "returns:read",
+  returnsTransition: "returns:transition",
+  returnsInspect: "returns:inspect",
+  refundsRead: "refunds:read",
+  refundsCreate: "refunds:create",
+  refundsTransition: "refunds:transition",
+  reviewsRead: "reviews:read",
+  reviewsModerate: "reviews:moderate",
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];

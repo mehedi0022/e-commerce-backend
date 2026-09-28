@@ -1,0 +1,14 @@
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { paginatedResponse, successResponse } from "../../../utils/api-response.js";
+import * as service from "../services/review.service.js";
+export const create = asyncHandler(async (req, res) => res.status(201).json(successResponse("Review created successfully", await service.create(req.auth!.userId, req.body))));
+export const mine = asyncHandler(async (req, res) => res.json(successResponse("Reviews fetched successfully", await service.mine(req.auth!.userId))));
+export const detail = asyncHandler(async (req, res) => res.json(successResponse("Review fetched successfully", await service.get(Number(req.params.id), req.auth!.userId))));
+export const update = asyncHandler(async (req, res) => res.json(successResponse("Review updated successfully", await service.update(Number(req.params.id), req.auth!.userId, req.body))));
+export const remove = asyncHandler(async (req, res) => { await service.remove(Number(req.params.id), req.auth!.userId); res.json(successResponse("Review deleted successfully", null)); });
+export const publicList = asyncHandler(async (req, res) => { const q: any = req.query; const rows = await service.publicList(String(req.params.slug), q); res.json(paginatedResponse("Reviews fetched successfully", rows as any[], { page: q.page, limit: q.limit, total: rows.length, totalPages: rows.length === q.limit ? q.page + 1 : q.page })); });
+export const summary = asyncHandler(async (req, res) => res.json(successResponse("Rating summary fetched successfully", await service.ratingSummary(String(req.params.slug)))));
+export const adminList = asyncHandler(async (req, res) => { const q: any = req.query; const rows = await service.adminList(q); res.json(paginatedResponse("Reviews fetched successfully", rows as any[], { page: q.page, limit: q.limit, total: rows.length, totalPages: rows.length === q.limit ? q.page + 1 : q.page })); });
+export const adminDetail = asyncHandler(async (req, res) => res.json(successResponse("Review fetched successfully", await service.get(Number(req.params.id)))));
+export const approve = asyncHandler(async (req, res) => res.json(successResponse("Review approved successfully", await service.approve(Number(req.params.id), req.auth!.userId))));
+export const reject = asyncHandler(async (req, res) => res.json(successResponse("Review rejected successfully", await service.reject(Number(req.params.id), req.auth!.userId))));

@@ -1,0 +1,15 @@
+import { Router } from "express";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { permissions } from "../../auth/authorization.js";
+import { requirePermission } from "../../middlewares/authorization.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as c from "./controllers/return.controller.js";
+import * as v from "./validations/return.validation.js";
+const router = Router(); router.use(authenticate);
+router.post("/orders/:orderNumber/returns", validate(v.createReturn), c.create);
+router.get("/returns", validate(v.list), c.list); router.get("/returns/:returnNumber", validate(v.returnNumber), c.detail);
+router.get("/admin/returns", requirePermission(permissions.returnsRead), validate(v.list), c.adminList);
+router.get("/admin/returns/:returnNumber", requirePermission(permissions.returnsRead), validate(v.returnNumber), c.adminDetail);
+router.post("/admin/returns/:returnNumber/transition", requirePermission(permissions.returnsTransition), validate(v.transition), c.transition);
+router.patch("/admin/returns/:returnNumber/items/:itemId", requirePermission(permissions.returnsInspect), validate(v.inspect), c.inspect);
+export default router;

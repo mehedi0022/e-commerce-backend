@@ -1,0 +1,893 @@
+[
+  {
+    "id": "table.coupon",
+    "label": "Create table \"coupon\"",
+    "summary": "Creates table \"coupon\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "coupon"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"coupon\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"coupon\"",
+        "sql": "CREATE TABLE \"public\".\"coupon\" (\n  \"code\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"discountType\" text NOT NULL,\n  \"discountValue\" numeric(12,2) NOT NULL,\n  \"expiresAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"maximumDiscountAmount\" numeric(12,2),\n  \"minimumOrderAmount\" numeric(12,2),\n  \"name\" text NOT NULL,\n  \"startsAt\" timestamptz,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"usageLimit\" int4,\n  \"usageLimitPerUser\" int4,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"coupon_discountType_check_61e0971f\" CHECK (\"discountType\" IN ('PERCENTAGE', 'FIXED_AMOUNT'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"coupon\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.coupon_usage",
+    "label": "Create table \"coupon_usage\"",
+    "summary": "Creates table \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"coupon_usage\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"coupon_usage\"",
+        "sql": "CREATE TABLE \"public\".\"coupon_usage\" (\n  \"couponId\" int4 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"orderId\" int4 NOT NULL,\n  \"usedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"userId\" int4,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"coupon_usage\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.couponCode",
+    "label": "Add column \"couponCode\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "couponCode",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"couponCode\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "couponCode"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"couponCode\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"couponCode\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"couponCode\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "couponCode"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.couponId",
+    "label": "Add column \"couponId\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "couponId",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"couponId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "couponId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"couponId\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"couponId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"couponId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "couponId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.guestAccessTokenExpiresAt",
+    "label": "Add column \"guestAccessTokenExpiresAt\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "guestAccessTokenExpiresAt",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"guestAccessTokenExpiresAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "guestAccessTokenExpiresAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"guestAccessTokenExpiresAt\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"guestAccessTokenExpiresAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"guestAccessTokenExpiresAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "guestAccessTokenExpiresAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.guestAccessTokenHash",
+    "label": "Add column \"guestAccessTokenHash\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "guestAccessTokenHash",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"guestAccessTokenHash\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "guestAccessTokenHash"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"guestAccessTokenHash\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"guestAccessTokenHash\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"guestAccessTokenHash\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "guestAccessTokenHash"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.coupon.coupon_code_key",
+    "label": "Add unique constraint on \"coupon\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "coupon_code_key",
+        "table": "coupon"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"coupon_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_code_key",
+          "public",
+          "\"public\".\"coupon\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"coupon_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"coupon\" ADD CONSTRAINT \"coupon_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"coupon_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_code_key",
+          "public",
+          "\"public\".\"coupon\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.coupon_usage.coupon_usage_couponId_orderId_key",
+    "label": "Add unique constraint on \"coupon_usage\" (couponId, orderId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "coupon_usage_couponId_orderId_key",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"coupon_usage_couponId_orderId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_couponId_orderId_key",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"coupon_usage_couponId_orderId_key\"",
+        "sql": "ALTER TABLE \"public\".\"coupon_usage\" ADD CONSTRAINT \"coupon_usage_couponId_orderId_key\" UNIQUE (\"couponId\", \"orderId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"coupon_usage_couponId_orderId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_couponId_orderId_key",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.order.order_guestAccessTokenHash_key",
+    "label": "Add unique constraint on \"order\" (guestAccessTokenHash)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "order_guestAccessTokenHash_key",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_guestAccessTokenHash_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_guestAccessTokenHash_key",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"order_guestAccessTokenHash_key\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD CONSTRAINT \"order_guestAccessTokenHash_key\" UNIQUE (\"guestAccessTokenHash\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_guestAccessTokenHash_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_guestAccessTokenHash_key",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon.coupon_expiresAt_idx_6b6b8c10",
+    "label": "Create index \"coupon_expiresAt_idx_6b6b8c10\" on \"coupon\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_expiresAt_idx_6b6b8c10",
+        "table": "coupon"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_expiresAt_idx_6b6b8c10\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_expiresAt_idx_6b6b8c10\"",
+        "sql": "CREATE INDEX \"coupon_expiresAt_idx_6b6b8c10\" ON \"public\".\"coupon\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_expiresAt_idx_6b6b8c10\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_expiresAt_idx_6b6b8c10\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon.coupon_isActive_idx_77fe3ba1",
+    "label": "Create index \"coupon_isActive_idx_77fe3ba1\" on \"coupon\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_isActive_idx_77fe3ba1",
+        "table": "coupon"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"coupon_isActive_idx_77fe3ba1\" ON \"public\".\"coupon\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_isActive_idx_77fe3ba1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon.coupon_startsAt_idx_5ff0df68",
+    "label": "Create index \"coupon_startsAt_idx_5ff0df68\" on \"coupon\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_startsAt_idx_5ff0df68",
+        "table": "coupon"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_startsAt_idx_5ff0df68\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_startsAt_idx_5ff0df68\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_startsAt_idx_5ff0df68\"",
+        "sql": "CREATE INDEX \"coupon_startsAt_idx_5ff0df68\" ON \"public\".\"coupon\" (\"startsAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_startsAt_idx_5ff0df68\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_startsAt_idx_5ff0df68\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon_usage.coupon_usage_couponId_idx_a9dd19dc",
+    "label": "Create index \"coupon_usage_couponId_idx_a9dd19dc\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_usage_couponId_idx_a9dd19dc",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_usage_couponId_idx_a9dd19dc\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_couponId_idx_a9dd19dc\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_usage_couponId_idx_a9dd19dc\"",
+        "sql": "CREATE INDEX \"coupon_usage_couponId_idx_a9dd19dc\" ON \"public\".\"coupon_usage\" (\"couponId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_usage_couponId_idx_a9dd19dc\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_couponId_idx_a9dd19dc\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon_usage.coupon_usage_couponId_usedAt_idx_7523333b",
+    "label": "Create index \"coupon_usage_couponId_usedAt_idx_7523333b\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_usage_couponId_usedAt_idx_7523333b",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_usage_couponId_usedAt_idx_7523333b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_couponId_usedAt_idx_7523333b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_usage_couponId_usedAt_idx_7523333b\"",
+        "sql": "CREATE INDEX \"coupon_usage_couponId_usedAt_idx_7523333b\" ON \"public\".\"coupon_usage\" (\"couponId\", \"usedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_usage_couponId_usedAt_idx_7523333b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_couponId_usedAt_idx_7523333b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon_usage.coupon_usage_orderId_idx_d284871b",
+    "label": "Create index \"coupon_usage_orderId_idx_d284871b\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_usage_orderId_idx_d284871b",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_usage_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_orderId_idx_d284871b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_usage_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"coupon_usage_orderId_idx_d284871b\" ON \"public\".\"coupon_usage\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_usage_orderId_idx_d284871b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_orderId_idx_d284871b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon_usage.coupon_usage_userId_couponId_idx_7ed26970",
+    "label": "Create index \"coupon_usage_userId_couponId_idx_7ed26970\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_usage_userId_couponId_idx_7ed26970",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_usage_userId_couponId_idx_7ed26970\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_userId_couponId_idx_7ed26970\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_usage_userId_couponId_idx_7ed26970\"",
+        "sql": "CREATE INDEX \"coupon_usage_userId_couponId_idx_7ed26970\" ON \"public\".\"coupon_usage\" (\"userId\", \"couponId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_usage_userId_couponId_idx_7ed26970\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_userId_couponId_idx_7ed26970\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.coupon_usage.coupon_usage_userId_idx_a489d58a",
+    "label": "Create index \"coupon_usage_userId_idx_a489d58a\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "coupon_usage_userId_idx_a489d58a",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"coupon_usage_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"coupon_usage_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"coupon_usage_userId_idx_a489d58a\" ON \"public\".\"coupon_usage\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"coupon_usage_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"coupon_usage_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order.order_couponId_idx_a9dd19dc",
+    "label": "Create index \"order_couponId_idx_a9dd19dc\" on \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_couponId_idx_a9dd19dc",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_couponId_idx_a9dd19dc\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_couponId_idx_a9dd19dc\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_couponId_idx_a9dd19dc\"",
+        "sql": "CREATE INDEX \"order_couponId_idx_a9dd19dc\" ON \"public\".\"order\" (\"couponId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_couponId_idx_a9dd19dc\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_couponId_idx_a9dd19dc\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.coupon_usage.coupon_usage_couponId_fkey",
+    "label": "Add foreign key \"coupon_usage_couponId_fkey\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "coupon_usage_couponId_fkey",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"coupon_usage_couponId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_couponId_fkey",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"coupon_usage_couponId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"coupon_usage\"\nADD CONSTRAINT \"coupon_usage_couponId_fkey\"\nFOREIGN KEY (\"couponId\")\nREFERENCES \"public\".\"coupon\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"coupon_usage_couponId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_couponId_fkey",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.coupon_usage.coupon_usage_orderId_fkey",
+    "label": "Add foreign key \"coupon_usage_orderId_fkey\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "coupon_usage_orderId_fkey",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"coupon_usage_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_orderId_fkey",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"coupon_usage_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"coupon_usage\"\nADD CONSTRAINT \"coupon_usage_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"order\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"coupon_usage_orderId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_orderId_fkey",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.coupon_usage.coupon_usage_userId_fkey",
+    "label": "Add foreign key \"coupon_usage_userId_fkey\" on \"coupon_usage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "coupon_usage_userId_fkey",
+        "table": "coupon_usage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"coupon_usage_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_userId_fkey",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"coupon_usage_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"coupon_usage\"\nADD CONSTRAINT \"coupon_usage_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"coupon_usage_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "coupon_usage_userId_fkey",
+          "public",
+          "\"public\".\"coupon_usage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.order.order_couponId_fkey",
+    "label": "Add foreign key \"order_couponId_fkey\" on \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "order_couponId_fkey",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"order_couponId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_couponId_fkey",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"order_couponId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"order\"\nADD CONSTRAINT \"order_couponId_fkey\"\nFOREIGN KEY (\"couponId\")\nREFERENCES \"public\".\"coupon\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"order_couponId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_couponId_fkey",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  }
+]

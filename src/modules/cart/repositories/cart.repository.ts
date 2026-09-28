@@ -6,7 +6,7 @@ const withItems = (q: any) => q.include("items", (i: any) => i
   .include("variant", (v: any) => v
     .select("id", "productId", "sku", "price", "isActive")
     .include("product", (p: any) => p.select("id", "name", "slug", "status"))
-    .include("inventory", (inv: any) => inv.select("quantity", "reservedQuantity"))
+    .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
     .include("attributeValues", (av: any) => av
       .include("attributeValue", (value: any) => value
         .select("id", "value")

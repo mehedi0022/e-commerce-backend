@@ -149,6 +149,33 @@ const permissionDefinitions = [
     action: "manage",
     description: "Manage shipping zones and methods",
   },
+  {
+    key: permissions.couponsManage,
+    module: "coupons",
+    action: "manage",
+    description: "Manage coupon configuration and usage",
+  },
+  {
+    key: permissions.ordersReadAny,
+    module: "orders",
+    action: "read:any",
+    description: "View customer orders",
+  },
+  {
+    key: permissions.ordersManage,
+    module: "orders",
+    action: "manage",
+    description: "Manage order status transitions",
+  },
+  { key: permissions.shipmentsManage, module: "shipments", action: "manage", description: "Manage shipment fulfillment and delivery" },
+  { key: permissions.returnsRead, module: "returns", action: "read", description: "View returns" },
+  { key: permissions.returnsTransition, module: "returns", action: "transition", description: "Transition returns" },
+  { key: permissions.returnsInspect, module: "returns", action: "inspect", description: "Inspect returned items" },
+  { key: permissions.refundsRead, module: "refunds", action: "read", description: "View refunds" },
+  { key: permissions.refundsCreate, module: "refunds", action: "create", description: "Create refunds" },
+  { key: permissions.refundsTransition, module: "refunds", action: "transition", description: "Transition refunds" },
+  { key: permissions.reviewsRead, module: "reviews", action: "read", description: "View reviews" },
+  { key: permissions.reviewsModerate, module: "reviews", action: "moderate", description: "Approve or reject reviews" },
 ] as const;
 
 const privilegedRoleKeys = new Set(["ADMIN", "SUPER_ADMIN"]);

@@ -53,7 +53,7 @@ describe("CORS and CSRF boundary", () => {
 describe("rate limiting", () => {
   it("enforces the configured global API policy", async () => {
     for (let attempt = 1; attempt <= 100; attempt += 1) {
-      expect((await request(app).get("/api/v1/missing")).status).toBe(404);
+      expect((await request(app).get("/api/v1/missing")).status).toBe(401);
     }
     expect((await request(app).get("/api/v1/missing")).status).toBe(429);
   });

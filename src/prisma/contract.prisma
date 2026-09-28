@@ -31,6 +31,119 @@ enum CartStatus {
   ABANDONED = "ABANDONED"
 }
 
+enum OrderStatus {
+  @@type("pg/text@1")
+  PENDING = "PENDING"
+  CONFIRMED = "CONFIRMED"
+  PROCESSING = "PROCESSING"
+  SHIPPED = "SHIPPED"
+  DELIVERED = "DELIVERED"
+  CANCELLED = "CANCELLED"
+}
+
+enum OrderAddressType {
+  @@type("pg/text@1")
+  SHIPPING = "SHIPPING"
+  BILLING = "BILLING"
+}
+
+enum OrderPaymentMethod {
+  @@type("pg/text@1")
+  CASH_ON_DELIVERY = "CASH_ON_DELIVERY"
+  ONLINE = "ONLINE"
+}
+
+enum OrderPaymentStatus {
+  @@type("pg/text@1")
+  UNPAID = "UNPAID"
+  PENDING = "PENDING"
+  PAID = "PAID"
+  FAILED = "FAILED"
+  REFUNDED = "REFUNDED"
+}
+
+enum CouponDiscountType {
+  @@type("pg/text@1")
+  PERCENTAGE = "PERCENTAGE"
+  FIXED_AMOUNT = "FIXED_AMOUNT"
+}
+
+enum ShipmentStatus {
+  @@type("pg/text@1")
+  PENDING = "PENDING"
+  READY_TO_SHIP = "READY_TO_SHIP"
+  SHIPPED = "SHIPPED"
+  IN_TRANSIT = "IN_TRANSIT"
+  OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
+  DELIVERED = "DELIVERED"
+  FAILED = "FAILED"
+  RETURNED = "RETURNED"
+  CANCELLED = "CANCELLED"
+}
+
+enum ReturnStatus {
+  @@type("pg/text@1")
+  REQUESTED = "REQUESTED"
+  APPROVED = "APPROVED"
+  REJECTED = "REJECTED"
+  IN_TRANSIT = "IN_TRANSIT"
+  RECEIVED = "RECEIVED"
+  COMPLETED = "COMPLETED"
+  CANCELLED = "CANCELLED"
+}
+
+enum ReturnReason {
+  @@type("pg/text@1")
+  DAMAGED = "DAMAGED"
+  DEFECTIVE = "DEFECTIVE"
+  WRONG_ITEM = "WRONG_ITEM"
+  NOT_AS_DESCRIBED = "NOT_AS_DESCRIBED"
+  SIZE_OR_FIT = "SIZE_OR_FIT"
+  CHANGED_MIND = "CHANGED_MIND"
+  OTHER = "OTHER"
+}
+
+enum ReturnItemCondition {
+  @@type("pg/text@1")
+  UNOPENED = "UNOPENED"
+  GOOD = "GOOD"
+  DAMAGED = "DAMAGED"
+  DEFECTIVE = "DEFECTIVE"
+  USED = "USED"
+}
+
+enum ReturnItemRestockStatus {
+  @@type("pg/text@1")
+  PENDING = "PENDING"
+  RESTOCKED = "RESTOCKED"
+  NOT_RESTOCKABLE = "NOT_RESTOCKABLE"
+}
+
+enum RefundStatus {
+  @@type("pg/text@1")
+  PENDING = "PENDING"
+  PROCESSING = "PROCESSING"
+  COMPLETED = "COMPLETED"
+  FAILED = "FAILED"
+  CANCELLED = "CANCELLED"
+}
+
+enum RefundMethod {
+  @@type("pg/text@1")
+  CASH = "CASH"
+  BANK_TRANSFER = "BANK_TRANSFER"
+  MOBILE_BANKING = "MOBILE_BANKING"
+  ORIGINAL_PAYMENT_METHOD = "ORIGINAL_PAYMENT_METHOD"
+  OTHER = "OTHER"
+}
+
+enum ProductReviewStatus {
+  @@type("pg/text@1")
+  PENDING = "PENDING"
+  APPROVED = "APPROVED"
+  REJECTED = "REJECTED"
+}
+
 // Database-driven RBAC foundation. `User.role` remains temporarily during the
 // expand/backfill rollout; `rbacRole` becomes the authorization source once
 // existing users have been migrated.
@@ -77,22 +190,40 @@ model RolePermission {
 }
 
 model User {
-  id              Int                  @id @default(autoincrement())
-  email           String               @unique
-  userName        String?
-  fullName        String?
-  password        String
-  createdAt       DateTime             @default(now())
-  updatedAt       temporal.updatedAt()
-  roleId          Int
-  rbacRole        Role                 @relation(fields:[roleId], references:[id], onDelete: Restrict)
-  isActive        Boolean              @default(true)
-  emailVerifiedAt DateTime?
+  id                      Int                     @id @default(autoincrement())
+  email                   String                  @unique
+  userName                String?
+  fullName                String?
+  password                String
+  createdAt               DateTime                @default(now())
+  updatedAt               temporal.updatedAt()
+  roleId                  Int
+  rbacRole                Role                    @relation(fields:[roleId], references:[id], onDelete: Restrict)
+  isActive                Boolean                 @default(true)
+  emailVerifiedAt         DateTime?
 
-  sessions        Session[]
-  accountTokens   AccountToken[]
-  carts           Cart[]
-  addresses       Address[]
+  sessions                Session[]
+  accountTokens           AccountToken[]
+  carts                   Cart[]
+  addresses               Address[]
+  orders                  Order[]
+  couponUsages            CouponUsage[]
+  changedOrderStatuses    OrderStatusHistory[]    @relation("OrderStatusChangedBy")
+  shipmentStatusChanges   ShipmentStatusHistory[] @relation("ShipmentStatusChangedBy")
+
+  returns                 Return[]
+
+  returnStatusChanges     ReturnStatusHistory[]   @relation("ReturnStatusChangedBy")
+
+  processedRefunds        Refund[]                @relation("RefundProcessedBy")
+
+  refundStatusChanges     RefundStatusHistory[]   @relation("RefundStatusChangedBy")
+
+  productReviews          ProductReview[]         @relation("ProductReviewUser")
+
+  moderatedProductReviews ProductReview[]         @relation("ProductReviewModerator")
+
+  wishlistItems           WishlistItem[]
 
   @@index([roleId])
   @@map("user")
@@ -252,6 +383,8 @@ model Product {
   categories       ProductCategory[]
   variants         ProductVariant[]
   images           ProductImage[]
+  reviews          ProductReview[]
+  wishlistItems    WishlistItem[]
 
   @@index([brandId])
   @@index([status])
@@ -548,4 +681,501 @@ model ShippingZoneMethod {
   @@index([zoneId, isActive])
   @@index([methodId])
   @@map("shipping_zone_method")
+}
+
+model Order {
+  id                        Int                  @id @default(autoincrement())
+  orderNumber               String               @unique
+  guestAccessTokenHash      String?              @unique
+  guestAccessTokenExpiresAt DateTime?
+
+  // Nullable because guest checkout is supported
+  userId                    Int?
+
+  // Customer snapshot
+  customerName              String
+  customerEmail             String?
+  customerPhone             String
+
+  status                    OrderStatus          @default(PENDING)
+  paymentMethod             OrderPaymentMethod
+  paymentStatus             OrderPaymentStatus   @default(UNPAID)
+
+  couponId                  Int?
+  couponCode                String?
+
+  // Financial snapshot
+  subtotal                  Numeric(12, 2)
+  shippingCharge            Numeric(12, 2)
+  discountAmount            Numeric(12, 2)       @default(0)
+  taxAmount                 Numeric(12, 2)       @default(0)
+  grandTotal                Numeric(12, 2)
+
+  coupon                    Coupon?              @relation(fields:[couponId], references:[id], onDelete: SetNull)
+  couponUsages              CouponUsage[]
+  shipment                  Shipment?
+
+  // Optional live references
+  shippingZoneId            Int?
+  shippingMethodId          Int?
+
+  // Historical snapshots
+  shippingZoneName          String?
+  shippingMethodName        String?
+
+  customerNote              String?
+  adminNote                 String?
+
+  placedAt                  DateTime             @default(now())
+  confirmedAt               DateTime?
+  shippedAt                 DateTime?
+  deliveredAt               DateTime?
+  cancelledAt               DateTime?
+
+  user                      User?                @relation(fields:[userId], references:[id], onDelete: SetNull)
+
+  shippingZone              ShippingZone?        @relation(fields:[shippingZoneId], references:[id], onDelete: SetNull)
+
+  shippingMethod            ShippingMethod?      @relation(fields:[shippingMethodId], references:[id], onDelete: SetNull)
+
+  items                     OrderItem[]
+  addresses                 OrderAddress[]
+  statusHistory             OrderStatusHistory[]
+  returns                   Return[]
+  refunds                   Refund[]
+
+  createdAt                 DateTime             @default(now())
+  updatedAt                 temporal.updatedAt()
+
+  @@index([couponId])
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([customerEmail])
+  @@index([customerPhone])
+  @@index([createdAt])
+  @@map("order")
+}
+
+model OrderItem {
+  id          Int                  @id @default(autoincrement())
+  orderId     Int
+  productId   Int?
+  variantId   Int?
+  productName String
+  productSlug String?
+  sku         String
+  quantity    Int
+  unitPrice   Numeric(12, 2)
+  lineTotal   Numeric(12, 2)
+  order       Order                @relation(fields:[orderId], references:[id], onDelete: Cascade)
+  product     Product?             @relation(fields:[productId], references:[id], onDelete: SetNull)
+  variant     ProductVariant?      @relation(fields:[variantId], references:[id], onDelete: SetNull)
+  attributes  OrderItemAttribute[]
+  createdAt   DateTime             @default(now())
+
+  returnItems ReturnItem[]
+  review      ProductReview?
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+  @@map("order_item")
+}
+
+model OrderItemAttribute {
+  id             Int       @id @default(autoincrement())
+  orderItemId    Int
+
+  attributeName  String
+  attributeValue String
+
+  orderItem      OrderItem @relation(fields:[orderItemId], references:[id], onDelete: Cascade)
+
+  @@index([orderItemId])
+  @@map("order_item_attribute")
+}
+
+model OrderAddress {
+  id           Int              @id @default(autoincrement())
+  orderId      Int
+
+  type         OrderAddressType
+
+  fullName     String
+  phone        String
+
+  addressLine1 String
+  addressLine2 String?
+
+  division     String?
+  district     String
+  upazila      String?
+  thana        String?
+  area         String?
+  postalCode   String?
+
+  countryCode  String
+
+  order        Order            @relation(fields:[orderId], references:[id], onDelete: Cascade)
+
+  createdAt    DateTime         @default(now())
+
+  @@unique([orderId, type])
+  @@index([orderId])
+  @@map("order_address")
+}
+
+model OrderStatusHistory {
+  id          Int          @id @default(autoincrement())
+  orderId     Int
+
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  note        String?
+  changedById Int?
+  order       Order        @relation(fields:[orderId], references:[id], onDelete: Cascade)
+  changedBy   User?        @relation("OrderStatusChangedBy", fields:[changedById], references:[id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([changedById])
+  @@map("order_status_history")
+}
+
+model Coupon {
+  id                    Int                  @id @default(autoincrement())
+
+  code                  String               @unique
+
+  name                  String
+  description           String?
+
+  discountType          CouponDiscountType
+  discountValue         Numeric(12, 2)
+
+  minimumOrderAmount    Numeric(12, 2)?
+  maximumDiscountAmount Numeric(12, 2)?
+
+  usageLimit            Int?
+  usageLimitPerUser     Int?
+
+  startsAt              DateTime?
+  expiresAt             DateTime?
+
+  isActive              Boolean              @default(true)
+
+  usages                CouponUsage[]
+  orders                Order[]
+
+  createdAt             DateTime             @default(now())
+  updatedAt             temporal.updatedAt()
+
+  @@index([isActive])
+  @@index([startsAt])
+  @@index([expiresAt])
+  @@map("coupon")
+}
+
+model CouponUsage {
+  id       Int      @id @default(autoincrement())
+
+  couponId Int
+  orderId  Int
+  userId   Int?
+
+  coupon   Coupon   @relation(fields:[couponId], references:[id], onDelete: Restrict)
+
+  order    Order    @relation(fields:[orderId], references:[id], onDelete: Cascade)
+
+  user     User?    @relation(fields:[userId], references:[id], onDelete: SetNull)
+
+  usedAt   DateTime @default(now())
+
+  @@unique([couponId, orderId])
+
+  @@index([couponId, usedAt])
+  @@index([userId, couponId])
+  @@index([orderId])
+
+  @@map("coupon_usage")
+}
+
+model Shipment {
+  id             Int                     @id @default(autoincrement())
+
+  orderId        Int                     @unique
+
+  status         ShipmentStatus          @default(PENDING)
+
+  courierName    String?
+  trackingNumber String?
+  trackingUrl    String?
+
+  note           String?
+
+  readyAt        DateTime?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  failedAt       DateTime?
+  returnedAt     DateTime?
+  cancelledAt    DateTime?
+
+  order          Order                   @relation(fields:[orderId], references:[id], onDelete: Cascade)
+
+  statusHistory  ShipmentStatusHistory[]
+
+  createdAt      DateTime                @default(now())
+  updatedAt      temporal.updatedAt()
+
+  @@index([status])
+  @@index([trackingNumber])
+  @@index([createdAt])
+
+  @@map("shipment")
+}
+
+model ShipmentStatusHistory {
+  id          Int             @id @default(autoincrement())
+
+  shipmentId  Int
+
+  fromStatus  ShipmentStatus?
+  toStatus    ShipmentStatus
+
+  note        String?
+
+  changedById Int?
+
+  shipment    Shipment        @relation(fields:[shipmentId], references:[id], onDelete: Cascade)
+
+  changedBy   User?           @relation("ShipmentStatusChangedBy", fields:[changedById], references:[id], onDelete: SetNull)
+
+  createdAt   DateTime        @default(now())
+
+  @@index([shipmentId, createdAt])
+  @@index([changedById])
+
+  @@map("shipment_status_history")
+}
+
+model Return {
+  id            Int                   @id @default(autoincrement())
+
+  returnNumber  String                @unique
+
+  orderId       Int
+  userId        Int?
+
+  status        ReturnStatus          @default(REQUESTED)
+
+  customerNote  String?
+  adminNote     String?
+
+  requestedAt   DateTime              @default(now())
+  approvedAt    DateTime?
+  rejectedAt    DateTime?
+  receivedAt    DateTime?
+  completedAt   DateTime?
+  cancelledAt   DateTime?
+
+  order         Order                 @relation(fields:[orderId], references:[id], onDelete: Restrict)
+
+  user          User?                 @relation(fields:[userId], references:[id], onDelete: SetNull)
+
+  items         ReturnItem[]
+  statusHistory ReturnStatusHistory[]
+  refunds       Refund[]
+
+  createdAt     DateTime              @default(now())
+  updatedAt     temporal.updatedAt()
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+
+  @@map("return")
+}
+
+model ReturnItem {
+  id              Int                     @id @default(autoincrement())
+
+  returnId        Int
+  orderItemId     Int
+
+  quantity        Int
+
+  reason          ReturnReason
+
+  customerNote    String?
+  adminNote       String?
+
+  condition       ReturnItemCondition?
+
+  restockStatus   ReturnItemRestockStatus @default(PENDING)
+  restockQuantity Int                     @default(0)
+
+  return          Return                  @relation(fields:[returnId], references:[id], onDelete: Cascade)
+
+  orderItem       OrderItem               @relation(fields:[orderItemId], references:[id], onDelete: Restrict)
+
+  @@unique([returnId, orderItemId])
+  @@index([orderItemId])
+
+  @@map("return_item")
+}
+
+model ReturnStatusHistory {
+  id          Int           @id @default(autoincrement())
+
+  returnId    Int
+
+  fromStatus  ReturnStatus?
+  toStatus    ReturnStatus
+
+  note        String?
+
+  changedById Int?
+
+  return      Return        @relation(fields:[returnId], references:[id], onDelete: Cascade)
+
+  changedBy   User?         @relation("ReturnStatusChangedBy", fields:[changedById], references:[id], onDelete: SetNull)
+
+  createdAt   DateTime      @default(now())
+
+  @@index([returnId, createdAt])
+  @@index([changedById])
+
+  @@map("return_status_history")
+}
+
+model Refund {
+  id            Int                   @id @default(autoincrement())
+
+  refundNumber  String                @unique
+
+  orderId       Int
+  returnId      Int?
+
+  amount        Numeric(12, 2)
+
+  status        RefundStatus          @default(PENDING)
+  method        RefundMethod?
+
+  reason        String?
+  note          String?
+
+  processedById Int?
+
+  processedAt   DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  cancelledAt   DateTime?
+
+  order         Order                 @relation(fields:[orderId], references:[id], onDelete: Restrict)
+
+  return        Return?               @relation(fields:[returnId], references:[id], onDelete: SetNull)
+
+  processedBy   User?                 @relation("RefundProcessedBy", fields:[processedById], references:[id], onDelete: SetNull)
+
+  statusHistory RefundStatusHistory[]
+
+  createdAt     DateTime              @default(now())
+  updatedAt     temporal.updatedAt()
+
+  @@index([orderId])
+  @@index([returnId])
+  @@index([status])
+  @@index([createdAt])
+
+  @@map("refund")
+}
+
+model RefundStatusHistory {
+  id          Int           @id @default(autoincrement())
+
+  refundId    Int
+
+  fromStatus  RefundStatus?
+  toStatus    RefundStatus
+
+  note        String?
+
+  changedById Int?
+
+  refund      Refund        @relation(fields:[refundId], references:[id], onDelete: Cascade)
+
+  changedBy   User?         @relation("RefundStatusChangedBy", fields:[changedById], references:[id], onDelete: SetNull)
+
+  createdAt   DateTime      @default(now())
+
+  @@index([refundId, createdAt])
+  @@index([changedById])
+
+  @@map("refund_status_history")
+}
+
+model ProductReview {
+  id                 Int                  @id @default(autoincrement())
+
+  productId          Int
+  userId             Int
+  orderItemId        Int
+
+  rating             Int
+
+  title              String?
+  comment            String?
+
+  status             ProductReviewStatus  @default(PENDING)
+
+  isVerifiedPurchase Boolean              @default(true)
+
+  approvedAt         DateTime?
+  rejectedAt         DateTime?
+
+  moderatedById      Int?
+
+  product            Product              @relation(fields:[productId], references:[id], onDelete: Cascade)
+
+  user               User                 @relation("ProductReviewUser", fields:[userId], references:[id], onDelete: Cascade)
+
+  orderItem          OrderItem            @relation(fields:[orderItemId], references:[id], onDelete: Restrict)
+
+  moderatedBy        User?                @relation("ProductReviewModerator", fields:[moderatedById], references:[id], onDelete: SetNull)
+
+  createdAt          DateTime             @default(now())
+  updatedAt          temporal.updatedAt()
+
+  @@unique([orderItemId])
+  @@unique([userId, productId])
+
+  @@index([productId, status])
+  @@index([productId, rating])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+
+  @@map("product_review")
+}
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+
+  userId    Int
+  productId Int
+
+  user      User     @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  product   Product  @relation(fields:[productId], references:[id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+
+  @@index([userId, createdAt])
+  @@index([productId])
+
+  @@map("wishlist_item")
 }

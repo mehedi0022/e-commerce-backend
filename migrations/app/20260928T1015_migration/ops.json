@@ -1,0 +1,482 @@
+[
+  {
+    "id": "table.shipment",
+    "label": "Create table \"shipment\"",
+    "summary": "Creates table \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipment\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipment\"",
+        "sql": "CREATE TABLE \"public\".\"shipment\" (\n  \"cancelledAt\" timestamptz,\n  \"courierName\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"deliveredAt\" timestamptz,\n  \"failedAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"note\" text,\n  \"orderId\" int4 NOT NULL,\n  \"readyAt\" timestamptz,\n  \"returnedAt\" timestamptz,\n  \"shippedAt\" timestamptz,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  \"trackingNumber\" text,\n  \"trackingUrl\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"shipment_status_check_806dcd4d\" CHECK (\"status\" IN ('PENDING', 'READY_TO_SHIP', 'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'RETURNED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipment\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shipment_status_history",
+    "label": "Create table \"shipment_status_history\"",
+    "summary": "Creates table \"shipment_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipment_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipment_status_history\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipment_status_history\"",
+        "sql": "CREATE TABLE \"public\".\"shipment_status_history\" (\n  \"changedById\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"fromStatus\" text,\n  \"id\" SERIAL NOT NULL,\n  \"note\" text,\n  \"shipmentId\" int4 NOT NULL,\n  \"toStatus\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"shipment_status_history_fromStatus_check_bf36b07a\" CHECK (\"fromStatus\" IN ('PENDING', 'READY_TO_SHIP', 'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'RETURNED', 'CANCELLED')),\n  CONSTRAINT \"shipment_status_history_toStatus_check_0fe4bec5\" CHECK (\"toStatus\" IN ('PENDING', 'READY_TO_SHIP', 'SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'RETURNED', 'CANCELLED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipment_status_history\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.shipment.shipment_orderId_key",
+    "label": "Add unique constraint on \"shipment\" (orderId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "shipment_orderId_key",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"shipment_orderId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_orderId_key",
+          "public",
+          "\"public\".\"shipment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"shipment_orderId_key\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\" ADD CONSTRAINT \"shipment_orderId_key\" UNIQUE (\"orderId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"shipment_orderId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_orderId_key",
+          "public",
+          "\"public\".\"shipment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment.shipment_createdAt_idx_9575dbd7",
+    "label": "Create index \"shipment_createdAt_idx_9575dbd7\" on \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_createdAt_idx_9575dbd7",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"shipment_createdAt_idx_9575dbd7\" ON \"public\".\"shipment\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment.shipment_status_idx_e98638ab",
+    "label": "Create index \"shipment_status_idx_e98638ab\" on \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_status_idx_e98638ab",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"shipment_status_idx_e98638ab\" ON \"public\".\"shipment\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment.shipment_trackingNumber_idx_abd2abb3",
+    "label": "Create index \"shipment_trackingNumber_idx_abd2abb3\" on \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_trackingNumber_idx_abd2abb3",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_trackingNumber_idx_abd2abb3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_trackingNumber_idx_abd2abb3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_trackingNumber_idx_abd2abb3\"",
+        "sql": "CREATE INDEX \"shipment_trackingNumber_idx_abd2abb3\" ON \"public\".\"shipment\" (\"trackingNumber\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_trackingNumber_idx_abd2abb3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_trackingNumber_idx_abd2abb3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment_status_history.shipment_status_history_changedById_idx_d6e6aadb",
+    "label": "Create index \"shipment_status_history_changedById_idx_d6e6aadb\" on \"shipment_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_status_history_changedById_idx_d6e6aadb",
+        "table": "shipment_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_status_history_changedById_idx_d6e6aadb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_status_history_changedById_idx_d6e6aadb\"",
+        "sql": "CREATE INDEX \"shipment_status_history_changedById_idx_d6e6aadb\" ON \"public\".\"shipment_status_history\" (\"changedById\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_status_history_changedById_idx_d6e6aadb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history_changedById_idx_d6e6aadb\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment_status_history.shipment_status_history_shipmentId_createdAt_idx_0050e6c3",
+    "label": "Create index \"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\" on \"shipment_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_status_history_shipmentId_createdAt_idx_0050e6c3",
+        "table": "shipment_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\"",
+        "sql": "CREATE INDEX \"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\" ON \"public\".\"shipment_status_history\" (\"shipmentId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history_shipmentId_createdAt_idx_0050e6c3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment_status_history.shipment_status_history_shipmentId_idx_e3606ec1",
+    "label": "Create index \"shipment_status_history_shipmentId_idx_e3606ec1\" on \"shipment_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_status_history_shipmentId_idx_e3606ec1",
+        "table": "shipment_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_status_history_shipmentId_idx_e3606ec1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history_shipmentId_idx_e3606ec1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_status_history_shipmentId_idx_e3606ec1\"",
+        "sql": "CREATE INDEX \"shipment_status_history_shipmentId_idx_e3606ec1\" ON \"public\".\"shipment_status_history\" (\"shipmentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_status_history_shipmentId_idx_e3606ec1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_status_history_shipmentId_idx_e3606ec1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipment.shipment_orderId_fkey",
+    "label": "Add foreign key \"shipment_orderId_fkey\" on \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipment_orderId_fkey",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipment_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_orderId_fkey",
+          "public",
+          "\"public\".\"shipment\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipment_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\"\nADD CONSTRAINT \"shipment_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"order\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipment_orderId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_orderId_fkey",
+          "public",
+          "\"public\".\"shipment\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipment_status_history.shipment_status_history_shipmentId_fkey",
+    "label": "Add foreign key \"shipment_status_history_shipmentId_fkey\" on \"shipment_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipment_status_history_shipmentId_fkey",
+        "table": "shipment_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipment_status_history_shipmentId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_status_history_shipmentId_fkey",
+          "public",
+          "\"public\".\"shipment_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipment_status_history_shipmentId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipment_status_history\"\nADD CONSTRAINT \"shipment_status_history_shipmentId_fkey\"\nFOREIGN KEY (\"shipmentId\")\nREFERENCES \"public\".\"shipment\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipment_status_history_shipmentId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_status_history_shipmentId_fkey",
+          "public",
+          "\"public\".\"shipment_status_history\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipment_status_history.shipment_status_history_changedById_fkey",
+    "label": "Add foreign key \"shipment_status_history_changedById_fkey\" on \"shipment_status_history\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipment_status_history_changedById_fkey",
+        "table": "shipment_status_history"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipment_status_history_changedById_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_status_history_changedById_fkey",
+          "public",
+          "\"public\".\"shipment_status_history\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipment_status_history_changedById_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipment_status_history\"\nADD CONSTRAINT \"shipment_status_history_changedById_fkey\"\nFOREIGN KEY (\"changedById\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipment_status_history_changedById_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipment_status_history_changedById_fkey",
+          "public",
+          "\"public\".\"shipment_status_history\""
+        ]
+      }
+    ]
+  }
+]

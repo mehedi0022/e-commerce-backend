@@ -57,20 +57,8 @@ const requireInventory = async (variantId: number) => {
   return x;
 };
 export const restock = async (variantId: number, data: QuantityInput) => {
-  const x = await requireInventory(variantId);
-  return db.transaction(async (tx) => {
-    const updated = await repo.update(tx, x.id, {
-      quantity: x.quantity + data.quantity,
-    });
-    await repo.movement(tx, x.id, {
-      type: "RESTOCK",
-      quantity: data.quantity,
-      note: data.note ?? null,
-      referenceType: data.referenceType ?? null,
-      referenceId: data.referenceId ?? null,
-    });
-    return view(updated);
-  });
+  const x = await restockStock(variantId, data.quantity, undefined, { movementType: "RESTOCK", note: data.note ?? undefined, referenceType: data.referenceType ?? undefined, referenceId: data.referenceId ?? undefined });
+  return view(x);
 };
 export const damage = async (variantId: number, data: QuantityInput) => {
   const x = await requireInventory(variantId);
@@ -114,47 +102,45 @@ export const history = async (variantId: number, query: MovementQuery) => {
   if (!result) throw new NotFoundError("Inventory is not initialized");
   return result;
 };
-export const reserveStock = async (variantId: number, quantity: number) => {
+export const reserveStock = async (variantId: number, quantity: number, tx?: any) => {
   if (quantity <= 0)
     throw new ValidationError("Reservation quantity must be positive");
   const x = await requireInventory(variantId);
-  if (quantity > x.quantity - x.reservedQuantity)
-    throw new ConflictError("Insufficient available stock");
-  return db.transaction((tx) =>
-    repo.update(tx, x.id, { reservedQuantity: x.reservedQuantity + quantity }),
-  );
+  const execute = async (client: any) => { const updated = await repo.reserveIfAvailable(client, x.id, quantity); if (!updated) throw new ConflictError("Insufficient available stock"); return updated; };
+  return tx ? execute(tx) : db.transaction(execute);
 };
-export const releaseStock = async (variantId: number, quantity: number) => {
+export const releaseStock = async (variantId: number, quantity: number, tx?: any, reference?: { referenceType?: string; referenceId?: string }) => {
   if (quantity <= 0)
     throw new ValidationError("Release quantity must be positive");
   const x = await requireInventory(variantId);
-  if (quantity > x.reservedQuantity)
-    throw new ConflictError("Cannot release more than reserved stock");
-  return db.transaction((tx) =>
-    repo.update(tx, x.id, { reservedQuantity: x.reservedQuantity - quantity }),
-  );
+  const execute = async (client: any) => { const updated = await repo.releaseIfReserved(client, x.id, quantity); if (!updated) throw new ConflictError("Cannot release more than reserved stock"); if (reference) await repo.movement(client, x.id, { type: "ORDER_CANCELLED", quantity: 0, referenceType: reference.referenceType ?? null, referenceId: reference.referenceId ?? null }); return updated; };
+  return tx ? execute(tx) : db.transaction(execute);
 };
 export const commitReservedStock = async (
   variantId: number,
   quantity: number,
   reference?: { referenceType?: string; referenceId?: string },
+  tx?: any,
 ) => {
   if (quantity <= 0)
     throw new ValidationError("Commit quantity must be positive");
   const x = await requireInventory(variantId);
-  if (quantity > x.reservedQuantity)
-    throw new ConflictError("Cannot commit more than reserved stock");
-  return db.transaction(async (tx) => {
-    const updated = await repo.update(tx, x.id, {
-      quantity: x.quantity - quantity,
-      reservedQuantity: x.reservedQuantity - quantity,
-    });
-    await repo.movement(tx, x.id, {
+  const execute = async (client: any) => {
+    const updated = await repo.commitIfReserved(client, x.id, quantity);
+    if (!updated) throw new ConflictError("Cannot commit more than reserved stock");
+    await repo.movement(client, x.id, {
       type: "ORDER",
       quantity: -quantity,
       referenceType: reference?.referenceType ?? null,
       referenceId: reference?.referenceId ?? null,
     });
     return updated;
-  });
+  };
+  return tx ? execute(tx) : db.transaction(execute);
+};
+export const restockStock = async (variantId: number, quantity: number, tx?: any, reference?: { referenceType?: string; referenceId?: string; note?: string; movementType?: "RESTOCK" | "RETURN" }) => {
+  if (quantity <= 0) throw new ValidationError("Restock quantity must be positive");
+  const x = await requireInventory(variantId);
+  const execute = async (client: any) => { const updated = await repo.restockAtomic(client, x.id, quantity); if (!updated) throw new NotFoundError("Inventory is not initialized"); await repo.movement(client, x.id, { type: reference?.movementType ?? "RETURN", quantity, referenceType: reference?.referenceType ?? null, referenceId: reference?.referenceId ?? null, note: reference?.note ?? null }); return updated; };
+  return tx ? execute(tx) : db.transaction(execute);
 };

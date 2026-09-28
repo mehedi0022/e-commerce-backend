@@ -1,0 +1,10 @@
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { paginatedResponse, successResponse } from "../../../utils/api-response.js";
+import * as service from "../services/return.service.js";
+export const create = asyncHandler(async (req, res) => res.status(201).json(successResponse("Return requested successfully", await service.create(String(req.params.orderNumber), req.auth!.userId, req.body))));
+export const list = asyncHandler(async (req, res) => { const q: any = req.query; const rows: any[] = await service.list(q, req.auth!.userId); res.json(paginatedResponse("Returns fetched successfully", rows, { page: q.page, limit: q.limit, total: rows.length, totalPages: rows.length === q.limit ? q.page + 1 : q.page })); });
+export const adminList = asyncHandler(async (req, res) => { const q: any = req.query; const rows: any[] = await service.list(q); res.json(paginatedResponse("Returns fetched successfully", rows, { page: q.page, limit: q.limit, total: rows.length, totalPages: rows.length === q.limit ? q.page + 1 : q.page })); });
+export const detail = asyncHandler(async (req, res) => res.json(successResponse("Return fetched successfully", await service.get(String(req.params.returnNumber), req.auth!.userId))));
+export const adminDetail = asyncHandler(async (req, res) => res.json(successResponse("Return fetched successfully", await service.get(String(req.params.returnNumber)))));
+export const transition = asyncHandler(async (req, res) => res.json(successResponse("Return status updated successfully", await service.transition(String(req.params.returnNumber), req.body.status, req.auth!.userId, req.body.note))));
+export const inspect = asyncHandler(async (req, res) => res.json(successResponse("Return item inspected successfully", await service.inspect(String(req.params.returnNumber), Number(req.params.itemId), req.body, req.auth!.userId))));

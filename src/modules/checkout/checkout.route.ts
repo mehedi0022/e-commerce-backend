@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { z } from "zod";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as c from "./controllers/checkout.controller.js";
+import * as v from "./validations/checkout.validation.js";
+const router = Router();
+router.post("/checkout", authenticate, validate(z.object({ body: v.checkoutSchema })), c.authenticated);
+router.post("/checkout/guest", validate(z.object({ body: v.guestCheckoutSchema })), c.guest);
+export default router;

@@ -1,0 +1,1 @@
+export type CheckoutInput = { shippingMethodId: number; paymentMethod: "CASH_ON_DELIVERY" | "ONLINE"; customerNote?: string; shippingAddressId?: number; billingAddressId?: number; billingSameAsShipping: boolean; customer?: { name: string; email?: string; phone: string }; shippingAddress?: any; billingAddress?: any };
