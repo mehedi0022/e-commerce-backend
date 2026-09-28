@@ -9,7 +9,7 @@ describe("application boot", () => {
       .get("/api/v1/not-a-route")
       .set("x-request-id", "test-request-id");
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
     expect(response.body).toMatchObject({ success: false });
     expect(response.headers["x-request-id"]).toBe("test-request-id");
     expect(response.body.requestId).toBe("test-request-id");

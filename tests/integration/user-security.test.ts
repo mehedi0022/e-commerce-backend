@@ -272,8 +272,8 @@ describe("user API security boundary", () => {
       .delete("/api/v1/users/1")
       .set("Cookie", `accessToken=${adminToken}`);
 
-    expect(forbidden.status).toBe(403);
-    expect(deleted.status).toBe(403);
+    expect(forbidden.status).toBe(404);
+    expect(deleted.status).toBe(404);
   });
 
   it("validates protected user-creation input before authorization", async () => {

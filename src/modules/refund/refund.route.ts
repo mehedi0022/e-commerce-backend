@@ -5,7 +5,11 @@ import { requirePermission } from "../../middlewares/authorization.middleware.js
 import { validate } from "../../middlewares/validate.middleware.js";
 import * as c from "./controllers/refund.controller.js";
 import * as v from "./validations/refund.validation.js";
-const router = Router(); router.use(authenticate, requirePermission(permissions.refundsRead));
+const router = Router();
+router.use((req, res, next) => {
+  const ownsPath = req.path.startsWith("/admin/refunds") || req.path.startsWith("/admin/returns/");
+  return ownsPath ? authenticate(req, res, (error) => error ? next(error) : requirePermission(permissions.refundsRead)(req, res, next)) : next();
+});
 router.get("/admin/refunds", validate(v.list), c.list); router.get("/admin/refunds/:refundNumber", validate(v.number), c.detail);
 router.post("/admin/returns/:returnNumber/refunds", requirePermission(permissions.refundsCreate), validate(v.create), c.create);
 router.post("/admin/refunds/:refundNumber/transition", requirePermission(permissions.refundsTransition), validate(v.transition), c.transition);

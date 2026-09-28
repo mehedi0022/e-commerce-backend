@@ -5,7 +5,11 @@ import { requirePermission } from "../../middlewares/authorization.middleware.js
 import { validate } from "../../middlewares/validate.middleware.js";
 import * as c from "./controllers/return.controller.js";
 import * as v from "./validations/return.validation.js";
-const router = Router(); router.use(authenticate);
+const router = Router();
+router.use((req, res, next) => {
+  const ownsPath = req.path.startsWith("/orders/") || req.path.startsWith("/returns") || req.path.startsWith("/admin/returns");
+  return ownsPath ? authenticate(req, res, next) : next();
+});
 router.post("/orders/:orderNumber/returns", validate(v.createReturn), c.create);
 router.get("/returns", validate(v.list), c.list); router.get("/returns/:returnNumber", validate(v.returnNumber), c.detail);
 router.get("/admin/returns", requirePermission(permissions.returnsRead), validate(v.list), c.adminList);

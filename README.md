@@ -1,4 +1,4 @@
-# Express TypeScript Starter
+# E-Commerce Backend API
 
 ## Session lifecycle
 
@@ -71,7 +71,7 @@ from PostgreSQL on every protected request, so role changes take effect
 immediately. New registrations default to `USER` at the database layer.
 
 Persisted roles are `SUPER_ADMIN`, `ADMIN`, `USER`, `CUSTOMER`, `MODERATOR`,
-`AUTHOR`, and `MANAGER`. The starter deliberately grants global user-management
+`AUTHOR`, and `MANAGER`. The platform deliberately grants global user-management
 permissions only to `SUPER_ADMIN` and `ADMIN`; all other roles start with the
 same ownership-only access and can receive explicit permissions later.
 
@@ -103,3 +103,121 @@ without changing route policy. Redis store failures are fail-closed.
 count or trusted proxy network. `TRUST_PROXY=true` is rejected in production
 because it permits clients to spoof forwarding headers when the last proxy is
 not guaranteed to sanitize them.
+
+## Local development
+
+Install dependencies and configure `.env` from `.env.example`:
+
+```bash
+npm install
+npm run dev
+```
+
+The API runs on `http://localhost:5000` by default. Swagger UI is available at
+`http://localhost:5000/api-docs` and the raw OpenAPI document is available at
+`http://localhost:5000/api-docs.json`.
+
+Run the checks with:
+
+```bash
+npm run typecheck
+npm run test:integration
+```
+
+Database integration tests are opt-in. Set `RUN_DATABASE_TESTS=true` and point
+`TEST_DATABASE_URL` to an isolated test database before running them. Never use
+the production database for tests.
+
+## Product, variant, and inventory workflow
+
+Products, variants, and inventory are separate resources. Create them in this
+order:
+
+```text
+Category attributes → Product → Product variant → Inventory
+```
+
+If a variant uses attributes, first assign those attributes to the product's
+category and create their values. Otherwise the variant API rejects the request
+with `An attribute is not allowed for the product category`.
+
+### 1. Assign attributes to the category
+
+```http
+PUT /api/v1/categories/{categoryId}/attributes
+```
+
+```json
+{
+  "attributes": [
+    { "attributeId": 1, "isRequired": true, "sortOrder": 0 }
+  ]
+}
+```
+
+### 2. Create the product
+
+```http
+POST /api/v1/products
+```
+
+```json
+{
+  "name": "Nike Air Max",
+  "shortDescription": "Running shoe",
+  "brandId": 1,
+  "status": "DRAFT",
+  "categories": [
+    { "categoryId": 1, "isPrimary": true, "sortOrder": 0 }
+  ]
+}
+```
+
+The backend generates a unique `slug`; clients must not send one. Save the
+returned `data.id` as `productId`.
+
+### 3. Create a variant
+
+```http
+POST /api/v1/products/{productId}/variants
+```
+
+```json
+{
+  "sku": "NIKE-AIR-MAX-BLACK-42",
+  "price": "2000.00",
+  "compareAtPrice": "2500.00",
+  "costPrice": "1000.00",
+  "attributeValueIds": [5, 8],
+  "isActive": true,
+  "sortOrder": 0
+}
+```
+
+Save the returned `data.id` as `variantId`.
+
+### 4. Initialize inventory
+
+```http
+POST /api/v1/variants/{variantId}/inventory/initialize
+```
+
+```json
+{
+  "quantity": 100,
+  "lowStockThreshold": 10
+}
+```
+
+An active product should have at least one active variant with initialized
+inventory before checkout. Product creation can remain in `DRAFT` while
+variants and stock are being configured.
+
+## API response conventions
+
+Successful responses use `success: true`, a message, and a `data` property.
+Paginated endpoints also return `meta` with `page`, `limit`, `total`, and
+`totalPages`. Errors use `success: false`, a stable error `code`, and a
+`requestId` for log correlation. Common codes include `VALIDATION_ERROR`,
+`AUTHENTICATION_ERROR`, `AUTHORIZATION_ERROR`, `NOT_FOUND`, `CONFLICT`, and
+`RATE_LIMITED`.

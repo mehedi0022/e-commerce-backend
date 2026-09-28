@@ -5,7 +5,10 @@ import { validate } from "../../middlewares/validate.middleware.js";
 import { permissions } from "../../auth/authorization.js";
 import * as c from "./controllers/inventory.controller.js";
 import * as v from "./validations/inventory.validation.js";
-const router = Router(); router.use(requireAuth);
+const router = Router();
+router.use((req, res, next) =>
+  req.path.startsWith("/variants/") ? requireAuth(req, res, next) : next(),
+);
 router.post("/variants/:variantId/inventory/initialize", validate(v.initializeSchema), requirePermission(permissions.inventoryManage), c.initialize);
 router.get("/variants/:variantId/inventory", validate(v.variantIdSchema), requirePermission(permissions.inventoryReadAny), c.get);
 router.post("/variants/:variantId/inventory/restock", validate(v.quantitySchema), requirePermission(permissions.inventoryManage), c.restock);

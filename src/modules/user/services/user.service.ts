@@ -93,7 +93,6 @@ export const registerUser = async (data: RegisterUserInput) => {
     throw new NotFoundError("Default registration role not found");
   }
 
-  console.log(config.smtp.enabled);
 
   const existingUser = await userRepository.findUserIdByEmail(email);
 

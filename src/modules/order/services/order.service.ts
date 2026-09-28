@@ -7,6 +7,7 @@ import * as shipping from "../../shipping/services/shipping.service.js";
 import * as repo from "../repositories/order.repository.js";
 import * as couponService from "../../coupon/services/coupon.service.js";
 import * as inventory from "../../inventory/services/inventory.service.js";
+import type { OrderListQuery } from "../order.types.js";
 
 const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
 const orderNumber = () => `ORD-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Date.now().toString().slice(-6)}-${randomBytes(2).toString("hex")}`;
@@ -53,7 +54,7 @@ export const checkout = async (input: any, userId?: number, guestToken?: string)
   return safe;
 };
 
-export const customerList = (userId: number, query: any) => repo.list({ ...query, userId });
-export const adminList = (query: any) => repo.list(query);
+export const customerList = (userId: number, query: OrderListQuery) => repo.list({ ...query, userId });
+export const adminList = (query: OrderListQuery) => repo.list(query);
 export const detail = async (number: string, userId?: number, accessToken?: string) => { const x: any = userId ? await repo.findByNumber(number) : accessToken ? await repo.findGuest(number, tokenHash(accessToken)) : null; if (!x || (userId && x.userId !== userId) || (!userId && (!x.guestAccessTokenExpiresAt || new Date(x.guestAccessTokenExpiresAt).getTime() < Date.now()))) throw new NotFoundError("Order not found"); return x; };
 export const transition = async (number: string, toStatus: string, changedById: number, note?: string) => { const current: any = await repo.findByNumber(number); if (!current) throw new NotFoundError("Order not found"); const allowed: Record<string, string[]> = { PENDING: ["CONFIRMED", "CANCELLED"], CONFIRMED: ["PROCESSING", "CANCELLED"], PROCESSING: [], SHIPPED: ["DELIVERED"] }; if (!allowed[current.status]?.includes(toStatus)) throw new ConflictError(`Cannot move order from ${current.status} to ${toStatus}; use Shipment fulfillment for shipping`); return db.transaction(async (tx: any) => { if (toStatus === "CANCELLED") for (const item of current.items) { if (!item.variantId) continue; await inventory.releaseStock(item.variantId, item.quantity, tx, { referenceType: "ORDER", referenceId: current.orderNumber }); } const data: any = { status: toStatus }; if (toStatus === "CONFIRMED") data.confirmedAt = new Date(); if (toStatus === "DELIVERED") data.deliveredAt = new Date(); if (toStatus === "CANCELLED") data.cancelledAt = new Date(); const updated = await repo.update(tx, current.id, data); await repo.history(tx, { orderId: current.id, fromStatus: current.status, toStatus, note: note ?? null, changedById }); return updated; }); };

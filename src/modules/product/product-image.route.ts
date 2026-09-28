@@ -6,7 +6,10 @@ import { imageUpload } from "../upload/upload.middleware.js";
 import { permissions } from "../../auth/authorization.js";
 import * as c from "./controllers/product-image.controller.js";
 import * as v from "./validations/product-image.route.validation.js";
-const router = Router(); router.use(requireAuth);
+const router = Router();
+router.use((req, res, next) =>
+  req.path.startsWith("/products/") ? requireAuth(req, res, next) : next(),
+);
 router.get("/products/:productId/images", validate(v.productImages), requirePermission(permissions.productsReadAny), c.list);
 router.post("/products/:productId/images", validate(v.productImages), imageUpload.single("image"), requirePermission(permissions.productsUpdateAny), c.create);
 router.patch("/products/:productId/images/:imageId", validate(v.imageId), imageUpload.single("image"), requirePermission(permissions.productsUpdateAny), c.update);

@@ -6,7 +6,11 @@ import { permissions } from "../../auth/authorization.js";
 import * as c from "./controllers/shipping.controller.js";
 import * as v from "./validations/shipping.validation.js";
 const router = Router();
-router.use(requireAuth);
+router.use((req, res, next) => {
+  const ownsPath = ["/addresses", "/shipping-zones", "/shipping-methods", "/shipping/options"]
+    .some((prefix) => req.path.startsWith(prefix));
+  return ownsPath ? requireAuth(req, res, next) : next();
+});
 router.get("/addresses", c.addresses); router.post("/addresses", validate(v.createAddress), c.createAddress); router.get("/addresses/:addressId", validate(v.addressId), c.address); router.patch("/addresses/:addressId", validate(v.updateAddress), c.updateAddress); router.delete("/addresses/:addressId", validate(v.addressId), c.deleteAddress); router.patch("/addresses/:addressId/default-shipping", validate(v.addressId), c.defaultShipping); router.patch("/addresses/:addressId/default-billing", validate(v.addressId), c.defaultBilling);
 const manage = requirePermission(permissions.shippingManage);
 router.get("/shipping-zones", manage, c.zones); router.post("/shipping-zones", manage, validate(v.zoneBody), c.createZone); router.get("/shipping-zones/:zoneId", manage, validate(v.zoneId), c.zone); router.patch("/shipping-zones/:zoneId", manage, validate(v.zoneId), c.updateZone); router.delete("/shipping-zones/:zoneId", manage, validate(v.zoneId), c.deleteZone);

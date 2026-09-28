@@ -51,11 +51,12 @@ export const create = async (data: CreateProductInput) => {
   const slug = await uniqueSlug(data.name, async (s) =>
     Boolean(await repo.findBySlug(s)),
   );
-  return db.transaction(async (tx) => {
+  const created = await db.transaction(async (tx) => {
     const product = await repo.create(tx, { ...data, slug });
     await sync(tx, product.id, data.categories);
-    return get(product.id);
+    return product;
   });
+  return get(created.id);
 };
 
 export const update = async (id: number, data: UpdateProductInput) => {
@@ -67,11 +68,11 @@ export const update = async (id: number, data: UpdateProductInput) => {
         return Boolean(x && x.id !== id);
       })
     : undefined;
-  return db.transaction(async (tx) => {
+  await db.transaction(async (tx) => {
     await repo.update(tx, id, { ...data, ...(slug ? { slug } : {}) });
     await sync(tx, id, data.categories);
-    return get(id);
   });
+  return get(id);
 };
 
 export const remove = async (id: number) => {

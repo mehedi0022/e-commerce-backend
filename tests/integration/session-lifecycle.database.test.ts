@@ -8,7 +8,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { getTestDatabaseUrl } from "../helpers/test-database.js";
 
 const databaseTestsEnabled = process.env.RUN_DATABASE_TESTS === "true";
-const frontendOrigin = "http://localhost:3000";
+let frontendOrigin = "http://localhost:3000";
 
 describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
   let app: Awaited<typeof import("../../src/app.js")>["default"];
@@ -24,6 +24,7 @@ describe.skipIf(!databaseTestsEnabled)("session and logout lifecycle", () => {
   const users: Array<{ id: number; email: string; password: string }> = [];
 
   beforeAll(async () => {
+    frontendOrigin = (process.env.CORS_ORIGINS ?? frontendOrigin).split(",")[0].trim();
     process.env.DATABASE_URL = getTestDatabaseUrl();
     process.env.DATABASE_MIGRATION_URL = process.env.DATABASE_URL;
     process.env.DATABASE_TLS_MODE = "verify-full";
