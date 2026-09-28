@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { optionalAuthenticate } from "../../middlewares/auth.middleware.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import * as c from "./controllers/cart.controller.js";
+import * as v from "./validations/cart.validation.js";
+const router = Router(); router.use(optionalAuthenticate);
+router.get("/cart", c.get);
+router.post("/cart/items", validate(v.addCartItemSchema), c.add);
+router.patch("/cart/items/:itemId", validate(v.updateCartItemSchema), c.update);
+router.delete("/cart/items/:itemId", validate(v.cartItemSchema), c.remove);
+router.delete("/cart/items", c.clear);
+export default router;

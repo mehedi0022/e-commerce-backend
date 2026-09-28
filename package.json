@@ -23,8 +23,9 @@
     "db:format": "npx prisma contract format",
     "db:verify": "npx prisma db verify",
     "db:status": "npx prisma migration status",
-    "db:plan": "npx prisma migration plan",
-    "db:migrate": "npx prisma db migrate"
+    "db:plan": "npm run db:emit && npx prisma migration plan",
+    "db:migrate": "npx prisma db migrate --advance-ref db",
+    "db:migrate:deploy": "npx prisma db migrate"
   },
   "keywords": [],
   "author": "",
@@ -51,6 +52,7 @@
     "qs": "6.16.0",
     "rate-limit-redis": "^6.0.1",
     "redis": "^6.2.1",
+    "slugify": "^1.6.9",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "temporal-polyfill": "^1.0.4",

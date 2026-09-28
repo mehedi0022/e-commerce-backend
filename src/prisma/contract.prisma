@@ -5,6 +5,32 @@ enum AccountTokenType {
   EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
 }
 
+enum ProductStatus {
+  @@type("pg/text@1")
+  DRAFT = "DRAFT"
+  ACTIVE = "ACTIVE"
+  INACTIVE = "INACTIVE"
+  ARCHIVED = "ARCHIVED"
+}
+
+enum InventoryMovementType {
+  @@type("pg/text@1")
+  INITIAL_STOCK = "INITIAL_STOCK"
+  RESTOCK = "RESTOCK"
+  ORDER = "ORDER"
+  ORDER_CANCELLED = "ORDER_CANCELLED"
+  RETURN = "RETURN"
+  DAMAGED = "DAMAGED"
+  ADJUSTMENT = "ADJUSTMENT"
+}
+
+enum CartStatus {
+  @@type("pg/text@1")
+  ACTIVE = "ACTIVE"
+  CONVERTED = "CONVERTED"
+  ABANDONED = "ABANDONED"
+}
+
 // Database-driven RBAC foundation. `User.role` remains temporarily during the
 // expand/backfill rollout; `rbacRole` becomes the authorization source once
 // existing users have been migrated.
@@ -65,6 +91,8 @@ model User {
 
   sessions        Session[]
   accountTokens   AccountToken[]
+  carts           Cart[]
+  addresses       Address[]
 
   @@index([roleId])
   @@map("user")
@@ -105,4 +133,419 @@ model AccountToken {
   @@index([userId, type])
   @@index([expiresAt])
   @@map("accountToken")
+}
+
+model Category {
+  id          Int                  @id @default(autoincrement())
+  name        String               @unique
+  slug        String               @unique
+  description String?
+  image       String?
+  parentId    Int?
+
+  parent      Category?            @relation("CategoryHierarchy", fields:[parentId], references:[id], onDelete: SetNull)
+  children    Category[]           @relation("CategoryHierarchy")
+
+  products    ProductCategory[]
+
+  isActive    Boolean              @default(true)
+  sortOrder   Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@map("category")
+}
+
+model Brand {
+  id          Int                  @id @default(autoincrement())
+  name        String               @unique
+  slug        String               @unique
+  logo        String?
+  description String?
+  isActive    Boolean              @default(true)
+  sortOrder   Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  products    Product[]
+
+  @@map("brand")
+}
+
+model Attribute {
+  id         Int                  @id @default(autoincrement())
+  name       String               @unique
+  slug       String               @unique
+
+  isActive   Boolean              @default(true)
+  sortOrder  Int                  @default(0)
+
+  createdAt  DateTime             @default(now())
+  updatedAt  temporal.updatedAt()
+
+  values     AttributeValue[]
+  categories CategoryAttribute[]
+
+  @@index([isActive, sortOrder])
+  @@map("attribute")
+}
+
+model AttributeValue {
+  id            Int                          @id @default(autoincrement())
+  attributeId   Int
+  value         String
+  slug          String
+  sortOrder     Int                          @default(0)
+  isActive      Boolean                      @default(true)
+
+  createdAt     DateTime                     @default(now())
+  updatedAt     temporal.updatedAt()
+
+  attribute     Attribute                    @relation(fields:[attributeId], references:[id], onDelete: Cascade)
+
+  variants      VariantAttributeValue[]
+  productImages ProductImageAttributeValue[]
+
+  @@unique([attributeId, value])
+  @@unique([attributeId, slug])
+  @@index([attributeId, isActive, sortOrder])
+  @@map("attribute_value")
+}
+
+model CategoryAttribute {
+  id          Int                  @id @default(autoincrement())
+  categoryId  Int
+  attributeId Int
+
+  isRequired  Boolean              @default(false)
+  sortOrder   Int                  @default(0)
+
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  category    Category             @relation(fields:[categoryId], references:[id], onDelete: Cascade)
+
+  attribute   Attribute            @relation(fields:[attributeId], references:[id], onDelete: Cascade)
+
+  @@unique([categoryId, attributeId])
+  @@index([categoryId, sortOrder])
+  @@index([attributeId])
+  @@map("category_attribute")
+}
+
+model Product {
+  id               Int                  @id @default(autoincrement())
+  name             String
+  slug             String               @unique
+  shortDescription String?
+  description      String?
+
+  brandId          Int?
+  brand            Brand?               @relation(fields:[brandId], references:[id], onDelete: SetNull)
+
+  status           ProductStatus        @default(DRAFT)
+  isFeatured       Boolean              @default(false)
+
+  createdAt        DateTime             @default(now())
+  updatedAt        temporal.updatedAt()
+
+  categories       ProductCategory[]
+  variants         ProductVariant[]
+  images           ProductImage[]
+
+  @@index([brandId])
+  @@index([status])
+  @@index([isFeatured])
+  @@map("product")
+}
+
+model ProductCategory {
+  productId  Int
+  categoryId Int
+  isPrimary  Boolean  @default(false)
+  sortOrder  Int      @default(0)
+
+  product    Product  @relation(fields:[productId], references:[id], onDelete: Cascade)
+
+  category   Category @relation(fields:[categoryId], references:[id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+
+  @@id([productId, categoryId])
+  @@index([categoryId])
+  @@index([productId, isPrimary])
+  @@map("product_category")
+}
+
+model ProductVariant {
+  id              Int                     @id @default(autoincrement())
+  productId       Int
+  sku             String                  @unique
+
+  price           Numeric(12, 2)
+  compareAtPrice  Numeric(12, 2)?
+  costPrice       Numeric(12, 2)?
+
+  isActive        Boolean                 @default(true)
+  sortOrder       Int                     @default(0)
+
+  product         Product                 @relation(fields:[productId], references:[id], onDelete: Cascade)
+
+  attributeValues VariantAttributeValue[]
+  inventory       Inventory?
+
+  createdAt       DateTime                @default(now())
+  updatedAt       temporal.updatedAt()
+
+  cartItems       CartItem[]
+
+  @@index([productId, isActive])
+  @@map("product_variant")
+}
+
+model VariantAttributeValue {
+  variantId        Int
+  attributeValueId Int
+
+  variant          ProductVariant @relation(fields:[variantId], references:[id], onDelete: Cascade)
+
+  attributeValue   AttributeValue @relation(fields:[attributeValueId], references:[id], onDelete: Restrict)
+
+  @@id([variantId, attributeValueId])
+  @@index([attributeValueId])
+  @@map("variant_attribute_value")
+}
+
+model Inventory {
+  id                Int                  @id @default(autoincrement())
+  variantId         Int                  @unique
+
+  quantity          Int                  @default(0)
+  reservedQuantity  Int                  @default(0)
+  lowStockThreshold Int                  @default(5)
+
+  variant           ProductVariant       @relation(fields:[variantId], references:[id], onDelete: Cascade)
+
+  movements         InventoryMovement[]
+
+  createdAt         DateTime             @default(now())
+  updatedAt         temporal.updatedAt()
+
+  @@map("inventory")
+}
+
+model InventoryMovement {
+  id            Int                   @id @default(autoincrement())
+  inventoryId   Int
+
+  type          InventoryMovementType
+  quantity      Int
+
+  referenceType String?
+  referenceId   String?
+  note          String?
+
+  inventory     Inventory             @relation(fields:[inventoryId], references:[id], onDelete: Cascade)
+
+  createdAt     DateTime              @default(now())
+
+  @@index([inventoryId, createdAt])
+  @@index([referenceType, referenceId])
+  @@map("inventory_movement")
+}
+
+model ProductImage {
+  id              Int                          @id @default(autoincrement())
+  productId       Int
+
+  imageUrl        String
+  storageKey      String?
+  altText         String?
+
+  isPrimary       Boolean                      @default(false)
+  sortOrder       Int                          @default(0)
+
+  product         Product                      @relation(fields:[productId], references:[id], onDelete: Cascade)
+
+  attributeValues ProductImageAttributeValue[]
+
+  createdAt       DateTime                     @default(now())
+  updatedAt       temporal.updatedAt()
+
+  @@index([productId, sortOrder])
+  @@index([productId, isPrimary])
+  @@map("product_image")
+}
+
+model ProductImageAttributeValue {
+  productImageId   Int
+  attributeValueId Int
+
+  productImage     ProductImage   @relation(fields:[productImageId], references:[id], onDelete: Cascade)
+
+  attributeValue   AttributeValue @relation(fields:[attributeValueId], references:[id], onDelete: Cascade)
+
+  @@id([productImageId, attributeValueId])
+  @@index([attributeValueId])
+  @@map("product_image_attribute_value")
+}
+
+model Cart {
+  id         Int                  @id @default(autoincrement())
+  userId     Int?
+  guestToken String?              @unique
+  status     CartStatus           @default(ACTIVE)
+
+  expiresAt  DateTime?
+
+  user       User?                @relation(fields:[userId], references:[id], onDelete: Cascade)
+  items      CartItem[]
+
+  createdAt  DateTime             @default(now())
+  updatedAt  temporal.updatedAt()
+
+  @@index([userId, status])
+  @@index([status, expiresAt])
+  @@map("cart")
+}
+
+model CartItem {
+  id        Int                  @id @default(autoincrement())
+  cartId    Int
+  variantId Int
+  quantity  Int                  @default(1)
+
+  cart      Cart                 @relation(fields:[cartId], references:[id], onDelete: Cascade)
+
+  variant   ProductVariant       @relation(fields:[variantId], references:[id], onDelete: Cascade)
+
+  createdAt DateTime             @default(now())
+  updatedAt temporal.updatedAt()
+
+  @@unique([cartId, variantId])
+  @@index([variantId])
+  @@map("cart_item")
+}
+
+model Address {
+  id                Int                  @id @default(autoincrement())
+  userId            Int
+
+  label             String?
+  fullName          String
+  phone             String
+
+  addressLine1      String
+  addressLine2      String?
+
+  division          String?
+  district          String
+  upazila           String?
+  thana             String?
+  area              String?
+  postalCode        String?
+
+  countryCode       String               @default("BD")
+
+  isDefaultShipping Boolean              @default(false)
+  isDefaultBilling  Boolean              @default(false)
+
+  user              User                 @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  createdAt         DateTime             @default(now())
+  updatedAt         temporal.updatedAt()
+
+  @@index([userId])
+  @@index([userId, isDefaultShipping])
+  @@index([userId, isDefaultBilling])
+  @@index([countryCode, district])
+  @@map("address")
+}
+
+model ShippingZone {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  description String?
+
+  isActive    Boolean              @default(true)
+  sortOrder   Int                  @default(0)
+
+  areas       ShippingZoneArea[]
+  methods     ShippingZoneMethod[]
+
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@index([isActive, sortOrder])
+  @@map("shipping_zone")
+}
+
+model ShippingZoneArea {
+  id          Int                  @id @default(autoincrement())
+  zoneId      Int
+
+  countryCode String               @default("BD")
+
+  division    String?
+  district    String?
+  upazila     String?
+  thana       String?
+  area        String?
+
+  postalCode  String?
+
+  zone        ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
+
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@index([zoneId])
+  @@index([countryCode, district])
+  @@index([district, thana])
+  @@index([district, upazila])
+  @@map("shipping_zone_area")
+}
+
+model ShippingMethod {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  code        String               @unique
+  description String?
+
+  isActive    Boolean              @default(true)
+  sortOrder   Int                  @default(0)
+
+  zoneMethods ShippingZoneMethod[]
+
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@index([isActive, sortOrder])
+  @@map("shipping_method")
+}
+
+model ShippingZoneMethod {
+  id               Int                  @id @default(autoincrement())
+  zoneId           Int
+  methodId         Int
+
+  charge           Numeric(12, 2)
+
+  estimatedMinDays Int?
+  estimatedMaxDays Int?
+
+  isActive         Boolean              @default(true)
+  sortOrder        Int                  @default(0)
+
+  zone             ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
+
+  method           ShippingMethod       @relation(fields:[methodId], references:[id], onDelete: Cascade)
+
+  createdAt        DateTime             @default(now())
+  updatedAt        temporal.updatedAt()
+
+  @@unique([zoneId, methodId])
+  @@index([zoneId, isActive])
+  @@index([methodId])
+  @@map("shipping_zone_method")
 }

@@ -51,3 +51,15 @@ export const authenticate: RequestHandler = async (req, _res, next) => {
 };
 
 export const requireAuth = authenticate;
+
+export const optionalAuthenticate: RequestHandler = async (req, _res, next) => {
+  const token = req.cookies?.[accessTokenCookieName];
+  if (!token || typeof token !== "string") return next();
+  try {
+    const claims = verifyAccessToken(token);
+    const user = await findAuthorizationUserById(claims.userId);
+    if (!user?.isActive || !user.rbacRole) return next();
+    req.auth = { userId: user.id, roleId: user.rbacRole.id, roleKey: user.rbacRole.key, roleRank: user.rbacRole.rank, permissions: user.rbacRole.rolePermissions.flatMap(({ permission }) => permission ? [permission.key] : []) };
+  } catch { /* invalid access token is treated as guest for cart requests */ }
+  next();
+};

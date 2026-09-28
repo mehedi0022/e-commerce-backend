@@ -1,0 +1,956 @@
+[
+  {
+    "id": "table.address",
+    "label": "Create table \"address\"",
+    "summary": "Creates table \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"address\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"address\"",
+        "sql": "CREATE TABLE \"public\".\"address\" (\n  \"addressLine1\" text NOT NULL,\n  \"addressLine2\" text,\n  \"area\" text,\n  \"countryCode\" text DEFAULT 'BD' NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"district\" text NOT NULL,\n  \"division\" text,\n  \"fullName\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isDefaultBilling\" bool DEFAULT false NOT NULL,\n  \"isDefaultShipping\" bool DEFAULT false NOT NULL,\n  \"label\" text,\n  \"phone\" text NOT NULL,\n  \"postalCode\" text,\n  \"thana\" text,\n  \"upazila\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"address\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shipping_method",
+    "label": "Create table \"shipping_method\"",
+    "summary": "Creates table \"shipping_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipping_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipping_method\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_method\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipping_method\"",
+        "sql": "CREATE TABLE \"public\".\"shipping_method\" (\n  \"code\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" text NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipping_method\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_method\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shipping_zone",
+    "label": "Create table \"shipping_zone\"",
+    "summary": "Creates table \"shipping_zone\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipping_zone"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipping_zone\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipping_zone\"",
+        "sql": "CREATE TABLE \"public\".\"shipping_zone\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"name\" text NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipping_zone\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shipping_zone_area",
+    "label": "Create table \"shipping_zone_area\"",
+    "summary": "Creates table \"shipping_zone_area\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipping_zone_area\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipping_zone_area\"",
+        "sql": "CREATE TABLE \"public\".\"shipping_zone_area\" (\n  \"area\" text,\n  \"countryCode\" text DEFAULT 'BD' NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"district\" text,\n  \"division\" text,\n  \"id\" SERIAL NOT NULL,\n  \"postalCode\" text,\n  \"thana\" text,\n  \"upazila\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"zoneId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipping_zone_area\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shipping_zone_method",
+    "label": "Create table \"shipping_zone_method\"",
+    "summary": "Creates table \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipping_zone_method\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipping_zone_method\"",
+        "sql": "CREATE TABLE \"public\".\"shipping_zone_method\" (\n  \"charge\" numeric(12,2) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"estimatedMaxDays\" int4,\n  \"estimatedMinDays\" int4,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"methodId\" int4 NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"zoneId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipping_zone_method\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.shipping_method.shipping_method_code_key",
+    "label": "Add unique constraint on \"shipping_method\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "shipping_method_code_key",
+        "table": "shipping_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"shipping_method_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_method_code_key",
+          "public",
+          "\"public\".\"shipping_method\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"shipping_method_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_method\" ADD CONSTRAINT \"shipping_method_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"shipping_method_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_method_code_key",
+          "public",
+          "\"public\".\"shipping_method\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.shipping_zone_method.shipping_zone_method_zoneId_methodId_key",
+    "label": "Add unique constraint on \"shipping_zone_method\" (zoneId, methodId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "shipping_zone_method_zoneId_methodId_key",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"shipping_zone_method_zoneId_methodId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_method_zoneId_methodId_key",
+          "public",
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"shipping_zone_method_zoneId_methodId_key\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_zone_method\" ADD CONSTRAINT \"shipping_zone_method_zoneId_methodId_key\" UNIQUE (\"zoneId\", \"methodId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"shipping_zone_method_zoneId_methodId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_method_zoneId_methodId_key",
+          "public",
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.address.address_countryCode_district_idx_52e170dc",
+    "label": "Create index \"address_countryCode_district_idx_52e170dc\" on \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "address_countryCode_district_idx_52e170dc",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"address_countryCode_district_idx_52e170dc\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_countryCode_district_idx_52e170dc\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"address_countryCode_district_idx_52e170dc\"",
+        "sql": "CREATE INDEX \"address_countryCode_district_idx_52e170dc\" ON \"public\".\"address\" (\"countryCode\", \"district\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"address_countryCode_district_idx_52e170dc\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_countryCode_district_idx_52e170dc\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.address.address_userId_idx_a489d58a",
+    "label": "Create index \"address_userId_idx_a489d58a\" on \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "address_userId_idx_a489d58a",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"address_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"address_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"address_userId_idx_a489d58a\" ON \"public\".\"address\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"address_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.address.address_userId_isDefaultBilling_idx_3c3e82fc",
+    "label": "Create index \"address_userId_isDefaultBilling_idx_3c3e82fc\" on \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "address_userId_isDefaultBilling_idx_3c3e82fc",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"address_userId_isDefaultBilling_idx_3c3e82fc\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_userId_isDefaultBilling_idx_3c3e82fc\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"address_userId_isDefaultBilling_idx_3c3e82fc\"",
+        "sql": "CREATE INDEX \"address_userId_isDefaultBilling_idx_3c3e82fc\" ON \"public\".\"address\" (\"userId\", \"isDefaultBilling\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"address_userId_isDefaultBilling_idx_3c3e82fc\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_userId_isDefaultBilling_idx_3c3e82fc\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.address.address_userId_isDefaultShipping_idx_5fc8b42b",
+    "label": "Create index \"address_userId_isDefaultShipping_idx_5fc8b42b\" on \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "address_userId_isDefaultShipping_idx_5fc8b42b",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"address_userId_isDefaultShipping_idx_5fc8b42b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_userId_isDefaultShipping_idx_5fc8b42b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"address_userId_isDefaultShipping_idx_5fc8b42b\"",
+        "sql": "CREATE INDEX \"address_userId_isDefaultShipping_idx_5fc8b42b\" ON \"public\".\"address\" (\"userId\", \"isDefaultShipping\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"address_userId_isDefaultShipping_idx_5fc8b42b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_userId_isDefaultShipping_idx_5fc8b42b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_method.shipping_method_isActive_sortOrder_idx_43c1fe34",
+    "label": "Create index \"shipping_method_isActive_sortOrder_idx_43c1fe34\" on \"shipping_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_method_isActive_sortOrder_idx_43c1fe34",
+        "table": "shipping_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_method_isActive_sortOrder_idx_43c1fe34\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_method_isActive_sortOrder_idx_43c1fe34\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_method_isActive_sortOrder_idx_43c1fe34\"",
+        "sql": "CREATE INDEX \"shipping_method_isActive_sortOrder_idx_43c1fe34\" ON \"public\".\"shipping_method\" (\"isActive\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_method_isActive_sortOrder_idx_43c1fe34\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_method_isActive_sortOrder_idx_43c1fe34\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone.shipping_zone_isActive_sortOrder_idx_43c1fe34",
+    "label": "Create index \"shipping_zone_isActive_sortOrder_idx_43c1fe34\" on \"shipping_zone\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_isActive_sortOrder_idx_43c1fe34",
+        "table": "shipping_zone"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_isActive_sortOrder_idx_43c1fe34\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_isActive_sortOrder_idx_43c1fe34\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_isActive_sortOrder_idx_43c1fe34\"",
+        "sql": "CREATE INDEX \"shipping_zone_isActive_sortOrder_idx_43c1fe34\" ON \"public\".\"shipping_zone\" (\"isActive\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_isActive_sortOrder_idx_43c1fe34\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_isActive_sortOrder_idx_43c1fe34\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_area.shipping_zone_area_countryCode_district_idx_52e170dc",
+    "label": "Create index \"shipping_zone_area_countryCode_district_idx_52e170dc\" on \"shipping_zone_area\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_area_countryCode_district_idx_52e170dc",
+        "table": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_area_countryCode_district_idx_52e170dc\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_countryCode_district_idx_52e170dc\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_area_countryCode_district_idx_52e170dc\"",
+        "sql": "CREATE INDEX \"shipping_zone_area_countryCode_district_idx_52e170dc\" ON \"public\".\"shipping_zone_area\" (\"countryCode\", \"district\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_area_countryCode_district_idx_52e170dc\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_countryCode_district_idx_52e170dc\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_area.shipping_zone_area_district_thana_idx_448bdee4",
+    "label": "Create index \"shipping_zone_area_district_thana_idx_448bdee4\" on \"shipping_zone_area\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_area_district_thana_idx_448bdee4",
+        "table": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_area_district_thana_idx_448bdee4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_district_thana_idx_448bdee4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_area_district_thana_idx_448bdee4\"",
+        "sql": "CREATE INDEX \"shipping_zone_area_district_thana_idx_448bdee4\" ON \"public\".\"shipping_zone_area\" (\"district\", \"thana\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_area_district_thana_idx_448bdee4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_district_thana_idx_448bdee4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_area.shipping_zone_area_district_upazila_idx_58c7a7f7",
+    "label": "Create index \"shipping_zone_area_district_upazila_idx_58c7a7f7\" on \"shipping_zone_area\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_area_district_upazila_idx_58c7a7f7",
+        "table": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_area_district_upazila_idx_58c7a7f7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_district_upazila_idx_58c7a7f7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_area_district_upazila_idx_58c7a7f7\"",
+        "sql": "CREATE INDEX \"shipping_zone_area_district_upazila_idx_58c7a7f7\" ON \"public\".\"shipping_zone_area\" (\"district\", \"upazila\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_area_district_upazila_idx_58c7a7f7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_district_upazila_idx_58c7a7f7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_area.shipping_zone_area_zoneId_idx_1b631e86",
+    "label": "Create index \"shipping_zone_area_zoneId_idx_1b631e86\" on \"shipping_zone_area\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_area_zoneId_idx_1b631e86",
+        "table": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_area_zoneId_idx_1b631e86\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_zoneId_idx_1b631e86\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_area_zoneId_idx_1b631e86\"",
+        "sql": "CREATE INDEX \"shipping_zone_area_zoneId_idx_1b631e86\" ON \"public\".\"shipping_zone_area\" (\"zoneId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_area_zoneId_idx_1b631e86\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area_zoneId_idx_1b631e86\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_method.shipping_zone_method_methodId_idx_537a2e84",
+    "label": "Create index \"shipping_zone_method_methodId_idx_537a2e84\" on \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_method_methodId_idx_537a2e84",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_method_methodId_idx_537a2e84\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method_methodId_idx_537a2e84\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_method_methodId_idx_537a2e84\"",
+        "sql": "CREATE INDEX \"shipping_zone_method_methodId_idx_537a2e84\" ON \"public\".\"shipping_zone_method\" (\"methodId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_method_methodId_idx_537a2e84\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method_methodId_idx_537a2e84\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_method.shipping_zone_method_zoneId_idx_1b631e86",
+    "label": "Create index \"shipping_zone_method_zoneId_idx_1b631e86\" on \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_method_zoneId_idx_1b631e86",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_method_zoneId_idx_1b631e86\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method_zoneId_idx_1b631e86\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_method_zoneId_idx_1b631e86\"",
+        "sql": "CREATE INDEX \"shipping_zone_method_zoneId_idx_1b631e86\" ON \"public\".\"shipping_zone_method\" (\"zoneId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_method_zoneId_idx_1b631e86\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method_zoneId_idx_1b631e86\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_method.shipping_zone_method_zoneId_isActive_idx_2f744d3a",
+    "label": "Create index \"shipping_zone_method_zoneId_isActive_idx_2f744d3a\" on \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_method_zoneId_isActive_idx_2f744d3a",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_method_zoneId_isActive_idx_2f744d3a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method_zoneId_isActive_idx_2f744d3a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_method_zoneId_isActive_idx_2f744d3a\"",
+        "sql": "CREATE INDEX \"shipping_zone_method_zoneId_isActive_idx_2f744d3a\" ON \"public\".\"shipping_zone_method\" (\"zoneId\", \"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_method_zoneId_isActive_idx_2f744d3a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_method_zoneId_isActive_idx_2f744d3a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.address.address_userId_fkey",
+    "label": "Add foreign key \"address_userId_fkey\" on \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "address_userId_fkey",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"address_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "address_userId_fkey",
+          "public",
+          "\"public\".\"address\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"address_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"address\"\nADD CONSTRAINT \"address_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"address_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "address_userId_fkey",
+          "public",
+          "\"public\".\"address\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipping_zone_area.shipping_zone_area_zoneId_fkey",
+    "label": "Add foreign key \"shipping_zone_area_zoneId_fkey\" on \"shipping_zone_area\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipping_zone_area_zoneId_fkey",
+        "table": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipping_zone_area_zoneId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_area_zoneId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_area\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipping_zone_area_zoneId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_zone_area\"\nADD CONSTRAINT \"shipping_zone_area_zoneId_fkey\"\nFOREIGN KEY (\"zoneId\")\nREFERENCES \"public\".\"shipping_zone\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipping_zone_area_zoneId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_area_zoneId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_area\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipping_zone_method.shipping_zone_method_zoneId_fkey",
+    "label": "Add foreign key \"shipping_zone_method_zoneId_fkey\" on \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipping_zone_method_zoneId_fkey",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipping_zone_method_zoneId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_method_zoneId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipping_zone_method_zoneId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_zone_method\"\nADD CONSTRAINT \"shipping_zone_method_zoneId_fkey\"\nFOREIGN KEY (\"zoneId\")\nREFERENCES \"public\".\"shipping_zone\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipping_zone_method_zoneId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_method_zoneId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipping_zone_method.shipping_zone_method_methodId_fkey",
+    "label": "Add foreign key \"shipping_zone_method_methodId_fkey\" on \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipping_zone_method_methodId_fkey",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipping_zone_method_methodId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_method_methodId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipping_zone_method_methodId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_zone_method\"\nADD CONSTRAINT \"shipping_zone_method_methodId_fkey\"\nFOREIGN KEY (\"methodId\")\nREFERENCES \"public\".\"shipping_method\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipping_zone_method_methodId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_method_methodId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_method\""
+        ]
+      }
+    ]
+  }
+]

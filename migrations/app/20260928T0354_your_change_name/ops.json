@@ -1,0 +1,404 @@
+[
+  {
+    "id": "table.product_variant",
+    "label": "Create table \"product_variant\"",
+    "summary": "Creates table \"product_variant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "product_variant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"product_variant\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_variant\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"product_variant\"",
+        "sql": "CREATE TABLE \"public\".\"product_variant\" (\n  \"compareAtPrice\" numeric(12,2),\n  \"costPrice\" numeric(12,2),\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"price\" numeric(12,2) NOT NULL,\n  \"productId\" int4 NOT NULL,\n  \"sku\" text NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"product_variant\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_variant\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.variant_attribute_value",
+    "label": "Create table \"variant_attribute_value\"",
+    "summary": "Creates table \"variant_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "variant_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"variant_attribute_value\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"variant_attribute_value\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"variant_attribute_value\"",
+        "sql": "CREATE TABLE \"public\".\"variant_attribute_value\" (\n  \"attributeValueId\" int4 NOT NULL,\n  \"variantId\" int4 NOT NULL,\n  PRIMARY KEY (\"variantId\", \"attributeValueId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"variant_attribute_value\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"variant_attribute_value\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.product_variant.product_variant_sku_key",
+    "label": "Add unique constraint on \"product_variant\" (sku)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "product_variant_sku_key",
+        "table": "product_variant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"product_variant_sku_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_variant_sku_key",
+          "public",
+          "\"public\".\"product_variant\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"product_variant_sku_key\"",
+        "sql": "ALTER TABLE \"public\".\"product_variant\" ADD CONSTRAINT \"product_variant_sku_key\" UNIQUE (\"sku\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"product_variant_sku_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_variant_sku_key",
+          "public",
+          "\"public\".\"product_variant\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_variant.product_variant_productId_idx_5858600a",
+    "label": "Create index \"product_variant_productId_idx_5858600a\" on \"product_variant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_variant_productId_idx_5858600a",
+        "table": "product_variant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_variant_productId_idx_5858600a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_variant_productId_idx_5858600a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_variant_productId_idx_5858600a\"",
+        "sql": "CREATE INDEX \"product_variant_productId_idx_5858600a\" ON \"public\".\"product_variant\" (\"productId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_variant_productId_idx_5858600a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_variant_productId_idx_5858600a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_variant.product_variant_productId_isActive_idx_5ca2948a",
+    "label": "Create index \"product_variant_productId_isActive_idx_5ca2948a\" on \"product_variant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_variant_productId_isActive_idx_5ca2948a",
+        "table": "product_variant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_variant_productId_isActive_idx_5ca2948a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_variant_productId_isActive_idx_5ca2948a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_variant_productId_isActive_idx_5ca2948a\"",
+        "sql": "CREATE INDEX \"product_variant_productId_isActive_idx_5ca2948a\" ON \"public\".\"product_variant\" (\"productId\", \"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_variant_productId_isActive_idx_5ca2948a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_variant_productId_isActive_idx_5ca2948a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.variant_attribute_value.variant_attribute_value_attributeValueId_idx_3b32dbec",
+    "label": "Create index \"variant_attribute_value_attributeValueId_idx_3b32dbec\" on \"variant_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "variant_attribute_value_attributeValueId_idx_3b32dbec",
+        "table": "variant_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"variant_attribute_value_attributeValueId_idx_3b32dbec\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"variant_attribute_value_attributeValueId_idx_3b32dbec\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"variant_attribute_value_attributeValueId_idx_3b32dbec\"",
+        "sql": "CREATE INDEX \"variant_attribute_value_attributeValueId_idx_3b32dbec\" ON \"public\".\"variant_attribute_value\" (\"attributeValueId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"variant_attribute_value_attributeValueId_idx_3b32dbec\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"variant_attribute_value_attributeValueId_idx_3b32dbec\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.variant_attribute_value.variant_attribute_value_variantId_idx_e16bb45d",
+    "label": "Create index \"variant_attribute_value_variantId_idx_e16bb45d\" on \"variant_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "variant_attribute_value_variantId_idx_e16bb45d",
+        "table": "variant_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"variant_attribute_value_variantId_idx_e16bb45d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"variant_attribute_value_variantId_idx_e16bb45d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"variant_attribute_value_variantId_idx_e16bb45d\"",
+        "sql": "CREATE INDEX \"variant_attribute_value_variantId_idx_e16bb45d\" ON \"public\".\"variant_attribute_value\" (\"variantId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"variant_attribute_value_variantId_idx_e16bb45d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"variant_attribute_value_variantId_idx_e16bb45d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_variant.product_variant_productId_fkey",
+    "label": "Add foreign key \"product_variant_productId_fkey\" on \"product_variant\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_variant_productId_fkey",
+        "table": "product_variant"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_variant_productId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_variant_productId_fkey",
+          "public",
+          "\"public\".\"product_variant\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_variant_productId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_variant\"\nADD CONSTRAINT \"product_variant_productId_fkey\"\nFOREIGN KEY (\"productId\")\nREFERENCES \"public\".\"product\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_variant_productId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_variant_productId_fkey",
+          "public",
+          "\"public\".\"product_variant\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.variant_attribute_value.variant_attribute_value_variantId_fkey",
+    "label": "Add foreign key \"variant_attribute_value_variantId_fkey\" on \"variant_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "variant_attribute_value_variantId_fkey",
+        "table": "variant_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"variant_attribute_value_variantId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "variant_attribute_value_variantId_fkey",
+          "public",
+          "\"public\".\"variant_attribute_value\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"variant_attribute_value_variantId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"variant_attribute_value\"\nADD CONSTRAINT \"variant_attribute_value_variantId_fkey\"\nFOREIGN KEY (\"variantId\")\nREFERENCES \"public\".\"product_variant\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"variant_attribute_value_variantId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "variant_attribute_value_variantId_fkey",
+          "public",
+          "\"public\".\"variant_attribute_value\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.variant_attribute_value.variant_attribute_value_attributeValueId_fkey",
+    "label": "Add foreign key \"variant_attribute_value_attributeValueId_fkey\" on \"variant_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "variant_attribute_value_attributeValueId_fkey",
+        "table": "variant_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"variant_attribute_value_attributeValueId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "variant_attribute_value_attributeValueId_fkey",
+          "public",
+          "\"public\".\"variant_attribute_value\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"variant_attribute_value_attributeValueId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"variant_attribute_value\"\nADD CONSTRAINT \"variant_attribute_value_attributeValueId_fkey\"\nFOREIGN KEY (\"attributeValueId\")\nREFERENCES \"public\".\"attribute_value\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"variant_attribute_value_attributeValueId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "variant_attribute_value_attributeValueId_fkey",
+          "public",
+          "\"public\".\"variant_attribute_value\""
+        ]
+      }
+    ]
+  }
+]

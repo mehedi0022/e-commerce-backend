@@ -99,6 +99,56 @@ const permissionDefinitions = [
     action: "permissions:manage",
     description: "Create and manage permissions",
   },
+  ...([
+    [permissions.categoriesReadAny, "read:any", "View categories"],
+    [permissions.categoriesCreate, "create", "Create categories"],
+    [permissions.categoriesUpdateAny, "update:any", "Update categories"],
+    [permissions.categoriesDeleteAny, "delete:any", "Delete categories"],
+    [permissions.categoriesChangeStatus, "change-status", "Activate or deactivate categories"],
+    [permissions.categoriesReorder, "reorder", "Reorder categories"],
+  ] as const).map(([key, action, description]) => ({ key, module: "categories", action, description })),
+  ...([
+    [permissions.brandsReadAny, "read:any", "View brands"],
+    [permissions.brandsCreate, "create", "Create brands"],
+    [permissions.brandsUpdateAny, "update:any", "Update brands"],
+    [permissions.brandsDeleteAny, "delete:any", "Delete brands"],
+    [permissions.brandsChangeStatus, "change-status", "Activate or deactivate brands"],
+    [permissions.brandsReorder, "reorder", "Reorder brands"],
+  ] as const).map(([key, action, description]) => ({ key, module: "brands", action, description })),
+  ...([
+    [permissions.attributesReadAny, "read:any", "View attributes"],
+    [permissions.attributesCreate, "create", "Create attributes"],
+    [permissions.attributesUpdateAny, "update:any", "Update attributes"],
+    [permissions.attributesDeleteAny, "delete:any", "Delete attributes"],
+    [permissions.attributesChangeStatus, "change-status", "Activate or deactivate attributes"],
+    [permissions.attributeValuesCreate, "values:create", "Create attribute values"],
+    [permissions.attributeValuesUpdate, "values:update", "Update attribute values"],
+    [permissions.attributeValuesDelete, "values:delete", "Delete attribute values"],
+  ] as const).map(([key, action, description]) => ({ key, module: "attributes", action, description })),
+  ...([
+    [permissions.productsReadAny, "read:any", "View products"],
+    [permissions.productsCreate, "create", "Create products"],
+    [permissions.productsUpdateAny, "update:any", "Update products"],
+    [permissions.productsDeleteAny, "delete:any", "Delete products"],
+  ] as const).map(([key, action, description]) => ({ key, module: "products", action, description })),
+  {
+    key: permissions.inventoryReadAny,
+    module: "inventory",
+    action: "read:any",
+    description: "View inventory and movement history",
+  },
+  {
+    key: permissions.inventoryManage,
+    module: "inventory",
+    action: "manage",
+    description: "Manage stock operations",
+  },
+  {
+    key: permissions.shippingManage,
+    module: "shipping",
+    action: "manage",
+    description: "Manage shipping zones and methods",
+  },
 ] as const;
 
 const privilegedRoleKeys = new Set(["ADMIN", "SUPER_ADMIN"]);

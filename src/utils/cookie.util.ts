@@ -53,3 +53,13 @@ export const refreshTokenLegacyClearCookieOptions: CookieOptions = {
 };
 
 export const refreshTokenCookieName = config.cookie.name;
+
+export const guestCartCookieName = "guest_cart";
+export const guestCartCookieOptions: CookieOptions = {
+  httpOnly: true,
+  secure: config.cookie.secure,
+  sameSite: config.cookie.sameSite,
+  domain: config.cookie.domain,
+  path: "/",
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+};

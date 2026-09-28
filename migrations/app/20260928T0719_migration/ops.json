@@ -1,0 +1,722 @@
+[
+  {
+    "id": "table.inventory",
+    "label": "Create table \"inventory\"",
+    "summary": "Creates table \"inventory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "inventory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"inventory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"inventory\"",
+        "sql": "CREATE TABLE \"public\".\"inventory\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"lowStockThreshold\" int4 DEFAULT 5 NOT NULL,\n  \"quantity\" int4 DEFAULT 0 NOT NULL,\n  \"reservedQuantity\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"variantId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"inventory\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.inventory_movement",
+    "label": "Create table \"inventory_movement\"",
+    "summary": "Creates table \"inventory_movement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "inventory_movement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"inventory_movement\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"inventory_movement\"",
+        "sql": "CREATE TABLE \"public\".\"inventory_movement\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"inventoryId\" int4 NOT NULL,\n  \"note\" text,\n  \"quantity\" int4 NOT NULL,\n  \"referenceId\" text,\n  \"referenceType\" text,\n  \"type\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"inventory_movement_type_check_5f7cd620\" CHECK (\"type\" IN ('INITIAL_STOCK', 'RESTOCK', 'ORDER', 'ORDER_CANCELLED', 'RETURN', 'DAMAGED', 'ADJUSTMENT'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"inventory_movement\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.product_image",
+    "label": "Create table \"product_image\"",
+    "summary": "Creates table \"product_image\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "product_image"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"product_image\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"product_image\"",
+        "sql": "CREATE TABLE \"public\".\"product_image\" (\n  \"altText\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"imageUrl\" text NOT NULL,\n  \"isPrimary\" bool DEFAULT false NOT NULL,\n  \"productId\" int4 NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"product_image\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.product_image_attribute_value",
+    "label": "Create table \"product_image_attribute_value\"",
+    "summary": "Creates table \"product_image_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "product_image_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"product_image_attribute_value\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_attribute_value\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"product_image_attribute_value\"",
+        "sql": "CREATE TABLE \"public\".\"product_image_attribute_value\" (\n  \"attributeValueId\" int4 NOT NULL,\n  \"productImageId\" int4 NOT NULL,\n  PRIMARY KEY (\"productImageId\", \"attributeValueId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"product_image_attribute_value\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_attribute_value\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.inventory.inventory_variantId_key",
+    "label": "Add unique constraint on \"inventory\" (variantId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "inventory_variantId_key",
+        "table": "inventory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"inventory_variantId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "inventory_variantId_key",
+          "public",
+          "\"public\".\"inventory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"inventory_variantId_key\"",
+        "sql": "ALTER TABLE \"public\".\"inventory\" ADD CONSTRAINT \"inventory_variantId_key\" UNIQUE (\"variantId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"inventory_variantId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "inventory_variantId_key",
+          "public",
+          "\"public\".\"inventory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.inventory_movement.inventory_movement_inventoryId_createdAt_idx_02b14844",
+    "label": "Create index \"inventory_movement_inventoryId_createdAt_idx_02b14844\" on \"inventory_movement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "inventory_movement_inventoryId_createdAt_idx_02b14844",
+        "table": "inventory_movement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"inventory_movement_inventoryId_createdAt_idx_02b14844\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement_inventoryId_createdAt_idx_02b14844\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"inventory_movement_inventoryId_createdAt_idx_02b14844\"",
+        "sql": "CREATE INDEX \"inventory_movement_inventoryId_createdAt_idx_02b14844\" ON \"public\".\"inventory_movement\" (\"inventoryId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"inventory_movement_inventoryId_createdAt_idx_02b14844\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement_inventoryId_createdAt_idx_02b14844\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.inventory_movement.inventory_movement_inventoryId_idx_367f33d0",
+    "label": "Create index \"inventory_movement_inventoryId_idx_367f33d0\" on \"inventory_movement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "inventory_movement_inventoryId_idx_367f33d0",
+        "table": "inventory_movement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"inventory_movement_inventoryId_idx_367f33d0\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement_inventoryId_idx_367f33d0\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"inventory_movement_inventoryId_idx_367f33d0\"",
+        "sql": "CREATE INDEX \"inventory_movement_inventoryId_idx_367f33d0\" ON \"public\".\"inventory_movement\" (\"inventoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"inventory_movement_inventoryId_idx_367f33d0\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement_inventoryId_idx_367f33d0\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.inventory_movement.inventory_movement_referenceType_referenceId_idx_d11658f3",
+    "label": "Create index \"inventory_movement_referenceType_referenceId_idx_d11658f3\" on \"inventory_movement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "inventory_movement_referenceType_referenceId_idx_d11658f3",
+        "table": "inventory_movement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"inventory_movement_referenceType_referenceId_idx_d11658f3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement_referenceType_referenceId_idx_d11658f3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"inventory_movement_referenceType_referenceId_idx_d11658f3\"",
+        "sql": "CREATE INDEX \"inventory_movement_referenceType_referenceId_idx_d11658f3\" ON \"public\".\"inventory_movement\" (\"referenceType\", \"referenceId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"inventory_movement_referenceType_referenceId_idx_d11658f3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"inventory_movement_referenceType_referenceId_idx_d11658f3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_image.product_image_productId_idx_5858600a",
+    "label": "Create index \"product_image_productId_idx_5858600a\" on \"product_image\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_image_productId_idx_5858600a",
+        "table": "product_image"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_image_productId_idx_5858600a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_productId_idx_5858600a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_image_productId_idx_5858600a\"",
+        "sql": "CREATE INDEX \"product_image_productId_idx_5858600a\" ON \"public\".\"product_image\" (\"productId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_image_productId_idx_5858600a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_productId_idx_5858600a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_image.product_image_productId_isPrimary_idx_73499847",
+    "label": "Create index \"product_image_productId_isPrimary_idx_73499847\" on \"product_image\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_image_productId_isPrimary_idx_73499847",
+        "table": "product_image"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_image_productId_isPrimary_idx_73499847\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_productId_isPrimary_idx_73499847\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_image_productId_isPrimary_idx_73499847\"",
+        "sql": "CREATE INDEX \"product_image_productId_isPrimary_idx_73499847\" ON \"public\".\"product_image\" (\"productId\", \"isPrimary\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_image_productId_isPrimary_idx_73499847\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_productId_isPrimary_idx_73499847\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_image.product_image_productId_sortOrder_idx_fe80956b",
+    "label": "Create index \"product_image_productId_sortOrder_idx_fe80956b\" on \"product_image\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_image_productId_sortOrder_idx_fe80956b",
+        "table": "product_image"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_image_productId_sortOrder_idx_fe80956b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_productId_sortOrder_idx_fe80956b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_image_productId_sortOrder_idx_fe80956b\"",
+        "sql": "CREATE INDEX \"product_image_productId_sortOrder_idx_fe80956b\" ON \"public\".\"product_image\" (\"productId\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_image_productId_sortOrder_idx_fe80956b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_productId_sortOrder_idx_fe80956b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_image_attribute_value.product_image_attribute_value_attributeValueId_idx_3b32dbec",
+    "label": "Create index \"product_image_attribute_value_attributeValueId_idx_3b32dbec\" on \"product_image_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_image_attribute_value_attributeValueId_idx_3b32dbec",
+        "table": "product_image_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_image_attribute_value_attributeValueId_idx_3b32dbec\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_attribute_value_attributeValueId_idx_3b32dbec\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_image_attribute_value_attributeValueId_idx_3b32dbec\"",
+        "sql": "CREATE INDEX \"product_image_attribute_value_attributeValueId_idx_3b32dbec\" ON \"public\".\"product_image_attribute_value\" (\"attributeValueId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_image_attribute_value_attributeValueId_idx_3b32dbec\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_attribute_value_attributeValueId_idx_3b32dbec\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.product_image_attribute_value.product_image_attribute_value_productImageId_idx_aeb05ee6",
+    "label": "Create index \"product_image_attribute_value_productImageId_idx_aeb05ee6\" on \"product_image_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "product_image_attribute_value_productImageId_idx_aeb05ee6",
+        "table": "product_image_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"product_image_attribute_value_productImageId_idx_aeb05ee6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_attribute_value_productImageId_idx_aeb05ee6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"product_image_attribute_value_productImageId_idx_aeb05ee6\"",
+        "sql": "CREATE INDEX \"product_image_attribute_value_productImageId_idx_aeb05ee6\" ON \"public\".\"product_image_attribute_value\" (\"productImageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"product_image_attribute_value_productImageId_idx_aeb05ee6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"product_image_attribute_value_productImageId_idx_aeb05ee6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.inventory.inventory_variantId_fkey",
+    "label": "Add foreign key \"inventory_variantId_fkey\" on \"inventory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "inventory_variantId_fkey",
+        "table": "inventory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"inventory_variantId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "inventory_variantId_fkey",
+          "public",
+          "\"public\".\"inventory\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"inventory_variantId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"inventory\"\nADD CONSTRAINT \"inventory_variantId_fkey\"\nFOREIGN KEY (\"variantId\")\nREFERENCES \"public\".\"product_variant\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"inventory_variantId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "inventory_variantId_fkey",
+          "public",
+          "\"public\".\"inventory\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.inventory_movement.inventory_movement_inventoryId_fkey",
+    "label": "Add foreign key \"inventory_movement_inventoryId_fkey\" on \"inventory_movement\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "inventory_movement_inventoryId_fkey",
+        "table": "inventory_movement"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"inventory_movement_inventoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "inventory_movement_inventoryId_fkey",
+          "public",
+          "\"public\".\"inventory_movement\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"inventory_movement_inventoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"inventory_movement\"\nADD CONSTRAINT \"inventory_movement_inventoryId_fkey\"\nFOREIGN KEY (\"inventoryId\")\nREFERENCES \"public\".\"inventory\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"inventory_movement_inventoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "inventory_movement_inventoryId_fkey",
+          "public",
+          "\"public\".\"inventory_movement\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_image.product_image_productId_fkey",
+    "label": "Add foreign key \"product_image_productId_fkey\" on \"product_image\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_image_productId_fkey",
+        "table": "product_image"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_image_productId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_image_productId_fkey",
+          "public",
+          "\"public\".\"product_image\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_image_productId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_image\"\nADD CONSTRAINT \"product_image_productId_fkey\"\nFOREIGN KEY (\"productId\")\nREFERENCES \"public\".\"product\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_image_productId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_image_productId_fkey",
+          "public",
+          "\"public\".\"product_image\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_image_attribute_value.product_image_attribute_value_productImageId_fkey",
+    "label": "Add foreign key \"product_image_attribute_value_productImageId_fkey\" on \"product_image_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_image_attribute_value_productImageId_fkey",
+        "table": "product_image_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_image_attribute_value_productImageId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_image_attribute_value_productImageId_fkey",
+          "public",
+          "\"public\".\"product_image_attribute_value\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_image_attribute_value_productImageId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_image_attribute_value\"\nADD CONSTRAINT \"product_image_attribute_value_productImageId_fkey\"\nFOREIGN KEY (\"productImageId\")\nREFERENCES \"public\".\"product_image\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_image_attribute_value_productImageId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_image_attribute_value_productImageId_fkey",
+          "public",
+          "\"public\".\"product_image_attribute_value\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.product_image_attribute_value.product_image_attribute_value_attributeValueId_fkey",
+    "label": "Add foreign key \"product_image_attribute_value_attributeValueId_fkey\" on \"product_image_attribute_value\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "product_image_attribute_value_attributeValueId_fkey",
+        "table": "product_image_attribute_value"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"product_image_attribute_value_attributeValueId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_image_attribute_value_attributeValueId_fkey",
+          "public",
+          "\"public\".\"product_image_attribute_value\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"product_image_attribute_value_attributeValueId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"product_image_attribute_value\"\nADD CONSTRAINT \"product_image_attribute_value_attributeValueId_fkey\"\nFOREIGN KEY (\"attributeValueId\")\nREFERENCES \"public\".\"attribute_value\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"product_image_attribute_value_attributeValueId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "product_image_attribute_value_attributeValueId_fkey",
+          "public",
+          "\"public\".\"product_image_attribute_value\""
+        ]
+      }
+    ]
+  }
+]

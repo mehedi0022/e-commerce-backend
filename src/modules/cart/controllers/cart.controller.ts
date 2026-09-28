@@ -1,0 +1,10 @@
+import type { Request, Response } from "express";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { successResponse } from "../../../utils/api-response.js";
+import { guestCartCookieName, guestCartCookieOptions } from "../../../utils/cookie.util.js";
+import * as service from "../services/cart.service.js";
+export const get = asyncHandler(async (req, res) => res.json(successResponse("Cart fetched successfully", await service.get(req))));
+export const add = asyncHandler(async (req: Request, res: Response) => { const context = await service.add(req, req.body); if (context.guestToken) { res.cookie(guestCartCookieName, context.guestToken, guestCartCookieOptions); req.cookies[guestCartCookieName] = context.guestToken; } res.status(200).json(successResponse("Item added to cart successfully", await service.get(req))); });
+export const update = asyncHandler(async (req, res) => { await service.update(req, Number(req.params.itemId), req.body); res.json(successResponse("Cart item updated successfully", await service.get(req))); });
+export const remove = asyncHandler(async (req, res) => { await service.remove(req, Number(req.params.itemId)); res.json(successResponse("Cart item removed successfully", await service.get(req))); });
+export const clear = asyncHandler(async (req, res) => { await service.clear(req); res.json(successResponse("Cart cleared successfully", await service.get(req))); });

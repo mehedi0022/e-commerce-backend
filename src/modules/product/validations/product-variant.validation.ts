@@ -1,0 +1,10 @@
+import { z } from "zod";
+const id = z.coerce.number().int().positive();
+const money = z.coerce.number().finite().min(0);
+const ids = z.array(id).max(100).superRefine((values, ctx) => { if (new Set(values).size !== values.length) ctx.addIssue({ code: "custom", message: "Duplicate attributeValueIds are not allowed" }); });
+export const variantParamsSchema = z.object({ params: z.object({ productId: id, variantId: id }) });
+const fields = { sku: z.string().trim().min(1).max(100), price: money, compareAtPrice: money.nullable().optional(), costPrice: money.nullable().optional(), isActive: z.boolean().optional(), sortOrder: z.coerce.number().int().min(0).optional(), attributeValueIds: ids.optional() };
+const priceRule = (v: { price?: number; compareAtPrice?: number | null; costPrice?: number | null }, ctx: z.RefinementCtx) => { if (v.compareAtPrice != null && v.price != null && v.compareAtPrice < v.price) ctx.addIssue({ code: "custom", path: ["compareAtPrice"], message: "compareAtPrice must be greater than or equal to price" }); };
+export const createVariantSchema = z.object({ params: z.object({ productId: id }), body: z.object({ ...fields, attributeValueIds: ids }).strict().superRefine(priceRule) });
+export const updateVariantSchema = z.object({ params: z.object({ productId: id, variantId: id }), body: z.object({ sku: fields.sku.optional(), price: fields.price.optional(), compareAtPrice: fields.compareAtPrice, costPrice: fields.costPrice, isActive: fields.isActive, sortOrder: fields.sortOrder, attributeValueIds: fields.attributeValueIds }).strict().refine((v) => Object.keys(v).length > 0, "At least one variant field is required").superRefine(priceRule) });
+export const variantListSchema = z.object({ params: z.object({ productId: id }) });

@@ -16,6 +16,9 @@ import {
 import { millisecondsUntil } from "../../../config/session-policy.js";
 
 import * as authService from "../services/auth.service.js";
+import * as cartService from "../../cart/services/cart.service.js";
+import { guestCartCookieName } from "../../../utils/cookie.util.js";
+import { guestCartCookieOptions } from "../../../utils/cookie.util.js";
 
 const setAccessCookie = (res: Response, accessToken: string) => {
   res.cookie(accessTokenCookieName, accessToken, getAccessTokenCookieOptions());
@@ -82,6 +85,8 @@ const clearAuthCookies = (res: Response) => {
  */
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const result = await authService.login(req.body);
+  await cartService.mergeGuest(result.user.id, req.cookies?.[guestCartCookieName]);
+  if (req.cookies?.[guestCartCookieName]) res.clearCookie(guestCartCookieName, guestCartCookieOptions);
 
   setAccessCookie(res, result.accessToken);
   setRefreshCookie(res, result);

@@ -1,0 +1,16 @@
+import { db } from "../../../prisma/db.js";
+import type { CreateVariantInput, UpdateVariantInput } from "../product-variant.types.js";
+const fields = ["id", "productId", "sku", "price", "compareAtPrice", "costPrice", "isActive", "sortOrder", "createdAt", "updatedAt"] as const;
+const withValues = (q: any) => q.include("attributeValues", (v: any) => v.include("attributeValue", (av: any) => av.include("attribute", (a: any) => a.select("id", "name", "slug")).select("id", "value", "slug", "attributeId")));
+export const findProduct = (id: number) => db.orm.public.Product.select("id").first({ id });
+export const findProductCategories = (productId: number) => db.orm.public.ProductCategory.select("categoryId", "isPrimary").where({ productId }).all();
+export const findVariant = (productId: number, id: number) => withValues(db.orm.public.ProductVariant.select(...fields)).first({ productId, id });
+export const findBySku = (sku: string) => db.orm.public.ProductVariant.select("id", "productId").first({ sku });
+export const list = (productId: number) => withValues(db.orm.public.ProductVariant.select(...fields)).where({ productId }).orderBy([(v: any) => v.sortOrder.asc(), (v: any) => v.id.asc()]).all();
+export const findAttributeValues = (ids: number[]) => db.orm.public.AttributeValue.select("id", "attributeId", "value", "isActive").where((v: any) => v.id.in(ids)).include("attribute", (a: any) => a.select("id", "name", "isActive")).all();
+export const findAllowedAttributes = (categoryIds: number[]) => db.orm.public.CategoryAttribute.select("categoryId", "attributeId", "isRequired").where((x: any) => x.categoryId.in(categoryIds)).all();
+export const create = (tx: any, productId: number, data: CreateVariantInput) => tx.orm.public.ProductVariant.select(...fields).create({ productId, sku: data.sku, price: String(data.price), compareAtPrice: data.compareAtPrice == null ? null : String(data.compareAtPrice), costPrice: data.costPrice == null ? null : String(data.costPrice), isActive: data.isActive ?? true, sortOrder: data.sortOrder ?? 0 });
+export const update = (tx: any, id: number, data: UpdateVariantInput) => tx.orm.public.ProductVariant.where({ id }).select(...fields).update({ ...data, price: data.price == null ? undefined : String(data.price), compareAtPrice: data.compareAtPrice == null ? data.compareAtPrice : String(data.compareAtPrice), costPrice: data.costPrice == null ? data.costPrice : String(data.costPrice) });
+export const clearValues = async (tx: any, variantId: number) => { while (await tx.orm.public.VariantAttributeValue.where({ variantId }).select("variantId").delete()) {} };
+export const addValue = (tx: any, variantId: number, attributeValueId: number) => tx.orm.public.VariantAttributeValue.create({ variantId, attributeValueId });
+export const remove = (tx: any, id: number) => tx.orm.public.ProductVariant.where({ id }).delete();
