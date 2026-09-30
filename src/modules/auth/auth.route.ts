@@ -20,6 +20,7 @@ import {
   logout,
   logoutAll,
   refreshToken,
+  me,
 } from "./controllers/auth.controller.js";
 import { registerUser } from "../user/controllers/user.controller.js";
 
@@ -35,6 +36,8 @@ import { registerUserSchema } from "../user/validations/user.validation.js";
 const router = Router();
 
 router.use(protectCookieAuthFromCsrf);
+
+router.get("/me", authenticate, me);
 
 router.post("/login", loginRateLimit, validate(loginSchema), login);
 router.post("/register", registerRateLimit, validate(registerUserSchema), registerUser);

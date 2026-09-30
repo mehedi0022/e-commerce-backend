@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'977ad3ec267c4ec1b1586ba730a001e399bd4ac2e4ddb7a6355913263d2c2ec5'>;
+  StorageHashBase<'d4066d5bb5755dfc57360a01d1c08333ec25ae6078e7bbaf1cb2a4c1fb827e99'>;
 export type ExecutionHash =
   ExecutionHashBase<'e88ee5543f2b6946e150688d173d1a17272342c8a56dde270238d9d5d8f16c64'>;
 export type ProfileHash =
@@ -837,7 +837,7 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly endsAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly imageUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly imageUrl: CodecTypes['pg/text@1']['output'];
       readonly isActive: CodecTypes['pg/bool@1']['output'];
       readonly mobileImage: CodecTypes['pg/text@1']['output'] | null;
       readonly mobileKey: CodecTypes['pg/text@1']['output'] | null;
@@ -1461,7 +1461,7 @@ export type FieldInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly endsAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly imageUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly imageUrl: CodecTypes['pg/text@1']['input'];
       readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly mobileImage: CodecTypes['pg/text@1']['input'] | null;
       readonly mobileKey: CodecTypes['pg/text@1']['input'] | null;
@@ -2085,7 +2085,7 @@ export type StorageColumnTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly endsAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly imageUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly imageUrl: CodecTypes['pg/text@1']['output'];
       readonly isActive: CodecTypes['pg/bool@1']['output'];
       readonly mobileImage: CodecTypes['pg/text@1']['output'] | null;
       readonly mobileKey: CodecTypes['pg/text@1']['output'] | null;
@@ -2709,7 +2709,7 @@ export type StorageColumnInputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly endsAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly imageUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly imageUrl: CodecTypes['pg/text@1']['input'];
       readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly mobileImage: CodecTypes['pg/text@1']['input'] | null;
       readonly mobileKey: CodecTypes['pg/text@1']['input'] | null;
@@ -3492,7 +3492,7 @@ export namespace Models {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     endsAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     id: CodecTypes['pg/int4@1']['output'];
-    imageUrl: CodecTypes['pg/text@1']['output'] | null;
+    imageUrl: CodecTypes['pg/text@1']['output'];
     isActive: CodecTypes['pg/bool@1']['output'];
     mobileImage: CodecTypes['pg/text@1']['output'] | null;
     mobileKey: CodecTypes['pg/text@1']['output'] | null;
@@ -8163,7 +8163,7 @@ type ContractBase = Omit<
                 readonly imageUrl: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
+                  readonly nullable: false;
                 };
                 readonly isActive: {
                   readonly nativeType: 'bool';
@@ -13021,7 +13021,7 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
               readonly imageUrl: {
-                readonly nullable: true;
+                readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly isActive: {

@@ -1,0 +1,13 @@
+import { z } from "zod";
+const id = z.coerce.number().int().positive();
+const params = z.object({ id });
+const displayType = z.enum(["ON_LOAD", "EXIT_INTENT", "AFTER_DELAY"]);
+const frequency = z.enum(["ONCE", "DAILY", "ALWAYS"]);
+const date = z.coerce.date().nullable().optional();
+const fields = { title: z.string().trim().min(1).max(200), description: z.string().trim().max(2000).nullable().optional(), imageUrl: z.string().trim().max(1000).nullable().optional(), buttonText: z.string().trim().max(100).nullable().optional(), buttonUrl: z.string().trim().max(1000).nullable().optional(), displayType, delaySeconds: z.coerce.number().int().min(0).optional(), frequency, startsAt: date, endsAt: date };
+const schedule = (v: { startsAt?: Date | null; endsAt?: Date | null; displayType?: string; delaySeconds?: number }, ctx: z.RefinementCtx) => { if (v.startsAt && v.endsAt && v.endsAt <= v.startsAt) ctx.addIssue({ code: "custom", path: ["endsAt"], message: "endsAt must be after startsAt" }); if (v.displayType === "AFTER_DELAY" && (v.delaySeconds ?? 0) < 1) ctx.addIssue({ code: "custom", path: ["delaySeconds"], message: "delaySeconds must be at least 1 for AFTER_DELAY" }); };
+export const popupIdSchema = z.object({ params });
+export const createPopupSchema = z.object({ body: z.object({ ...fields, isActive: z.boolean().optional() }).strict().superRefine(schedule) });
+export const updatePopupSchema = z.object({ params, body: z.object({ ...fields, title: fields.title.optional(), displayType: displayType.optional(), frequency: frequency.optional(), isActive: z.boolean().optional() }).strict().refine((v) => Object.keys(v).length > 0, "At least one popup field is required").superRefine(schedule) });
+export const popupStatusSchema = z.object({ params, body: z.object({ isActive: z.boolean() }).strict() });
+export const popupListQuerySchema = z.object({ query: z.object({ activeOnly: z.enum(["true", "false"]).optional() }).strict() });

@@ -1,0 +1,14 @@
+import { NotFoundError, ValidationError } from "../../../errors/AppError.js";
+import * as repo from "../repositories/slider.repository.js";
+import type { CreateSliderInput, SliderListQuery, UpdateSliderInput } from "../slider.types.js";
+import { uploadService } from "../../upload/upload.module.js";
+const get = async (id: number) => { const item = await repo.findById(id); if (!item) throw new NotFoundError("Slider not found"); return item; };
+const dates = (data: { startsAt?: Date | null; endsAt?: Date | null }) => { if (data.startsAt && data.endsAt && data.endsAt <= data.startsAt) throw new ValidationError("endsAt must be after startsAt"); };
+export const list = (query: SliderListQuery) => repo.findAll(query);
+export const getOne = get;
+export const create = async (data: CreateSliderInput) => { dates(data); return repo.create(data); };
+export const update = async (id: number, data: UpdateSliderInput) => { await get(id); dates(data); const item = await repo.update(id, data); if (!item) throw new NotFoundError("Slider not found"); return item; };
+export const remove = async (id: number) => { await get(id); await repo.remove(id); };
+export const status = async (id: number, value: boolean) => { const item: any = await get(id); if (value && !item.imageUrl) throw new ValidationError("Upload the desktop slider image before activation"); return repo.setStatus(id, value); };
+export const reorder = async (id: number, sortOrder: number) => { await get(id); return repo.setOrder(id, sortOrder); };
+export const uploadImage = async (id: number, file: Express.Multer.File | undefined, mobile = false) => { const current: any = await get(id); if (!file) throw new ValidationError("Image file is required"); const stored = await uploadService.upload(file, "sliders"); try { const updated = await repo.updateImage(id, mobile ? { mobileImage: stored.url, mobileKey: stored.key } : { imageUrl: stored.url, storageKey: stored.key }); const previous = mobile ? current.mobileKey : current.storageKey; if (previous) await uploadService.delete(previous).catch(() => undefined); return updated; } catch (error) { await uploadService.delete(stored.key).catch(() => undefined); throw error; } };

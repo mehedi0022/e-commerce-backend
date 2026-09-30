@@ -1,0 +1,197 @@
+[
+  {
+    "id": "table.popup",
+    "label": "Create table \"popup\"",
+    "summary": "Creates table \"popup\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "popup"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"popup\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"popup\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"popup\"",
+        "sql": "CREATE TABLE \"public\".\"popup\" (\n  \"buttonText\" text,\n  \"buttonUrl\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"delaySeconds\" int4 DEFAULT 0 NOT NULL,\n  \"description\" text,\n  \"displayType\" text DEFAULT 'ON_LOAD' NOT NULL,\n  \"endsAt\" timestamptz,\n  \"frequency\" text DEFAULT 'ONCE' NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"imageUrl\" text,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"startsAt\" timestamptz,\n  \"storageKey\" text,\n  \"title\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"popup_displayType_check_caaa9db9\" CHECK (\"displayType\" IN ('ON_LOAD', 'EXIT_INTENT', 'AFTER_DELAY')),\n  CONSTRAINT \"popup_frequency_check_0d3f030b\" CHECK (\"frequency\" IN ('ONCE', 'DAILY', 'ALWAYS'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"popup\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"popup\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.slider",
+    "label": "Create table \"slider\"",
+    "summary": "Creates table \"slider\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "slider"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"slider\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"slider\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"slider\"",
+        "sql": "CREATE TABLE \"public\".\"slider\" (\n  \"buttonText\" text,\n  \"buttonUrl\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"endsAt\" timestamptz,\n  \"id\" SERIAL NOT NULL,\n  \"imageUrl\" text NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"mobileImage\" text,\n  \"mobileKey\" text,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"startsAt\" timestamptz,\n  \"storageKey\" text,\n  \"subtitle\" text,\n  \"title\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"slider\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"slider\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.popup.popup_isActive_startsAt_endsAt_idx_5fd0e5be",
+    "label": "Create index \"popup_isActive_startsAt_endsAt_idx_5fd0e5be\" on \"popup\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "popup_isActive_startsAt_endsAt_idx_5fd0e5be",
+        "table": "popup"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"popup_isActive_startsAt_endsAt_idx_5fd0e5be\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"popup_isActive_startsAt_endsAt_idx_5fd0e5be\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"popup_isActive_startsAt_endsAt_idx_5fd0e5be\"",
+        "sql": "CREATE INDEX \"popup_isActive_startsAt_endsAt_idx_5fd0e5be\" ON \"public\".\"popup\" (\"isActive\", \"startsAt\", \"endsAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"popup_isActive_startsAt_endsAt_idx_5fd0e5be\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"popup_isActive_startsAt_endsAt_idx_5fd0e5be\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.slider.slider_isActive_sortOrder_idx_43c1fe34",
+    "label": "Create index \"slider_isActive_sortOrder_idx_43c1fe34\" on \"slider\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "slider_isActive_sortOrder_idx_43c1fe34",
+        "table": "slider"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"slider_isActive_sortOrder_idx_43c1fe34\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"slider_isActive_sortOrder_idx_43c1fe34\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"slider_isActive_sortOrder_idx_43c1fe34\"",
+        "sql": "CREATE INDEX \"slider_isActive_sortOrder_idx_43c1fe34\" ON \"public\".\"slider\" (\"isActive\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"slider_isActive_sortOrder_idx_43c1fe34\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"slider_isActive_sortOrder_idx_43c1fe34\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.slider.slider_startsAt_endsAt_idx_11b019e2",
+    "label": "Create index \"slider_startsAt_endsAt_idx_11b019e2\" on \"slider\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "slider_startsAt_endsAt_idx_11b019e2",
+        "table": "slider"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"slider_startsAt_endsAt_idx_11b019e2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"slider_startsAt_endsAt_idx_11b019e2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"slider_startsAt_endsAt_idx_11b019e2\"",
+        "sql": "CREATE INDEX \"slider_startsAt_endsAt_idx_11b019e2\" ON \"public\".\"slider\" (\"startsAt\", \"endsAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"slider_startsAt_endsAt_idx_11b019e2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"slider_startsAt_endsAt_idx_11b019e2\""
+        ]
+      }
+    ]
+  }
+]

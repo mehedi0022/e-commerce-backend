@@ -176,6 +176,12 @@ const permissionDefinitions = [
   { key: permissions.refundsTransition, module: "refunds", action: "transition", description: "Transition refunds" },
   { key: permissions.reviewsRead, module: "reviews", action: "read", description: "View reviews" },
   { key: permissions.reviewsModerate, module: "reviews", action: "moderate", description: "Approve or reject reviews" },
+  { key: permissions.navigationReadAny, module: "navigation", action: "read:any", description: "View navigation menus" },
+  { key: permissions.navigationManage, module: "navigation", action: "manage", description: "Manage navigation menus and items" },
+  { key: permissions.slidersReadAny, module: "sliders", action: "read:any", description: "View sliders" },
+  { key: permissions.slidersManage, module: "sliders", action: "manage", description: "Manage sliders" },
+  { key: permissions.popupsReadAny, module: "popups", action: "read:any", description: "View popups" },
+  { key: permissions.popupsManage, module: "popups", action: "manage", description: "Manage popups" },
 ] as const;
 
 const privilegedRoleKeys = new Set(["ADMIN", "SUPER_ADMIN"]);

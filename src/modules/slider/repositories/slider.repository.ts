@@ -1,0 +1,11 @@
+import { db } from "../../../prisma/db.js";
+import type { CreateSliderInput, SliderListQuery, UpdateSliderInput } from "../slider.types.js";
+const select = ["id", "title", "subtitle", "imageUrl", "storageKey", "mobileImage", "mobileKey", "buttonText", "buttonUrl", "isActive", "sortOrder", "startsAt", "endsAt", "createdAt", "updatedAt"] as const;
+export const findById = (id: number) => db.orm.public.Slider.select(...select).first({ id });
+export const findAll = (query: SliderListQuery) => { let q = db.orm.public.Slider.select(...select); if (query.activeOnly === "true") q = q.where({ isActive: true }); return q.orderBy([(s) => s.sortOrder.asc(), (s) => s.id.asc()]).all(); };
+export const create = (data: CreateSliderInput) => db.orm.public.Slider.select(...select).create({ ...data, imageUrl: data.imageUrl ?? null, subtitle: data.subtitle ?? null, mobileImage: data.mobileImage ?? null, buttonText: data.buttonText ?? null, buttonUrl: data.buttonUrl ?? null, startsAt: data.startsAt ?? null, endsAt: data.endsAt ?? null });
+export const update = (id: number, data: UpdateSliderInput) => db.orm.public.Slider.where({ id }).select(...select).update(data);
+export const remove = (id: number) => db.orm.public.Slider.where({ id }).delete();
+export const setStatus = (id: number, isActive: boolean) => db.orm.public.Slider.where({ id }).select(...select).update({ isActive });
+export const setOrder = (id: number, sortOrder: number) => db.orm.public.Slider.where({ id }).select(...select).update({ sortOrder });
+export const updateImage = (id: number, data: { imageUrl?: string; storageKey?: string; mobileImage?: string; mobileKey?: string }) => db.orm.public.Slider.where({ id }).select(...select).update(data);

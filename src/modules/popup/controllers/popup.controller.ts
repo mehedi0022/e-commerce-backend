@@ -1,0 +1,11 @@
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { successResponse } from "../../../utils/api-response.js";
+import * as service from "../services/popup.service.js";
+export const list = asyncHandler(async (req, res) => res.json(successResponse("Popups fetched successfully", await service.list(req.query as any))));
+export const publicList = asyncHandler(async (_req, res) => res.json(successResponse("Active popups fetched successfully", await service.list({ activeOnly: "true" }))));
+export const get = asyncHandler(async (req, res) => res.json(successResponse("Popup fetched successfully", await service.getOne(Number(req.params.id)))));
+export const create = asyncHandler(async (req, res) => res.status(201).json(successResponse("Popup created successfully", await service.create(req.body))));
+export const update = asyncHandler(async (req, res) => res.json(successResponse("Popup updated successfully", await service.update(Number(req.params.id), req.body))));
+export const remove = asyncHandler(async (req, res) => { await service.remove(Number(req.params.id)); res.json(successResponse("Popup deleted successfully", null)); });
+export const status = asyncHandler(async (req, res) => res.json(successResponse("Popup status updated successfully", await service.status(Number(req.params.id), req.body.isActive))));
+export const uploadImage = asyncHandler(async (req, res) => res.json(successResponse("Popup image uploaded successfully", await service.uploadImage(Number(req.params.id), req.file))));

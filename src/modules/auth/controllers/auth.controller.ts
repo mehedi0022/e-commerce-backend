@@ -16,6 +16,7 @@ import {
 import { millisecondsUntil } from "../../../config/session-policy.js";
 
 import * as authService from "../services/auth.service.js";
+import * as userService from "../../user/services/user.service.js";
 import * as cartService from "../../cart/services/cart.service.js";
 import { guestCartCookieName } from "../../../utils/cookie.util.js";
 import { guestCartCookieOptions } from "../../../utils/cookie.util.js";
@@ -79,6 +80,16 @@ const clearAuthCookies = (res: Response) => {
   clearAccessCookie(res);
   clearRefreshCookie(res);
 };
+
+/** Get the currently authenticated user. */
+export const me = asyncHandler(async (req: Request, res: Response) => {
+  const user = await userService.getCurrentUser(req.auth!.userId);
+  res.status(200).json({
+    success: true,
+    message: "Current user fetched successfully",
+    data: user,
+  });
+});
 
 /**
  * Login

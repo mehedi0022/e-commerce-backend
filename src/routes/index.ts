@@ -18,6 +18,9 @@ import returnRoutes from "../modules/return/return.route.js";
 import refundRoutes from "../modules/refund/refund.route.js";
 import reviewRoutes from "../modules/review/review.route.js";
 import wishlistRoutes from "../modules/wishlist/wishlist.route.js";
+import navigationRoutes from "../modules/navigation/navigation.route.js";
+import sliderRoutes from "../modules/slider/slider.route.js";
+import popupRoutes from "../modules/popup/popup.route.js";
 
 const router = Router();
 
@@ -39,5 +42,8 @@ router.use(returnRoutes);
 router.use(refundRoutes);
 router.use(reviewRoutes);
 router.use(wishlistRoutes);
+router.use("/navigation", navigationRoutes);
+router.use("/sliders", sliderRoutes);
+router.use("/popups", popupRoutes);
 
 export default router;

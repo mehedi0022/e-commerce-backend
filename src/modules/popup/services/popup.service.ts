@@ -1,0 +1,13 @@
+import { NotFoundError, ValidationError } from "../../../errors/AppError.js";
+import * as repo from "../repositories/popup.repository.js";
+import type { CreatePopupInput, PopupListQuery, UpdatePopupInput } from "../popup.types.js";
+import { uploadService } from "../../upload/upload.module.js";
+const get = async (id: number) => { const item = await repo.findById(id); if (!item) throw new NotFoundError("Popup not found"); return item; };
+const validate = (data: { startsAt?: Date | null; endsAt?: Date | null; displayType?: string; delaySeconds?: number }) => { if (data.startsAt && data.endsAt && data.endsAt <= data.startsAt) throw new ValidationError("endsAt must be after startsAt"); if (data.displayType === "AFTER_DELAY" && (data.delaySeconds ?? 0) < 1) throw new ValidationError("delaySeconds must be at least 1 for AFTER_DELAY"); };
+export const list = (query: PopupListQuery) => repo.findAll(query);
+export const getOne = get;
+export const create = async (data: CreatePopupInput) => { validate(data); return repo.create(data); };
+export const update = async (id: number, data: UpdatePopupInput) => { await get(id); validate(data); const item = await repo.update(id, data); if (!item) throw new NotFoundError("Popup not found"); return item; };
+export const remove = async (id: number) => { await get(id); await repo.remove(id); };
+export const status = async (id: number, value: boolean) => { await get(id); return repo.setStatus(id, value); };
+export const uploadImage = async (id: number, file: Express.Multer.File | undefined) => { const current: any = await get(id); if (!file) throw new ValidationError("Image file is required"); const stored = await uploadService.upload(file, "popups"); try { const updated = await repo.updateImage(id, { imageUrl: stored.url, storageKey: stored.key }); if (current.storageKey) await uploadService.delete(current.storageKey).catch(() => undefined); return updated; } catch (error) { await uploadService.delete(stored.key).catch(() => undefined); throw error; } };

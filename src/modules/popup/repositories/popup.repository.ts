@@ -1,0 +1,10 @@
+import { db } from "../../../prisma/db.js";
+import type { CreatePopupInput, PopupListQuery, UpdatePopupInput } from "../popup.types.js";
+const select = ["id", "title", "description", "imageUrl", "storageKey", "buttonText", "buttonUrl", "displayType", "delaySeconds", "frequency", "isActive", "startsAt", "endsAt", "createdAt", "updatedAt"] as const;
+export const findById = (id: number) => db.orm.public.Popup.select(...select).first({ id });
+export const findAll = (query: PopupListQuery) => { let q = db.orm.public.Popup.select(...select); if (query.activeOnly === "true") q = q.where({ isActive: true }); return q.orderBy((p) => p.createdAt.desc()).all(); };
+export const create = (data: CreatePopupInput) => db.orm.public.Popup.select(...select).create({ ...data, description: data.description ?? null, imageUrl: data.imageUrl ?? null, buttonText: data.buttonText ?? null, buttonUrl: data.buttonUrl ?? null, startsAt: data.startsAt ?? null, endsAt: data.endsAt ?? null });
+export const update = (id: number, data: UpdatePopupInput) => db.orm.public.Popup.where({ id }).select(...select).update(data);
+export const remove = (id: number) => db.orm.public.Popup.where({ id }).delete();
+export const setStatus = (id: number, isActive: boolean) => db.orm.public.Popup.where({ id }).select(...select).update({ isActive });
+export const updateImage = (id: number, data: { imageUrl: string; storageKey: string }) => db.orm.public.Popup.where({ id }).select(...select).update(data);

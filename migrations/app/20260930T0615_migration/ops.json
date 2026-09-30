@@ -1,0 +1,842 @@
+[
+  {
+    "id": "table.navigation_entry",
+    "label": "Create table \"navigation_entry\"",
+    "summary": "Creates table \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"navigation_entry\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"navigation_entry\"",
+        "sql": "CREATE TABLE \"public\".\"navigation_entry\" (\n  \"categoryId\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"label\" text NOT NULL,\n  \"openNewTab\" bool DEFAULT false NOT NULL,\n  \"productId\" int4,\n  \"sectionId\" int4 NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"url\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"navigation_entry_type_check_3c2920b5\" CHECK (\"type\" IN ('LINK', 'CATEGORY', 'PRODUCT'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"navigation_entry\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.navigation_item",
+    "label": "Create table \"navigation_item\"",
+    "summary": "Creates table \"navigation_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "navigation_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"navigation_item\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"navigation_item\"",
+        "sql": "CREATE TABLE \"public\".\"navigation_item\" (\n  \"categoryId\" int4,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"label\" text NOT NULL,\n  \"menuId\" int4 NOT NULL,\n  \"openNewTab\" bool DEFAULT false NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"type\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"url\" text,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"navigation_item_type_check_f354af9f\" CHECK (\"type\" IN ('LINK', 'CATEGORY', 'MEGA_MENU'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"navigation_item\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.navigation_menu",
+    "label": "Create table \"navigation_menu\"",
+    "summary": "Creates table \"navigation_menu\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "navigation_menu"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"navigation_menu\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_menu\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"navigation_menu\"",
+        "sql": "CREATE TABLE \"public\".\"navigation_menu\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"key\" text NOT NULL,\n  \"name\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"navigation_menu\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_menu\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.navigation_section",
+    "label": "Create table \"navigation_section\"",
+    "summary": "Creates table \"navigation_section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "navigation_section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"navigation_section\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_section\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"navigation_section\"",
+        "sql": "CREATE TABLE \"public\".\"navigation_section\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"itemId\" int4 NOT NULL,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"title\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"navigation_section\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_section\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.navigation_menu.navigation_menu_key_key",
+    "label": "Add unique constraint on \"navigation_menu\" (key)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "navigation_menu_key_key",
+        "table": "navigation_menu"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"navigation_menu_key_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_menu_key_key",
+          "public",
+          "\"public\".\"navigation_menu\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"navigation_menu_key_key\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_menu\" ADD CONSTRAINT \"navigation_menu_key_key\" UNIQUE (\"key\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"navigation_menu_key_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_menu_key_key",
+          "public",
+          "\"public\".\"navigation_menu\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_entry.navigation_entry_categoryId_idx_15c304f2",
+    "label": "Create index \"navigation_entry_categoryId_idx_15c304f2\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_entry_categoryId_idx_15c304f2",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_entry_categoryId_idx_15c304f2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_categoryId_idx_15c304f2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_entry_categoryId_idx_15c304f2\"",
+        "sql": "CREATE INDEX \"navigation_entry_categoryId_idx_15c304f2\" ON \"public\".\"navigation_entry\" (\"categoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_entry_categoryId_idx_15c304f2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_categoryId_idx_15c304f2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_entry.navigation_entry_productId_idx_5858600a",
+    "label": "Create index \"navigation_entry_productId_idx_5858600a\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_entry_productId_idx_5858600a",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_entry_productId_idx_5858600a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_productId_idx_5858600a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_entry_productId_idx_5858600a\"",
+        "sql": "CREATE INDEX \"navigation_entry_productId_idx_5858600a\" ON \"public\".\"navigation_entry\" (\"productId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_entry_productId_idx_5858600a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_productId_idx_5858600a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_entry.navigation_entry_sectionId_idx_5d1ea56b",
+    "label": "Create index \"navigation_entry_sectionId_idx_5d1ea56b\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_entry_sectionId_idx_5d1ea56b",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_entry_sectionId_idx_5d1ea56b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_sectionId_idx_5d1ea56b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_entry_sectionId_idx_5d1ea56b\"",
+        "sql": "CREATE INDEX \"navigation_entry_sectionId_idx_5d1ea56b\" ON \"public\".\"navigation_entry\" (\"sectionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_entry_sectionId_idx_5d1ea56b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_sectionId_idx_5d1ea56b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_entry.navigation_entry_sectionId_sortOrder_idx_6e3943b2",
+    "label": "Create index \"navigation_entry_sectionId_sortOrder_idx_6e3943b2\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_entry_sectionId_sortOrder_idx_6e3943b2",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_entry_sectionId_sortOrder_idx_6e3943b2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_sectionId_sortOrder_idx_6e3943b2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_entry_sectionId_sortOrder_idx_6e3943b2\"",
+        "sql": "CREATE INDEX \"navigation_entry_sectionId_sortOrder_idx_6e3943b2\" ON \"public\".\"navigation_entry\" (\"sectionId\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_entry_sectionId_sortOrder_idx_6e3943b2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_entry_sectionId_sortOrder_idx_6e3943b2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_item.navigation_item_categoryId_idx_15c304f2",
+    "label": "Create index \"navigation_item_categoryId_idx_15c304f2\" on \"navigation_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_item_categoryId_idx_15c304f2",
+        "table": "navigation_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_item_categoryId_idx_15c304f2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item_categoryId_idx_15c304f2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_item_categoryId_idx_15c304f2\"",
+        "sql": "CREATE INDEX \"navigation_item_categoryId_idx_15c304f2\" ON \"public\".\"navigation_item\" (\"categoryId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_item_categoryId_idx_15c304f2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item_categoryId_idx_15c304f2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_item.navigation_item_menuId_idx_261f575e",
+    "label": "Create index \"navigation_item_menuId_idx_261f575e\" on \"navigation_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_item_menuId_idx_261f575e",
+        "table": "navigation_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_item_menuId_idx_261f575e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item_menuId_idx_261f575e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_item_menuId_idx_261f575e\"",
+        "sql": "CREATE INDEX \"navigation_item_menuId_idx_261f575e\" ON \"public\".\"navigation_item\" (\"menuId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_item_menuId_idx_261f575e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item_menuId_idx_261f575e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_item.navigation_item_menuId_sortOrder_idx_74d3f7a8",
+    "label": "Create index \"navigation_item_menuId_sortOrder_idx_74d3f7a8\" on \"navigation_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_item_menuId_sortOrder_idx_74d3f7a8",
+        "table": "navigation_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_item_menuId_sortOrder_idx_74d3f7a8\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item_menuId_sortOrder_idx_74d3f7a8\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_item_menuId_sortOrder_idx_74d3f7a8\"",
+        "sql": "CREATE INDEX \"navigation_item_menuId_sortOrder_idx_74d3f7a8\" ON \"public\".\"navigation_item\" (\"menuId\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_item_menuId_sortOrder_idx_74d3f7a8\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_item_menuId_sortOrder_idx_74d3f7a8\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_menu.navigation_menu_isActive_idx_77fe3ba1",
+    "label": "Create index \"navigation_menu_isActive_idx_77fe3ba1\" on \"navigation_menu\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_menu_isActive_idx_77fe3ba1",
+        "table": "navigation_menu"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_menu_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_menu_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_menu_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"navigation_menu_isActive_idx_77fe3ba1\" ON \"public\".\"navigation_menu\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_menu_isActive_idx_77fe3ba1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_menu_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_section.navigation_section_itemId_idx_41357140",
+    "label": "Create index \"navigation_section_itemId_idx_41357140\" on \"navigation_section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_section_itemId_idx_41357140",
+        "table": "navigation_section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_section_itemId_idx_41357140\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_section_itemId_idx_41357140\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_section_itemId_idx_41357140\"",
+        "sql": "CREATE INDEX \"navigation_section_itemId_idx_41357140\" ON \"public\".\"navigation_section\" (\"itemId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_section_itemId_idx_41357140\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_section_itemId_idx_41357140\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.navigation_section.navigation_section_itemId_sortOrder_idx_ccf26c3d",
+    "label": "Create index \"navigation_section_itemId_sortOrder_idx_ccf26c3d\" on \"navigation_section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "navigation_section_itemId_sortOrder_idx_ccf26c3d",
+        "table": "navigation_section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"navigation_section_itemId_sortOrder_idx_ccf26c3d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_section_itemId_sortOrder_idx_ccf26c3d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"navigation_section_itemId_sortOrder_idx_ccf26c3d\"",
+        "sql": "CREATE INDEX \"navigation_section_itemId_sortOrder_idx_ccf26c3d\" ON \"public\".\"navigation_section\" (\"itemId\", \"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"navigation_section_itemId_sortOrder_idx_ccf26c3d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"navigation_section_itemId_sortOrder_idx_ccf26c3d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.navigation_entry.navigation_entry_sectionId_fkey",
+    "label": "Add foreign key \"navigation_entry_sectionId_fkey\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "navigation_entry_sectionId_fkey",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"navigation_entry_sectionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_entry_sectionId_fkey",
+          "public",
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"navigation_entry_sectionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_entry\"\nADD CONSTRAINT \"navigation_entry_sectionId_fkey\"\nFOREIGN KEY (\"sectionId\")\nREFERENCES \"public\".\"navigation_section\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"navigation_entry_sectionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_entry_sectionId_fkey",
+          "public",
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.navigation_entry.navigation_entry_categoryId_fkey",
+    "label": "Add foreign key \"navigation_entry_categoryId_fkey\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "navigation_entry_categoryId_fkey",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"navigation_entry_categoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_entry_categoryId_fkey",
+          "public",
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"navigation_entry_categoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_entry\"\nADD CONSTRAINT \"navigation_entry_categoryId_fkey\"\nFOREIGN KEY (\"categoryId\")\nREFERENCES \"public\".\"category\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"navigation_entry_categoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_entry_categoryId_fkey",
+          "public",
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.navigation_entry.navigation_entry_productId_fkey",
+    "label": "Add foreign key \"navigation_entry_productId_fkey\" on \"navigation_entry\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "navigation_entry_productId_fkey",
+        "table": "navigation_entry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"navigation_entry_productId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_entry_productId_fkey",
+          "public",
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"navigation_entry_productId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_entry\"\nADD CONSTRAINT \"navigation_entry_productId_fkey\"\nFOREIGN KEY (\"productId\")\nREFERENCES \"public\".\"product\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"navigation_entry_productId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_entry_productId_fkey",
+          "public",
+          "\"public\".\"navigation_entry\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.navigation_item.navigation_item_menuId_fkey",
+    "label": "Add foreign key \"navigation_item_menuId_fkey\" on \"navigation_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "navigation_item_menuId_fkey",
+        "table": "navigation_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"navigation_item_menuId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_item_menuId_fkey",
+          "public",
+          "\"public\".\"navigation_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"navigation_item_menuId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_item\"\nADD CONSTRAINT \"navigation_item_menuId_fkey\"\nFOREIGN KEY (\"menuId\")\nREFERENCES \"public\".\"navigation_menu\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"navigation_item_menuId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_item_menuId_fkey",
+          "public",
+          "\"public\".\"navigation_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.navigation_item.navigation_item_categoryId_fkey",
+    "label": "Add foreign key \"navigation_item_categoryId_fkey\" on \"navigation_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "navigation_item_categoryId_fkey",
+        "table": "navigation_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"navigation_item_categoryId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_item_categoryId_fkey",
+          "public",
+          "\"public\".\"navigation_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"navigation_item_categoryId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_item\"\nADD CONSTRAINT \"navigation_item_categoryId_fkey\"\nFOREIGN KEY (\"categoryId\")\nREFERENCES \"public\".\"category\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"navigation_item_categoryId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_item_categoryId_fkey",
+          "public",
+          "\"public\".\"navigation_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.navigation_section.navigation_section_itemId_fkey",
+    "label": "Add foreign key \"navigation_section_itemId_fkey\" on \"navigation_section\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "navigation_section_itemId_fkey",
+        "table": "navigation_section"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"navigation_section_itemId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_section_itemId_fkey",
+          "public",
+          "\"public\".\"navigation_section\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"navigation_section_itemId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"navigation_section\"\nADD CONSTRAINT \"navigation_section_itemId_fkey\"\nFOREIGN KEY (\"itemId\")\nREFERENCES \"public\".\"navigation_item\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"navigation_section_itemId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "navigation_section_itemId_fkey",
+          "public",
+          "\"public\".\"navigation_section\""
+        ]
+      }
+    ]
+  }
+]

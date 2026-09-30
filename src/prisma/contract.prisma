@@ -13,6 +13,34 @@ enum ProductStatus {
   ARCHIVED = "ARCHIVED"
 }
 
+enum NavigationItemType {
+  @@type("pg/text@1")
+  LINK = "LINK"
+  CATEGORY = "CATEGORY"
+  MEGA_MENU = "MEGA_MENU"
+}
+
+enum NavigationEntryType {
+  @@type("pg/text@1")
+  LINK = "LINK"
+  CATEGORY = "CATEGORY"
+  PRODUCT = "PRODUCT"
+}
+
+enum PopupDisplayType {
+  @@type("pg/text@1")
+  ON_LOAD = "ON_LOAD"
+  EXIT_INTENT = "EXIT_INTENT"
+  AFTER_DELAY = "AFTER_DELAY"
+}
+
+enum PopupFrequency {
+  @@type("pg/text@1")
+  ONCE = "ONCE"
+  DAILY = "DAILY"
+  ALWAYS = "ALWAYS"
+}
+
 enum InventoryMovementType {
   @@type("pg/text@1")
   INITIAL_STOCK = "INITIAL_STOCK"
@@ -267,22 +295,24 @@ model AccountToken {
 }
 
 model Category {
-  id          Int                  @id @default(autoincrement())
-  name        String               @unique
-  slug        String               @unique
-  description String?
-  image       String?
-  parentId    Int?
+  id                Int                  @id @default(autoincrement())
+  name              String               @unique
+  slug              String               @unique
+  description       String?
+  image             String?
+  parentId          Int?
 
-  parent      Category?            @relation("CategoryHierarchy", fields:[parentId], references:[id], onDelete: SetNull)
-  children    Category[]           @relation("CategoryHierarchy")
+  parent            Category?            @relation("CategoryHierarchy", fields:[parentId], references:[id], onDelete: SetNull)
+  children          Category[]           @relation("CategoryHierarchy")
 
-  products    ProductCategory[]
+  products          ProductCategory[]
+  navigationItems   NavigationItem[]
+  navigationEntries NavigationEntry[]
 
-  isActive    Boolean              @default(true)
-  sortOrder   Int                  @default(0)
-  createdAt   DateTime             @default(now())
-  updatedAt   temporal.updatedAt()
+  isActive          Boolean              @default(true)
+  sortOrder         Int                  @default(0)
+  createdAt         DateTime             @default(now())
+  updatedAt         temporal.updatedAt()
 
   @@map("category")
 }
@@ -365,26 +395,27 @@ model CategoryAttribute {
 }
 
 model Product {
-  id               Int                  @id @default(autoincrement())
-  name             String
-  slug             String               @unique
-  shortDescription String?
-  description      String?
+  id                Int                  @id @default(autoincrement())
+  name              String
+  slug              String               @unique
+  shortDescription  String?
+  description       String?
 
-  brandId          Int?
-  brand            Brand?               @relation(fields:[brandId], references:[id], onDelete: SetNull)
+  brandId           Int?
+  brand             Brand?               @relation(fields:[brandId], references:[id], onDelete: SetNull)
 
-  status           ProductStatus        @default(DRAFT)
-  isFeatured       Boolean              @default(false)
+  status            ProductStatus        @default(DRAFT)
+  isFeatured        Boolean              @default(false)
 
-  createdAt        DateTime             @default(now())
-  updatedAt        temporal.updatedAt()
+  createdAt         DateTime             @default(now())
+  updatedAt         temporal.updatedAt()
 
-  categories       ProductCategory[]
-  variants         ProductVariant[]
-  images           ProductImage[]
-  reviews          ProductReview[]
-  wishlistItems    WishlistItem[]
+  categories        ProductCategory[]
+  variants          ProductVariant[]
+  images            ProductImage[]
+  reviews           ProductReview[]
+  wishlistItems     WishlistItem[]
+  navigationEntries NavigationEntry[]
 
   @@index([brandId])
   @@index([status])
@@ -521,6 +552,125 @@ model ProductImageAttributeValue {
   @@id([productImageId, attributeValueId])
   @@index([attributeValueId])
   @@map("product_image_attribute_value")
+}
+
+model NavigationMenu {
+  id        Int                  @id @default(autoincrement())
+  name      String
+  key       String               @unique
+  isActive  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt temporal.updatedAt()
+
+  items     NavigationItem[]
+
+  @@index([isActive])
+  @@map("navigation_menu")
+}
+
+model NavigationItem {
+  id         Int                  @id @default(autoincrement())
+  menuId     Int
+  label      String
+  type       NavigationItemType
+  url        String?
+  categoryId Int?
+  sortOrder  Int                  @default(0)
+  isActive   Boolean              @default(true)
+  openNewTab Boolean              @default(false)
+  createdAt  DateTime             @default(now())
+  updatedAt  temporal.updatedAt()
+
+  menu       NavigationMenu       @relation(fields:[menuId], references:[id], onDelete: Cascade)
+  category   Category?            @relation(fields:[categoryId], references:[id], onDelete: SetNull)
+  sections   NavigationSection[]
+
+  @@index([menuId, sortOrder])
+  @@index([categoryId])
+  @@map("navigation_item")
+}
+
+model NavigationSection {
+  id        Int                  @id @default(autoincrement())
+  itemId    Int
+  title     String
+  sortOrder Int                  @default(0)
+  isActive  Boolean              @default(true)
+  createdAt DateTime             @default(now())
+  updatedAt temporal.updatedAt()
+
+  item      NavigationItem       @relation(fields:[itemId], references:[id], onDelete: Cascade)
+  entries   NavigationEntry[]
+
+  @@index([itemId, sortOrder])
+  @@map("navigation_section")
+}
+
+model NavigationEntry {
+  id         Int                  @id @default(autoincrement())
+  sectionId  Int
+  label      String
+  type       NavigationEntryType
+  url        String?
+  categoryId Int?
+  productId  Int?
+  sortOrder  Int                  @default(0)
+  isActive   Boolean              @default(true)
+  openNewTab Boolean              @default(false)
+  createdAt  DateTime             @default(now())
+  updatedAt  temporal.updatedAt()
+
+  section    NavigationSection    @relation(fields:[sectionId], references:[id], onDelete: Cascade)
+  category   Category?            @relation(fields:[categoryId], references:[id], onDelete: SetNull)
+  product    Product?             @relation(fields:[productId], references:[id], onDelete: SetNull)
+
+  @@index([sectionId, sortOrder])
+  @@index([categoryId])
+  @@index([productId])
+  @@map("navigation_entry")
+}
+
+model Slider {
+  id          Int                  @id @default(autoincrement())
+  title       String
+  subtitle    String?
+  imageUrl    String?
+  storageKey  String?
+  mobileImage String?
+  mobileKey   String?
+  buttonText  String?
+  buttonUrl   String?
+  isActive    Boolean              @default(true)
+  sortOrder   Int                  @default(0)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@index([isActive, sortOrder])
+  @@index([startsAt, endsAt])
+  @@map("slider")
+}
+
+model Popup {
+  id           Int                  @id @default(autoincrement())
+  title        String
+  description  String?
+  imageUrl     String?
+  storageKey   String?
+  buttonText   String?
+  buttonUrl    String?
+  displayType  PopupDisplayType     @default(ON_LOAD)
+  delaySeconds Int                  @default(0)
+  frequency    PopupFrequency       @default(ONCE)
+  isActive     Boolean              @default(true)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    temporal.updatedAt()
+
+  @@index([isActive, startsAt, endsAt])
+  @@map("popup")
 }
 
 model Cart {

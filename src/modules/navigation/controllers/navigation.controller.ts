@@ -1,0 +1,23 @@
+import { Request, Response } from "express";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import { successResponse } from "../../../utils/api-response.js";
+import * as service from "../services/navigation.service.js";
+
+export const listMenus = asyncHandler(async (_req, res) => res.json(successResponse("Navigation menus fetched successfully", await service.listMenus())));
+export const getMenu = asyncHandler(async (req, res) => res.json(successResponse("Navigation menu fetched successfully", await service.getMenu(Number(req.params.menuId)))));
+export const publicMenu = asyncHandler(async (req, res) => res.json(successResponse("Navigation menu fetched successfully", await service.getPublicMenu(String(req.params.key)))));
+export const createMenu = asyncHandler(async (req, res) => res.status(201).json(successResponse("Navigation menu created successfully", await service.createMenu(req.body))));
+export const updateMenu = asyncHandler(async (req, res) => res.json(successResponse("Navigation menu updated successfully", await service.updateMenu(Number(req.params.menuId), req.body))));
+export const removeMenu = asyncHandler(async (req, res) => { await service.removeMenu(Number(req.params.menuId)); res.json(successResponse("Navigation menu deleted successfully", null)); });
+export const listItems = asyncHandler(async (req, res) => res.json(successResponse("Navigation items fetched successfully", await service.listItems(Number(req.params.menuId)))));
+export const createItem = asyncHandler(async (req, res) => res.status(201).json(successResponse("Navigation item created successfully", await service.createItem(Number(req.params.menuId), req.body))));
+export const updateItem = asyncHandler(async (req, res) => res.json(successResponse("Navigation item updated successfully", await service.updateItem(Number(req.params.menuId), Number(req.params.itemId), req.body))));
+export const removeItem = asyncHandler(async (req, res) => { await service.removeItem(Number(req.params.menuId), Number(req.params.itemId)); res.json(successResponse("Navigation item deleted successfully", null)); });
+export const listSections = asyncHandler(async (req, res) => res.json(successResponse("Navigation sections fetched successfully", await service.listSections(Number(req.params.menuId), Number(req.params.itemId)))));
+export const createSection = asyncHandler(async (req, res) => res.status(201).json(successResponse("Navigation section created successfully", await service.createSection(Number(req.params.menuId), Number(req.params.itemId), req.body))));
+export const updateSection = asyncHandler(async (req, res) => res.json(successResponse("Navigation section updated successfully", await service.updateSection(Number(req.params.menuId), Number(req.params.itemId), Number(req.params.sectionId), req.body))));
+export const removeSection = asyncHandler(async (req, res) => { await service.removeSection(Number(req.params.menuId), Number(req.params.itemId), Number(req.params.sectionId)); res.json(successResponse("Navigation section deleted successfully", null)); });
+export const listEntries = asyncHandler(async (req, res) => res.json(successResponse("Navigation entries fetched successfully", await service.listEntries(Number(req.params.menuId), Number(req.params.itemId), Number(req.params.sectionId)))));
+export const createEntry = asyncHandler(async (req, res) => res.status(201).json(successResponse("Navigation entry created successfully", await service.createEntry(Number(req.params.menuId), Number(req.params.itemId), Number(req.params.sectionId), req.body))));
+export const updateEntry = asyncHandler(async (req, res) => res.json(successResponse("Navigation entry updated successfully", await service.updateEntry(Number(req.params.menuId), Number(req.params.itemId), Number(req.params.sectionId), Number(req.params.entryId), req.body))));
+export const removeEntry = asyncHandler(async (req, res) => { await service.removeEntry(Number(req.params.menuId), Number(req.params.itemId), Number(req.params.sectionId), Number(req.params.entryId)); res.json(successResponse("Navigation entry deleted successfully", null)); });

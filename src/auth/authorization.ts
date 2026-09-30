@@ -47,6 +47,12 @@ export const permissions = {
   refundsTransition: "refunds:transition",
   reviewsRead: "reviews:read",
   reviewsModerate: "reviews:moderate",
+  navigationReadAny: "navigation:read:any",
+  navigationManage: "navigation:manage",
+  slidersReadAny: "sliders:read:any",
+  slidersManage: "sliders:manage",
+  popupsReadAny: "popups:read:any",
+  popupsManage: "popups:manage",
 } as const;
 
 export type Permission = (typeof permissions)[keyof typeof permissions];
