@@ -44,6 +44,7 @@ const fields = {
 };
 
 export const productIdSchema = z.object({ params: z.object({ id }) });
+export const publicProductSlugSchema = z.object({ params: z.object({ slug: z.string().trim().min(1).max(250) }) });
 
 export const createProductSchema = z.object({
   body: z.object(fields).strict(),

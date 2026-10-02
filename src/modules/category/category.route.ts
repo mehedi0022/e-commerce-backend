@@ -7,6 +7,7 @@ import * as c from "./controllers/category.controller.js";
 import * as v from "./validations/category.validation.js";
 import * as categoryAttributeController from "../attribute/controllers/category-attribute.controller.js";
 import * as categoryAttributeValidation from "../attribute/validations/category-attribute.validation.js";
+import { imageUpload } from "../upload/upload.middleware.js";
 
 
 const router = Router();
@@ -58,6 +59,14 @@ router.patch(
   validate(v.reorderCategorySchema),
   requirePermission(permissions.categoriesReorder),
   c.reorder,
+);
+
+router.post(
+  "/:id/image",
+  validate(v.categoryIdSchema),
+  imageUpload.single("image"),
+  requirePermission(permissions.categoriesUpdateAny),
+  c.uploadImage,
 );
 
 router.delete(

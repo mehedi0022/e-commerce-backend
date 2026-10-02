@@ -9,6 +9,9 @@ import * as vv from "./validations/product-variant.validation.js";
 import * as vc from "./controllers/product-variant.controller.js";
 const router = Router();
 
+router.get("/public", validate(v.productListQuerySchema), c.publicList);
+router.get("/public/slug/:slug", validate(v.publicProductSlugSchema), c.publicGetBySlug);
+
 router.use(requireAuth);
 router.get("/:productId/variants", validate(vv.variantListSchema), requirePermission(permissions.productsReadAny), vc.list);
 router.get("/:productId/variants/:variantId", validate(vv.variantParamsSchema), requirePermission(permissions.productsReadAny), vc.get);

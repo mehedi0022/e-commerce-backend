@@ -12,7 +12,7 @@ export const find = (productId: number, id: number) => withValues(db.orm.public.
 export const list = (productId: number) => withValues(db.orm.public.ProductImage.select(...publicFields)).where({ productId }).orderBy([(i: any) => i.sortOrder.asc(), (i: any) => i.id.asc()]).all();
 export const findValues = (ids: number[]) => db.orm.public.AttributeValue.select("id", "attributeId", "value", "isActive").where((v: any) => v.id.in(ids)).include("attribute", (a: any) => a.select("id", "isActive")).all();
 export const findVariants = (productId: number) => db.orm.public.ProductVariant.select("id").where({ productId }).include("attributeValues", (m: any) => m.select("attributeValueId")).all();
-export const clearPrimary = (tx: any, productId: number) => tx.orm.public.ProductImage.where({ productId, isPrimary: true }).select("id").update({ isPrimary: false });
+export const clearPrimary = (tx: any, productId: number) => tx.orm.public.ProductImage.where({ productId, isPrimary: true }).updateAll({ isPrimary: false });
 export const create = (tx: any, data: Record<string, unknown>) => tx.orm.public.ProductImage.select(...publicFields).create(data);
 export const update = (tx: any, id: number, data: Record<string, unknown>) => tx.orm.public.ProductImage.where({ id }).select(...publicFields).update(data);
 export const addValue = (tx: any, productImageId: number, attributeValueId: number) => tx.orm.public.ProductImageAttributeValue.create({ productImageId, attributeValueId });

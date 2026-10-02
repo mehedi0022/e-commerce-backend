@@ -8,6 +8,10 @@ import type {
   UpdateAttributeInput,
   UpdateValueInput,
 } from "../attribute.types.js";
+const ensureRemainingValues = async (attributeId: number, valueId: number) => {
+  if (await repo.findRequiredAssignment(attributeId) && !(await repo.listValues(attributeId)).some(v => v.id !== valueId && v.isActive))
+    throw new ConflictError("This is the last active value of a required category attribute. Add another value or make the assignment optional first.");
+};
 export const list = (q: AttributeListQuery) => repo.listAttributes(q);
 export const get = async (id: number) => {
   const x = await repo.findAttribute(id);
@@ -39,10 +43,12 @@ export const update = async (id: number, data: UpdateAttributeInput) => {
 };
 export const remove = async (id: number) => {
   await get(id);
+  if (await repo.attributeInUse(id)) throw new ConflictError("This attribute is assigned to categories or used by products. Remove those references before deleting it.");
   await repo.deleteAttribute(id);
 };
 export const status = async (id: number, isActive: boolean) => {
   await get(id);
+  if (!isActive && await repo.attributeInUse(id)) throw new ConflictError("This attribute is assigned to categories or used by products. Remove those references before deactivating it.");
   return repo.updateAttributeStatus(id, isActive);
 };
 export const values = async (attributeId: number) => {
@@ -59,7 +65,7 @@ export const createValue = async (
   const slug = await uniqueSlug(data.value, async (s) =>
     Boolean(await repo.findValueBySlug(attributeId, s)),
   );
-  return repo.createValue({ attributeId, value: data.value, slug });
+  return repo.createValue({ ...data, attributeId, value: data.value, slug });
 };
 export const updateValue = async (
   attributeId: number,
@@ -68,7 +74,9 @@ export const updateValue = async (
 ) => {
   const current = await repo.findValue(valueId, attributeId);
   if (!current) throw new NotFoundError("Attribute value not found");
-  if (!data.value) return current;
+  if (data.isActive === false && await repo.valueInUse(valueId)) throw new ConflictError("This value is used by a product variant or photo and cannot be deactivated.");
+  if (data.isActive === false && current.isActive) await ensureRemainingValues(attributeId, valueId);
+  if (!data.value) return repo.updateValue(valueId, data);
   const same = await repo.findValueByValue(attributeId, data.value);
   if (same && same.id !== valueId)
     throw new ConflictError("Attribute value already exists");
@@ -79,7 +87,10 @@ export const updateValue = async (
   return repo.updateValue(valueId, { ...data, slug });
 };
 export const removeValue = async (attributeId: number, valueId: number) => {
-  if (!(await repo.findValue(valueId, attributeId)))
+  const current = await repo.findValue(valueId, attributeId);
+  if (!current)
     throw new NotFoundError("Attribute value not found");
+  if (await repo.valueInUse(valueId)) throw new ConflictError("This value is used by a product variant or photo and cannot be deleted.");
+  if (current.isActive) await ensureRemainingValues(attributeId, valueId);
   await repo.deleteValue(valueId);
 };

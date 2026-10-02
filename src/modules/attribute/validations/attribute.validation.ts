@@ -6,12 +6,12 @@ const valueParams = z.object({ attributeId: id, valueId: id });
 const name = z.string().trim().min(1).max(150);
 export const attributeIdSchema = z.object({ params: attributeParams });
 export const createAttributeSchema = z.object({
-  body: z.object({ name }).strict(),
+  body: z.object({ name, sortOrder: z.coerce.number().int().min(0).optional() }).strict(),
 });
 export const updateAttributeSchema = z.object({
   params: attributeParams,
   body: z
-    .object({ name: name.optional() })
+    .object({ name: name.optional(), sortOrder: z.coerce.number().int().min(0).optional() })
     .strict()
     .refine((v) => Object.keys(v).length > 0, "At least one field is required"),
 });
@@ -32,12 +32,12 @@ export const attributeValueListSchema = z.object({
 });
 export const createValueSchema = z.object({
   params: z.object({ attributeId: id }),
-  body: z.object({ value: name }).strict(),
+  body: z.object({ value: name, sortOrder: z.coerce.number().int().min(0).optional() }).strict(),
 });
 export const updateValueSchema = z.object({
   params: valueParams,
   body: z
-    .object({ value: name.optional() })
+    .object({ value: name.optional(), isActive: z.boolean().optional(), sortOrder: z.coerce.number().int().min(0).optional() })
     .strict()
     .refine((v) => Object.keys(v).length > 0, "At least one field is required"),
 });

@@ -17,6 +17,7 @@ export const createBrandSchema = z.object({
       name: fields.name,
       logo: fields.logo,
       description: fields.description,
+      sortOrder: z.coerce.number().int().min(0).optional(),
     })
     .strict(),
 });
@@ -28,6 +29,7 @@ export const updateBrandSchema = z.object({
       name: fields.name.optional(),
       logo: fields.logo,
       description: fields.description,
+      sortOrder: z.coerce.number().int().min(0).optional(),
     })
     .strict()
     .refine(

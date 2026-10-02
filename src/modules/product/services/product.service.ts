@@ -10,10 +10,12 @@ import type {
 } from "../product.types.js";
 import { uploadService } from "../../upload/upload.module.js";
 import * as imageRepository from "../repositories/product-image.repository.js";
+import * as variantRepository from "../repositories/product-variant.repository.js";
 
 const validateRelations = async (
   brandId: number | null | undefined,
   categories: CategoryAssignment[] | undefined,
+  existingCategories: CategoryAssignment[] = [],
 ) => {
   if (brandId !== undefined && brandId !== null) {
     const brand = await repo.findBrand(brandId);
@@ -23,8 +25,13 @@ const validateRelations = async (
   }
   if (categories)
     for (const item of categories) {
-      if (!(await repo.findCategory(item.categoryId)))
+      const category = await repo.findCategory(item.categoryId);
+      if (!category)
         throw new NotFoundError(`Category ${item.categoryId} not found`);
+      if (!category.isActive) throw new ConflictError("Inactive category cannot be assigned");
+      const unchanged = existingCategories.some(previous => previous.categoryId === item.categoryId && previous.isPrimary === item.isPrimary);
+      if (item.isPrimary && !unchanged && await repo.findCategoryChild(item.categoryId))
+        throw new ConflictError("Choose a leaf category (one without subcategories) as the primary category.");
     }
 };
 
@@ -46,6 +53,20 @@ export const get = async (id: number) => {
   return product;
 };
 
+export const publicList = (q: ProductListQuery) => repo.findAll({ ...q, status: "ACTIVE" });
+
+export const publicGetBySlug = async (slug: string) => {
+  const product = await repo.findPublicBySlug(slug);
+  if (!product) throw new NotFoundError("Product not found");
+  const [variants, images] = await Promise.all([variantRepository.list(product.id), imageRepository.list(product.id)]);
+  return { ...product, variants: variants.filter((variant: any) => variant.isActive).map((variant: any) => ({
+    id: variant.id, productId: variant.productId, sku: variant.sku,
+    price: variant.price, compareAtPrice: variant.compareAtPrice,
+    isActive: variant.isActive, sortOrder: variant.sortOrder,
+    attributeValues: variant.attributeValues,
+  })), images };
+};
+
 export const create = async (data: CreateProductInput) => {
   await validateRelations(data.brandId, data.categories);
   const slug = await uniqueSlug(data.name, async (s) =>
@@ -60,8 +81,8 @@ export const create = async (data: CreateProductInput) => {
 };
 
 export const update = async (id: number, data: UpdateProductInput) => {
-  await get(id);
-  await validateRelations(data.brandId, data.categories);
+  const current = await get(id);
+  await validateRelations(data.brandId, data.categories, (current as any).categories ?? []);
   const slug = data.name
     ? await uniqueSlug(data.name, async (s) => {
         const x = await repo.findBySlug(s);
@@ -69,8 +90,11 @@ export const update = async (id: number, data: UpdateProductInput) => {
       })
     : undefined;
   await db.transaction(async (tx) => {
-    await repo.update(tx, id, { ...data, ...(slug ? { slug } : {}) });
-    await sync(tx, id, data.categories);
+    const { categories, ...fields } = data;
+    if (Object.keys(fields).length || slug) {
+      await repo.update(tx, id, { ...fields, ...(slug ? { slug } : {}) });
+    }
+    await sync(tx, id, categories);
   });
   return get(id);
 };

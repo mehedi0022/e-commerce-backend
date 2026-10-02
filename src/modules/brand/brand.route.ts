@@ -5,10 +5,12 @@ import { validate } from "../../middlewares/validate.middleware.js";
 import { permissions } from "../../auth/authorization.js";
 import * as c from "./controllers/brand.controller.js";
 import * as v from "./validations/brand.validation.js";
+import { imageUpload } from "../upload/upload.middleware.js";
 
 const router = Router();
 
 router.use(requireAuth);
+router.post("/:id/logo", validate(v.brandIdSchema), requirePermission(permissions.brandsUpdateAny), imageUpload.single("image"), c.uploadLogo);
 
 router.get(
   "/",

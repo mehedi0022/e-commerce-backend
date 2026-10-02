@@ -7,6 +7,8 @@ import type {
   UpdateProductInput,
 } from "../product.types.js";
 import { or } from "@prisma/orm-postgres/orm-client";
+import { hierarchy } from "../../category/repositories/category.repository.js";
+import { descendantCategoryIds } from "../../category/category-tree.js";
 
 const productFields = [
   "id",
@@ -49,6 +51,7 @@ export const findBrand = (id: number) =>
 
 export const findCategory = (id: number) =>
   db.orm.public.Category.select("id", "isActive").first({ id });
+export const findCategoryChild = (parentId: number) => db.orm.public.Category.select("id").first({ parentId });
 
 export const findAll = async ({
   page,
@@ -69,10 +72,12 @@ export const findAll = async ({
   if (status) q = q.where({ status });
   if (brandId) q = q.where({ brandId });
   if (isFeatured !== undefined) q = q.where({ isFeatured });
-  if (categoryId)
+  if (categoryId) {
+    const categoryIds = descendantCategoryIds(await hierarchy(), categoryId);
     q = q.where((p: any) =>
-      p.categories.some((c: any) => c.categoryId.eq(categoryId)),
+      p.categories.some((c: any) => c.categoryId.in(categoryIds)),
     );
+  }
   const ordered =
     sortBy === "name"
       ? q.orderBy((p: any) =>
@@ -128,3 +133,6 @@ export const clearCategories = async (tx: any, productId: number) => {
 
 export const remove = (tx: any, id: number) =>
   tx.orm.public.Product.where({ id }).delete();
+
+export const findPublicBySlug = (slug: string) =>
+  withRelations(db.orm.public.Product.select(...productFields)).where({ slug, status: "ACTIVE" }).first();

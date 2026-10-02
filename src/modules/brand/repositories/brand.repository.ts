@@ -29,6 +29,7 @@ export const findByNameOrSlug = (name: string, slug: string) =>
 
 export const findBySlug = (slug: string) =>
   db.orm.public.Brand.select("id").first({ slug });
+export const findProduct = (brandId: number) => db.orm.public.Product.select("id").first({ brandId });
 
 export const findAll = async ({
   page,

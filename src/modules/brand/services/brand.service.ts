@@ -1,5 +1,6 @@
 import * as repo from "../repositories/brand.repository.js";
-import { ConflictError, NotFoundError } from "../../../errors/AppError.js";
+import { ConflictError, NotFoundError, ValidationError } from "../../../errors/AppError.js";
+import { uploadService } from "../../upload/upload.module.js";
 import type {
   BrandListQuery,
   CreateBrandInput,
@@ -47,7 +48,16 @@ export const update = async (id: number, data: UpdateBrandInput) => {
 
 export const remove = async (id: number) => {
   await get(id);
+  if (await repo.findProduct(id)) throw new ConflictError("This brand is used by products. Reassign the products or deactivate the brand instead.");
   await repo.remove(id);
+};
+
+export const uploadLogo = async (id: number, file: Express.Multer.File | undefined) => {
+  await get(id);
+  if (!file) throw new ValidationError("Logo image is required");
+  const stored = await uploadService.upload(file, "brands");
+  try { return await repo.update(id, { logo: stored.url }); }
+  catch (error) { await uploadService.delete(stored.key).catch(() => undefined); throw error; }
 };
 
 export const status = async (id: number, isActive: boolean) => {

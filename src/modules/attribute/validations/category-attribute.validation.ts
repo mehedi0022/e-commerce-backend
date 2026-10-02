@@ -13,7 +13,7 @@ export const categoryAttributesSchema = z.object({
 
 export const updateCategoryAttributesSchema = z.object({
   params: z.object({ categoryId }),
-  body: z.object({ attributes: z.array(assignment).max(100) }).strict(),
+  body: z.object({ attributes: z.array(assignment).max(100).refine(items => new Set(items.map(item => item.attributeId)).size === items.length, "An attribute cannot be assigned more than once") }).strict(),
 });
 
 export type CategoryAttributeAssignment = z.infer<typeof assignment>;

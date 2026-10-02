@@ -26,7 +26,7 @@ const swaggerCsp: RequestHandler = (_req, res, next) => {
 app.set("trust proxy", config.trustProxy);
 
 app.use(createRequestLogger());
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(corsMiddleware);
 
 app.use(express.json());
@@ -49,7 +49,10 @@ if (config.swagger.enabled) {
 }
 
 if (config.upload.enabled && config.upload.storage === "local") {
-  app.use("/uploads", express.static(config.upload.localDir, { fallthrough: true, index: false }));
+  app.use(
+    "/uploads",
+    express.static(config.upload.localDir, { fallthrough: true, index: false }),
+  );
 }
 
 app.use("/api/v1", globalApiRateLimit, routes);

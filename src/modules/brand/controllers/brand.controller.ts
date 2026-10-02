@@ -4,6 +4,7 @@ import {
   successResponse,
 } from "../../../utils/api-response.js";
 import * as service from "../services/brand.service.js";
+export const uploadLogo = asyncHandler(async (req, res) => res.json(successResponse("Brand logo updated successfully", await service.uploadLogo(Number(req.params.id), req.file))));
 
 export const list = asyncHandler(async (req, res) => {
   const result = await service.list(req.query as any);

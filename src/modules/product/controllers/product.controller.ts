@@ -12,6 +12,15 @@ export const list = asyncHandler(async (req, res) => {
   );
 });
 
+export const publicList = asyncHandler(async (req, res) => {
+  const x = await service.publicList(req.query as any);
+  res.json(paginatedResponse("Products fetched successfully", x.products, x.meta));
+});
+
+export const publicGetBySlug = asyncHandler(async (req, res) =>
+  res.json(successResponse("Product fetched successfully", await service.publicGetBySlug(String(req.params.slug)))),
+);
+
 export const get = asyncHandler(async (req, res) =>
   res.json(
     successResponse(

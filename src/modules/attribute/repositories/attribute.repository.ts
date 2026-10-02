@@ -52,7 +52,7 @@ export const listAttributes = async ({
   ]);
   const [{ total }, attributes] = await Promise.all([
     q.aggregate((a) => ({ total: a.count() })),
-    ordered.offset(pageOffset(page, limit)).limit(limit).all(),
+    ordered.offset(pageOffset(page, limit)).limit(limit).include("values", v => v.select(...valueFields).orderBy(x => x.sortOrder.asc())).all(),
   ]);
   return { attributes, meta: paginationMeta(page, limit, total) };
 };
@@ -97,3 +97,15 @@ export const updateValue = (
     .update(data);
 export const deleteValue = (id: number) =>
   db.orm.public.AttributeValue.where({ id }).delete();
+
+export const findCategoryAssignment = (attributeId: number) => db.orm.public.CategoryAttribute.select("id").first({ attributeId });
+export const findRequiredAssignment = (attributeId: number) => db.orm.public.CategoryAttribute.select("id").first({ attributeId, isRequired: true });
+export const valueInUse = async (attributeValueId: number) => Boolean(
+  await db.orm.public.VariantAttributeValue.select("variantId").first({ attributeValueId }) ||
+  await db.orm.public.ProductImageAttributeValue.select("productImageId").first({ attributeValueId })
+);
+export const attributeInUse = async (attributeId: number) => {
+  if (await findCategoryAssignment(attributeId)) return true;
+  for (const value of await listValues(attributeId)) if (await valueInUse(value.id)) return true;
+  return false;
+};

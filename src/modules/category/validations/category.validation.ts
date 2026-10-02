@@ -23,6 +23,7 @@ export const createCategorySchema = z.object({
       description: fields.description,
       image: fields.image,
       parentId,
+      sortOrder: z.coerce.number().int().min(0).optional(),
     })
     .strict(),
 });
@@ -35,6 +36,7 @@ export const updateCategorySchema = z.object({
       description: fields.description,
       image: fields.image,
       parentId,
+      sortOrder: z.coerce.number().int().min(0).optional(),
     })
     .strict()
     .refine(

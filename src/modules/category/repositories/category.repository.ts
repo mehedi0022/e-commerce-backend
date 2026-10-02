@@ -6,6 +6,7 @@ import type {
   UpdateCategoryInput,
 } from "../category.types.js";
 import { or } from "@prisma/orm-postgres/orm-client";
+import { categoryMetadata } from "../category-tree.js";
 
 const select = [
   "id",
@@ -22,6 +23,8 @@ const select = [
 
 export const findById = (id: number) =>
   db.orm.public.Category.select(...select).first({ id });
+export const findAttributeAssignment = (categoryId: number) =>
+  db.orm.public.CategoryAttribute.select("id").first({ categoryId });
 
 export const findByNameOrSlug = (
   name: string,
@@ -71,7 +74,8 @@ export const findAll = async ({
     q.aggregate((a) => ({ total: a.count() })),
     ordered.offset(pageOffset(page, limit)).limit(limit).all(),
   ]);
-  return { categories, meta: paginationMeta(page, limit, total) };
+  const metadata = categoryMetadata(await hierarchy());
+  return { categories: categories.map(category => ({ ...category, ...metadata.get(category.id) })), meta: paginationMeta(page, limit, total) };
 };
 
 export const create = (data: CreateCategoryInput & { slug: string }) =>
@@ -107,3 +111,8 @@ export const allForTree = () =>
   db.orm.public.Category.select(...select)
     .orderBy([(c) => c.sortOrder.asc(), (c) => c.name.asc()])
     .all();
+
+export const hierarchy = () => db.orm.public.Category.select("id", "parentId", "name").all();
+export const findChild = (parentId: number) => db.orm.public.Category.select("id").first({ parentId });
+export const findProductAssignment = (categoryId: number) => db.orm.public.ProductCategory.select("productId").first({ categoryId });
+export const findPrimaryProduct = (categoryId: number) => db.orm.public.ProductCategory.select("productId").first({ categoryId, isPrimary: true });

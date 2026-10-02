@@ -74,3 +74,12 @@ export const reorder = asyncHandler(async (req, res) =>
     ),
   ),
 );
+
+export const uploadImage = asyncHandler(async (req, res) =>
+  res.json(
+    successResponse(
+      "Category image uploaded successfully",
+      await service.uploadImage(Number(req.params.id), req.file),
+    ),
+  ),
+);
