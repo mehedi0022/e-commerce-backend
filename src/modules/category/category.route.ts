@@ -64,8 +64,8 @@ router.patch(
 router.post(
   "/:id/image",
   validate(v.categoryIdSchema),
-  imageUpload.single("image"),
   requirePermission(permissions.categoriesUpdateAny),
+  imageUpload.single("image"),
   c.uploadImage,
 );
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "../../../utils/pagination.js";
+import { sanitizeDescription } from "../description-html.js";
 
 const id = z.coerce.number().int().positive();
 
@@ -34,7 +35,7 @@ const categories = z
 const fields = {
   name: z.string().trim().min(1).max(250),
   shortDescription: z.string().trim().max(500).nullable().optional(),
-  description: z.string().trim().max(10000).nullable().optional(),
+  description: z.string().trim().max(10000).transform(sanitizeDescription).nullable().optional(),
   brandId: id.nullable().optional(),
   status: z
     .enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const)

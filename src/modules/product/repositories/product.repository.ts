@@ -63,8 +63,11 @@ export const findAll = async ({
   isFeatured,
   sortBy,
   sortOrder,
-}: ProductListQuery) => {
-  let q = withRelations(db.orm.public.Product.select(...productFields));
+}: ProductListQuery, publicCards = false) => {
+  const base = db.orm.public.Product.select(...productFields);
+  let q = withRelations(publicCards ? base
+    .include("variants", v => v.select("id", "productId", "sku", "price", "compareAtPrice", "isActive", "sortOrder").where({ isActive: true }).orderBy(v => v.sortOrder.asc()))
+    .include("images", i => i.select("id", "imageUrl", "altText", "isPrimary", "sortOrder").orderBy(i => i.sortOrder.asc())) : base);
   if (search)
     q = q.where((p: any) =>
       or(p.name.ilike(`%${search}%`), p.slug.ilike(`%${search}%`)),

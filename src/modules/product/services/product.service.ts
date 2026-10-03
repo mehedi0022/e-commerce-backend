@@ -53,7 +53,7 @@ export const get = async (id: number) => {
   return product;
 };
 
-export const publicList = (q: ProductListQuery) => repo.findAll({ ...q, status: "ACTIVE" });
+export const publicList = (q: ProductListQuery) => repo.findAll({ ...q, status: "ACTIVE" }, true);
 
 export const publicGetBySlug = async (slug: string) => {
   const product = await repo.findPublicBySlug(slug);
