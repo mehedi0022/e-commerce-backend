@@ -6,6 +6,7 @@ import { permissions } from "../../auth/authorization.js";
 import * as c from "./controllers/shipping.controller.js";
 import * as v from "./validations/shipping.validation.js";
 const router = Router();
+router.get("/shipping/public-methods", c.methods);
 router.use((req, res, next) => {
   const ownsPath = ["/addresses", "/shipping-zones", "/shipping-methods", "/shipping/options"]
     .some((prefix) => req.path.startsWith(prefix));
