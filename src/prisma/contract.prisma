@@ -172,6 +172,29 @@ enum ProductReviewStatus {
   REJECTED = "REJECTED"
 }
 
+enum PaymentMethodType {
+  @@type("pg/text@1")
+  COD = "COD"
+  MANUAL_MFS = "MANUAL_MFS"
+  MANUAL_BANK = "MANUAL_BANK"
+  AUTOMATED_GATEWAY = "AUTOMATED_GATEWAY"
+}
+
+enum PaymentAccountType {
+  @@type("pg/text@1")
+  PERSONAL = "PERSONAL"
+  AGENT = "AGENT"
+  MERCHANT = "MERCHANT"
+}
+
+enum PaymentTransactionStatus {
+  @@type("pg/text@1")
+  PENDING_VERIFICATION = "PENDING_VERIFICATION"
+  VERIFIED = "VERIFIED"
+  REJECTED = "REJECTED"
+  REFUNDED = "REFUNDED"
+}
+
 // Database-driven RBAC foundation. `User.role` remains temporarily during the
 // expand/backfill rollout; `rbacRole` becomes the authorization source once
 // existing users have been migrated.
@@ -252,6 +275,8 @@ model User {
   moderatedProductReviews ProductReview[]         @relation("ProductReviewModerator")
 
   wishlistItems           WishlistItem[]
+
+  verifiedPaymentTransactions OrderPaymentTransaction[] @relation("PaymentVerifiedByUser")
 
   @@index([roleId])
   @@map("user")
@@ -896,6 +921,7 @@ model Order {
   statusHistory             OrderStatusHistory[]
   returns                   Return[]
   refunds                   Refund[]
+  paymentTransactions       OrderPaymentTransaction[]
 
   createdAt                 DateTime             @default(now())
   updatedAt                 temporal.updatedAt()
@@ -1337,3 +1363,64 @@ model WishlistItem {
 
   @@map("wishlist_item")
 }
+
+model PaymentMethodConfig {
+  id               Int                @id @default(autoincrement())
+  code             String             @unique
+  name             String
+  type             PaymentMethodType  @default(MANUAL_MFS)
+  accountType      PaymentAccountType @default(PERSONAL)
+  accountNumber    String?
+  bankName         String?
+  branchName       String?
+  routingNumber    String?
+  instructions     String?
+  qrCodeUrl        String?
+  chargePercentage Numeric(5, 2)      @default(0)
+  chargeFlat       Numeric(10, 2)     @default(0)
+  isActive         Boolean            @default(true)
+  isLive           Boolean            @default(false)
+  credentials      Json?
+  sortOrder        Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        temporal.updatedAt()
+
+  transactions     OrderPaymentTransaction[]
+
+  @@index([type, isActive])
+  @@index([sortOrder])
+  @@map("payment_method_config")
+}
+
+model OrderPaymentTransaction {
+  id                    Int                      @id @default(autoincrement())
+  orderId               Int
+  paymentMethodCode     String
+  paymentMethodConfigId Int?
+  type                  PaymentMethodType        @default(MANUAL_MFS)
+  senderNumber          String?
+  transactionId         String?
+  bankTransferReference String?
+  amount                Numeric(12, 2)
+  chargeAmount          Numeric(12, 2)           @default(0)
+  status                PaymentTransactionStatus @default(PENDING_VERIFICATION)
+  receiptImageUrl       String?
+  adminNote             String?
+  verifiedByUserId      Int?
+  verifiedAt            DateTime?
+  gatewayPayload        Json?
+  gatewayResponse       Json?
+  createdAt             DateTime                 @default(now())
+  updatedAt             temporal.updatedAt()
+
+  order                 Order                    @relation(fields:[orderId], references:[id], onDelete: Cascade)
+  paymentMethodConfig   PaymentMethodConfig?     @relation(fields:[paymentMethodConfigId], references:[id], onDelete: SetNull)
+  verifiedByUser        User?                    @relation("PaymentVerifiedByUser", fields:[verifiedByUserId], references:[id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([transactionId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("order_payment_transaction")
+}
+

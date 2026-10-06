@@ -88,8 +88,16 @@
       "model": "OrderItemAttribute",
       "namespace": "public"
     },
+    "order_payment_transaction": {
+      "model": "OrderPaymentTransaction",
+      "namespace": "public"
+    },
     "order_status_history": {
       "model": "OrderStatusHistory",
+      "namespace": "public"
+    },
+    "payment_method_config": {
+      "model": "PaymentMethodConfig",
       "namespace": "public"
     },
     "permission": {
@@ -388,6 +396,65 @@
               {
                 "name": "CANCELLED",
                 "value": "CANCELLED"
+              }
+            ]
+          },
+          "PaymentAccountType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PERSONAL",
+                "value": "PERSONAL"
+              },
+              {
+                "name": "AGENT",
+                "value": "AGENT"
+              },
+              {
+                "name": "MERCHANT",
+                "value": "MERCHANT"
+              }
+            ]
+          },
+          "PaymentMethodType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "COD",
+                "value": "COD"
+              },
+              {
+                "name": "MANUAL_MFS",
+                "value": "MANUAL_MFS"
+              },
+              {
+                "name": "MANUAL_BANK",
+                "value": "MANUAL_BANK"
+              },
+              {
+                "name": "AUTOMATED_GATEWAY",
+                "value": "AUTOMATED_GATEWAY"
+              }
+            ]
+          },
+          "PaymentTransactionStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "PENDING_VERIFICATION",
+                "value": "PENDING_VERIFICATION"
+              },
+              {
+                "name": "VERIFIED",
+                "value": "VERIFIED"
+              },
+              {
+                "name": "REJECTED",
+                "value": "REJECTED"
+              },
+              {
+                "name": "REFUNDED",
+                "value": "REFUNDED"
               }
             ]
           },
@@ -3336,6 +3403,21 @@
                   "namespace": "public"
                 }
               },
+              "paymentTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "orderId"
+                  ]
+                },
+                "to": {
+                  "model": "OrderPaymentTransaction",
+                  "namespace": "public"
+                }
+              },
               "refunds": {
                 "cardinality": "1:N",
                 "on": {
@@ -4062,6 +4144,276 @@
               "table": "order_item_attribute"
             }
           },
+          "OrderPaymentTransaction": {
+            "fields": {
+              "adminNote": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "amount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "bankTransferReference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "chargeAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "gatewayPayload": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "gatewayResponse": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "orderId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethodCode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentMethodConfigId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "receiptImageUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "senderNumber": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentTransactionStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "transactionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethodType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "verifiedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "verifiedByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "order": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "orderId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Order",
+                  "namespace": "public"
+                }
+              },
+              "paymentMethodConfig": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "paymentMethodConfigId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "PaymentMethodConfig",
+                  "namespace": "public"
+                }
+              },
+              "verifiedByUser": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "verifiedByUserId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "adminNote": {
+                  "column": "adminNote"
+                },
+                "amount": {
+                  "column": "amount"
+                },
+                "bankTransferReference": {
+                  "column": "bankTransferReference"
+                },
+                "chargeAmount": {
+                  "column": "chargeAmount"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "gatewayPayload": {
+                  "column": "gatewayPayload"
+                },
+                "gatewayResponse": {
+                  "column": "gatewayResponse"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "orderId": {
+                  "column": "orderId"
+                },
+                "paymentMethodCode": {
+                  "column": "paymentMethodCode"
+                },
+                "paymentMethodConfigId": {
+                  "column": "paymentMethodConfigId"
+                },
+                "receiptImageUrl": {
+                  "column": "receiptImageUrl"
+                },
+                "senderNumber": {
+                  "column": "senderNumber"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "transactionId": {
+                  "column": "transactionId"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "verifiedAt": {
+                  "column": "verifiedAt"
+                },
+                "verifiedByUserId": {
+                  "column": "verifiedByUserId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "order_payment_transaction"
+            }
+          },
           "OrderStatusHistory": {
             "fields": {
               "changedById": {
@@ -4186,6 +4538,243 @@
               },
               "namespaceId": "public",
               "table": "order_status_history"
+            }
+          },
+          "PaymentMethodConfig": {
+            "fields": {
+              "accountNumber": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "accountType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentAccountType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "bankName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "branchName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "chargeFlat": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 2
+                  }
+                }
+              },
+              "chargePercentage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "code": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "credentials": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "instructions": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isLive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "qrCodeUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "routingNumber": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sortOrder": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentMethodType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "transactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "paymentMethodConfigId"
+                  ]
+                },
+                "to": {
+                  "model": "OrderPaymentTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "accountNumber": {
+                  "column": "accountNumber"
+                },
+                "accountType": {
+                  "column": "accountType"
+                },
+                "bankName": {
+                  "column": "bankName"
+                },
+                "branchName": {
+                  "column": "branchName"
+                },
+                "chargeFlat": {
+                  "column": "chargeFlat"
+                },
+                "chargePercentage": {
+                  "column": "chargePercentage"
+                },
+                "code": {
+                  "column": "code"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "credentials": {
+                  "column": "credentials"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "instructions": {
+                  "column": "instructions"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "isLive": {
+                  "column": "isLive"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "qrCodeUrl": {
+                  "column": "qrCodeUrl"
+                },
+                "routingNumber": {
+                  "column": "routingNumber"
+                },
+                "sortOrder": {
+                  "column": "sortOrder"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "payment_method_config"
             }
           },
           "Permission": {
@@ -7900,6 +8489,21 @@
                   "namespace": "public"
                 }
               },
+              "verifiedPaymentTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "verifiedByUserId"
+                  ]
+                },
+                "to": {
+                  "model": "OrderPaymentTransaction",
+                  "namespace": "public"
+                }
+              },
               "wishlistItems": {
                 "cardinality": "1:N",
                 "on": {
@@ -11028,6 +11632,266 @@
               },
               "uniques": []
             },
+            "order_payment_transaction": {
+              "checks": [
+                {
+                  "expression": "\"status\" IN ('PENDING_VERIFICATION', 'VERIFIED', 'REJECTED', 'REFUNDED')",
+                  "name": "order_payment_transaction_status_check_da7d3c1b",
+                  "prefix": "order_payment_transaction_status_check"
+                },
+                {
+                  "expression": "\"type\" IN ('COD', 'MANUAL_MFS', 'MANUAL_BANK', 'AUTOMATED_GATEWAY')",
+                  "name": "order_payment_transaction_type_check_1f7143c2",
+                  "prefix": "order_payment_transaction_type_check"
+                }
+              ],
+              "columns": {
+                "adminNote": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "amount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "bankTransferReference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "chargeAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "gatewayPayload": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "gatewayResponse": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "orderId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "paymentMethodCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "paymentMethodConfigId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "receiptImageUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "senderNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING_VERIFICATION"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentTransactionStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "transactionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL_MFS"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethodType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "verifiedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "verifiedByUserId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "orderId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "order_payment_transaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "order"
+                  }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "paymentMethodConfigId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "order_payment_transaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "payment_method_config"
+                  }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "verifiedByUserId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "order_payment_transaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "order_payment_transaction_createdAt_idx_9575dbd7",
+                  "prefix": "order_payment_transaction_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "orderId"
+                  ],
+                  "name": "order_payment_transaction_orderId_idx_d284871b",
+                  "prefix": "order_payment_transaction_orderId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "paymentMethodConfigId"
+                  ],
+                  "name": "order_payment_transaction_paymentMethodConfigId_idx_e890a84d",
+                  "prefix": "order_payment_transaction_paymentMethodConfigId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "order_payment_transaction_status_idx_e98638ab",
+                  "prefix": "order_payment_transaction_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "transactionId"
+                  ],
+                  "name": "order_payment_transaction_transactionId_idx_d3180832",
+                  "prefix": "order_payment_transaction_transactionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "verifiedByUserId"
+                  ],
+                  "name": "order_payment_transaction_verifiedByUserId_idx_28ba6004",
+                  "prefix": "order_payment_transaction_verifiedByUserId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "order_status_history": {
               "checks": [
                 {
@@ -11167,6 +12031,205 @@
                 ]
               },
               "uniques": []
+            },
+            "payment_method_config": {
+              "checks": [
+                {
+                  "expression": "\"accountType\" IN ('PERSONAL', 'AGENT', 'MERCHANT')",
+                  "name": "payment_method_config_accountType_check_86f2d872",
+                  "prefix": "payment_method_config_accountType_check"
+                },
+                {
+                  "expression": "\"type\" IN ('COD', 'MANUAL_MFS', 'MANUAL_BANK', 'AUTOMATED_GATEWAY')",
+                  "name": "payment_method_config_type_check_1f7143c2",
+                  "prefix": "payment_method_config_type_check"
+                }
+              ],
+              "columns": {
+                "accountNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "accountType": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PERSONAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentAccountType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "bankName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "branchName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "chargeFlat": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 2
+                  }
+                },
+                "chargePercentage": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "code": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "credentials": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "instructions": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isLive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "qrCodeUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "routingNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "sortOrder": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "MANUAL_MFS"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentMethodType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "sortOrder"
+                  ],
+                  "name": "payment_method_config_sortOrder_idx_ebf2eac2",
+                  "prefix": "payment_method_config_sortOrder_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type",
+                    "isActive"
+                  ],
+                  "name": "payment_method_config_type_isActive_idx_e554eeb4",
+                  "prefix": "payment_method_config_type_isActive_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "code"
+                  ]
+                }
+              ]
             },
             "permission": {
               "columns": {
@@ -14618,6 +15681,32 @@
                 "CANCELLED"
               ]
             },
+            "PaymentAccountType": {
+              "kind": "valueSet",
+              "values": [
+                "PERSONAL",
+                "AGENT",
+                "MERCHANT"
+              ]
+            },
+            "PaymentMethodType": {
+              "kind": "valueSet",
+              "values": [
+                "COD",
+                "MANUAL_MFS",
+                "MANUAL_BANK",
+                "AUTOMATED_GATEWAY"
+              ]
+            },
+            "PaymentTransactionStatus": {
+              "kind": "valueSet",
+              "values": [
+                "PENDING_VERIFICATION",
+                "VERIFIED",
+                "REJECTED",
+                "REFUNDED"
+              ]
+            },
             "PopupDisplayType": {
               "kind": "valueSet",
               "values": [
@@ -14733,10 +15822,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6c36c816c9203b79e31b074d53b64f9165c55ab6c061c11bcfcce8cbf9faba57"
+    "storageHash": "16a9b73455ab735b126d9e24f8b667f49de136aca370451e462c79adce4c6faf"
   },
   "execution": {
-    "executionHash": "9bbecc27cadf54dc02362c41b65c87e66f3d3af4f30fe65e49f02e6b124bd564",
+    "executionHash": "bb56e9ec8574dba4069ce6dff68fbb646f4ed21bfbe74bb05f299393fdc69bdd",
     "mutations": {
       "defaults": [
         {
@@ -14960,6 +16049,36 @@
           },
           "ref": {
             "entry": "order",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "order_payment_transaction",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "payment_method_config",
             "field": "updatedAt",
             "namespace": "public"
           }

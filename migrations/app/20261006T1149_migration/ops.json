@@ -1,0 +1,560 @@
+[
+  {
+    "id": "table.order_payment_transaction",
+    "label": "Create table \"order_payment_transaction\"",
+    "summary": "Creates table \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"order_payment_transaction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"order_payment_transaction\"",
+        "sql": "CREATE TABLE \"public\".\"order_payment_transaction\" (\n  \"adminNote\" text,\n  \"amount\" numeric(12,2) NOT NULL,\n  \"bankTransferReference\" text,\n  \"chargeAmount\" numeric(12,2) DEFAULT '0'::numeric(12,2) NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"gatewayPayload\" json,\n  \"gatewayResponse\" json,\n  \"id\" SERIAL NOT NULL,\n  \"orderId\" int4 NOT NULL,\n  \"paymentMethodCode\" text NOT NULL,\n  \"paymentMethodConfigId\" int4,\n  \"receiptImageUrl\" text,\n  \"senderNumber\" text,\n  \"status\" text DEFAULT 'PENDING_VERIFICATION' NOT NULL,\n  \"transactionId\" text,\n  \"type\" text DEFAULT 'MANUAL_MFS' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"verifiedAt\" timestamptz,\n  \"verifiedByUserId\" int4,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"order_payment_transaction_status_check_da7d3c1b\" CHECK (\"status\" IN ('PENDING_VERIFICATION', 'VERIFIED', 'REJECTED', 'REFUNDED')),\n  CONSTRAINT \"order_payment_transaction_type_check_1f7143c2\" CHECK (\"type\" IN ('COD', 'MANUAL_MFS', 'MANUAL_BANK', 'AUTOMATED_GATEWAY'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"order_payment_transaction\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.payment_method_config",
+    "label": "Create table \"payment_method_config\"",
+    "summary": "Creates table \"payment_method_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "payment_method_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"payment_method_config\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_method_config\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"payment_method_config\"",
+        "sql": "CREATE TABLE \"public\".\"payment_method_config\" (\n  \"accountNumber\" text,\n  \"accountType\" text DEFAULT 'PERSONAL' NOT NULL,\n  \"bankName\" text,\n  \"branchName\" text,\n  \"chargeFlat\" numeric(10,2) DEFAULT '0'::numeric(10,2) NOT NULL,\n  \"chargePercentage\" numeric(5,2) DEFAULT '0'::numeric(5,2) NOT NULL,\n  \"code\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"credentials\" json,\n  \"id\" SERIAL NOT NULL,\n  \"instructions\" text,\n  \"isActive\" bool DEFAULT true NOT NULL,\n  \"isLive\" bool DEFAULT false NOT NULL,\n  \"name\" text NOT NULL,\n  \"qrCodeUrl\" text,\n  \"routingNumber\" text,\n  \"sortOrder\" int4 DEFAULT 0 NOT NULL,\n  \"type\" text DEFAULT 'MANUAL_MFS' NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"payment_method_config_accountType_check_86f2d872\" CHECK (\"accountType\" IN ('PERSONAL', 'AGENT', 'MERCHANT')),\n  CONSTRAINT \"payment_method_config_type_check_1f7143c2\" CHECK (\"type\" IN ('COD', 'MANUAL_MFS', 'MANUAL_BANK', 'AUTOMATED_GATEWAY'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"payment_method_config\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_method_config\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.payment_method_config.payment_method_config_code_key",
+    "label": "Add unique constraint on \"payment_method_config\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "payment_method_config_code_key",
+        "table": "payment_method_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"payment_method_config_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_method_config_code_key",
+          "public",
+          "\"public\".\"payment_method_config\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"payment_method_config_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"payment_method_config\" ADD CONSTRAINT \"payment_method_config_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"payment_method_config_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "payment_method_config_code_key",
+          "public",
+          "\"public\".\"payment_method_config\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order_payment_transaction.order_payment_transaction_createdAt_idx_9575dbd7",
+    "label": "Create index \"order_payment_transaction_createdAt_idx_9575dbd7\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_payment_transaction_createdAt_idx_9575dbd7",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_payment_transaction_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_payment_transaction_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"order_payment_transaction_createdAt_idx_9575dbd7\" ON \"public\".\"order_payment_transaction\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_payment_transaction_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order_payment_transaction.order_payment_transaction_orderId_idx_d284871b",
+    "label": "Create index \"order_payment_transaction_orderId_idx_d284871b\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_payment_transaction_orderId_idx_d284871b",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_payment_transaction_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_orderId_idx_d284871b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_payment_transaction_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"order_payment_transaction_orderId_idx_d284871b\" ON \"public\".\"order_payment_transaction\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_payment_transaction_orderId_idx_d284871b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_orderId_idx_d284871b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order_payment_transaction.order_payment_transaction_paymentMethodConfigId_idx_e890a84d",
+    "label": "Create index \"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_payment_transaction_paymentMethodConfigId_idx_e890a84d",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\"",
+        "sql": "CREATE INDEX \"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\" ON \"public\".\"order_payment_transaction\" (\"paymentMethodConfigId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_paymentMethodConfigId_idx_e890a84d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order_payment_transaction.order_payment_transaction_status_idx_e98638ab",
+    "label": "Create index \"order_payment_transaction_status_idx_e98638ab\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_payment_transaction_status_idx_e98638ab",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_payment_transaction_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_payment_transaction_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"order_payment_transaction_status_idx_e98638ab\" ON \"public\".\"order_payment_transaction\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_payment_transaction_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order_payment_transaction.order_payment_transaction_transactionId_idx_d3180832",
+    "label": "Create index \"order_payment_transaction_transactionId_idx_d3180832\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_payment_transaction_transactionId_idx_d3180832",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_payment_transaction_transactionId_idx_d3180832\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_transactionId_idx_d3180832\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_payment_transaction_transactionId_idx_d3180832\"",
+        "sql": "CREATE INDEX \"order_payment_transaction_transactionId_idx_d3180832\" ON \"public\".\"order_payment_transaction\" (\"transactionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_payment_transaction_transactionId_idx_d3180832\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_transactionId_idx_d3180832\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.order_payment_transaction.order_payment_transaction_verifiedByUserId_idx_28ba6004",
+    "label": "Create index \"order_payment_transaction_verifiedByUserId_idx_28ba6004\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "order_payment_transaction_verifiedByUserId_idx_28ba6004",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"order_payment_transaction_verifiedByUserId_idx_28ba6004\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_verifiedByUserId_idx_28ba6004\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"order_payment_transaction_verifiedByUserId_idx_28ba6004\"",
+        "sql": "CREATE INDEX \"order_payment_transaction_verifiedByUserId_idx_28ba6004\" ON \"public\".\"order_payment_transaction\" (\"verifiedByUserId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"order_payment_transaction_verifiedByUserId_idx_28ba6004\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"order_payment_transaction_verifiedByUserId_idx_28ba6004\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.payment_method_config.payment_method_config_sortOrder_idx_ebf2eac2",
+    "label": "Create index \"payment_method_config_sortOrder_idx_ebf2eac2\" on \"payment_method_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "payment_method_config_sortOrder_idx_ebf2eac2",
+        "table": "payment_method_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"payment_method_config_sortOrder_idx_ebf2eac2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_method_config_sortOrder_idx_ebf2eac2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"payment_method_config_sortOrder_idx_ebf2eac2\"",
+        "sql": "CREATE INDEX \"payment_method_config_sortOrder_idx_ebf2eac2\" ON \"public\".\"payment_method_config\" (\"sortOrder\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"payment_method_config_sortOrder_idx_ebf2eac2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_method_config_sortOrder_idx_ebf2eac2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.payment_method_config.payment_method_config_type_isActive_idx_e554eeb4",
+    "label": "Create index \"payment_method_config_type_isActive_idx_e554eeb4\" on \"payment_method_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "payment_method_config_type_isActive_idx_e554eeb4",
+        "table": "payment_method_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"payment_method_config_type_isActive_idx_e554eeb4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_method_config_type_isActive_idx_e554eeb4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"payment_method_config_type_isActive_idx_e554eeb4\"",
+        "sql": "CREATE INDEX \"payment_method_config_type_isActive_idx_e554eeb4\" ON \"public\".\"payment_method_config\" (\"type\", \"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"payment_method_config_type_isActive_idx_e554eeb4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"payment_method_config_type_isActive_idx_e554eeb4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.order_payment_transaction.order_payment_transaction_orderId_fkey",
+    "label": "Add foreign key \"order_payment_transaction_orderId_fkey\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "order_payment_transaction_orderId_fkey",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"order_payment_transaction_orderId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_payment_transaction_orderId_fkey",
+          "public",
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"order_payment_transaction_orderId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"order_payment_transaction\"\nADD CONSTRAINT \"order_payment_transaction_orderId_fkey\"\nFOREIGN KEY (\"orderId\")\nREFERENCES \"public\".\"order\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"order_payment_transaction_orderId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_payment_transaction_orderId_fkey",
+          "public",
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.order_payment_transaction.order_payment_transaction_paymentMethodConfigId_fkey",
+    "label": "Add foreign key \"order_payment_transaction_paymentMethodConfigId_fkey\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "order_payment_transaction_paymentMethodConfigId_fkey",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"order_payment_transaction_paymentMethodConfigId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_payment_transaction_paymentMethodConfigId_fkey",
+          "public",
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"order_payment_transaction_paymentMethodConfigId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"order_payment_transaction\"\nADD CONSTRAINT \"order_payment_transaction_paymentMethodConfigId_fkey\"\nFOREIGN KEY (\"paymentMethodConfigId\")\nREFERENCES \"public\".\"payment_method_config\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"order_payment_transaction_paymentMethodConfigId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_payment_transaction_paymentMethodConfigId_fkey",
+          "public",
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.order_payment_transaction.order_payment_transaction_verifiedByUserId_fkey",
+    "label": "Add foreign key \"order_payment_transaction_verifiedByUserId_fkey\" on \"order_payment_transaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "order_payment_transaction_verifiedByUserId_fkey",
+        "table": "order_payment_transaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"order_payment_transaction_verifiedByUserId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_payment_transaction_verifiedByUserId_fkey",
+          "public",
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"order_payment_transaction_verifiedByUserId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"order_payment_transaction\"\nADD CONSTRAINT \"order_payment_transaction_verifiedByUserId_fkey\"\nFOREIGN KEY (\"verifiedByUserId\")\nREFERENCES \"public\".\"user\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"order_payment_transaction_verifiedByUserId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_payment_transaction_verifiedByUserId_fkey",
+          "public",
+          "\"public\".\"order_payment_transaction\""
+        ]
+      }
+    ]
+  }
+]

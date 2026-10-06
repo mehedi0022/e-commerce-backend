@@ -94,8 +94,29 @@ export const checkout = async (
   userId?: number,
   guestToken?: string,
 ) => {
-  if (input.paymentMethod !== "CASH_ON_DELIVERY")
-    throw new ConflictError("Online payment is not available");
+  // Resolve payment method configuration
+  const paymentMethodCode = input.paymentMethodCode || (input.paymentMethod === "CASH_ON_DELIVERY" ? "cod" : "bkash_manual");
+  const paymentConfig: any = await db.orm.public.PaymentMethodConfig.first({ code: paymentMethodCode });
+
+  const isCOD = paymentConfig?.type === "COD" || input.paymentMethod === "CASH_ON_DELIVERY" || paymentMethodCode === "cod";
+  const isManualPayment = paymentConfig && (paymentConfig.type === "MANUAL_MFS" || paymentConfig.type === "MANUAL_BANK");
+
+  if (!isCOD && !isManualPayment) {
+    if (paymentConfig?.type === "AUTOMATED_GATEWAY") {
+      if (!paymentConfig.isActive) {
+        throw new ConflictError("Selected payment gateway is currently unavailable");
+      }
+    } else {
+      throw new ConflictError("Selected payment method is currently unavailable");
+    }
+  }
+
+  if (isManualPayment) {
+    if (!input.transactionId || !input.transactionId.trim()) {
+      throw new ValidationError("Transaction ID (TrxID) is required for manual payment");
+    }
+  }
+
   const cart: any = await cartWithItems(userId, guestToken);
   if (!cart || cart.status !== "ACTIVE" || !cart.items.length)
     throw new ValidationError("Cart is empty");
@@ -164,6 +185,8 @@ export const checkout = async (
     ]);
     for (const x of items)
       await inventory.reserveStock(x.v.id, x.item.quantity, tx);
+
+    const paymentStatus = isCOD ? "UNPAID" : "PENDING";
     const order = await repo.create(tx, {
       orderNumber: orderNumber(),
       userId: userId ?? null,
@@ -171,8 +194,8 @@ export const checkout = async (
       customerEmail: customerEmail ?? null,
       customerPhone,
       status: "PENDING",
-      paymentMethod: input.paymentMethod,
-      paymentStatus: "UNPAID",
+      paymentMethod: isCOD ? "CASH_ON_DELIVERY" : "ONLINE",
+      paymentStatus,
       couponId: appliedCoupon?.coupon.id ?? null,
       couponCode: appliedCoupon?.normalizedCode ?? null,
       subtotal,
@@ -211,11 +234,40 @@ export const checkout = async (
     }
     await repo.address(tx, snapshotAddress(ship, "SHIPPING", order.id));
     await repo.address(tx, snapshotAddress(bill, "BILLING", order.id));
+
+    if (isManualPayment && paymentConfig) {
+      await tx.orm.public.OrderPaymentTransaction.create({
+        orderId: order.id,
+        paymentMethodCode: paymentConfig.code,
+        paymentMethodConfigId: paymentConfig.id,
+        type: paymentConfig.type,
+        senderNumber: input.senderNumber || null,
+        transactionId: input.transactionId.trim(),
+        amount: grandTotal,
+        status: "PENDING_VERIFICATION",
+      });
+    } else if (paymentConfig?.type === "AUTOMATED_GATEWAY") {
+      await tx.orm.public.OrderPaymentTransaction.create({
+        orderId: order.id,
+        paymentMethodCode: paymentConfig.code,
+        paymentMethodConfigId: paymentConfig.id,
+        type: paymentConfig.type,
+        amount: grandTotal,
+        status: "PENDING_VERIFICATION",
+      });
+    }
+
+    const initialHistoryNote = isManualPayment && paymentConfig
+      ? `Order placed via ${paymentConfig.name}. Sender: ${input.senderNumber || "N/A"}, TrxID: ${input.transactionId.trim()}`
+      : paymentConfig?.type === "AUTOMATED_GATEWAY"
+      ? `Order placed via automated gateway: ${paymentConfig.name}`
+      : "Order placed via Cash on Delivery";
+
     await repo.history(tx, {
       orderId: order.id,
       fromStatus: null,
       toStatus: "PENDING",
-      note: null,
+      note: initialHistoryNote,
       changedById: userId ?? null,
     });
     if (appliedCoupon)
@@ -235,10 +287,13 @@ export const checkout = async (
     return order;
   });
   const safe = {
+    id: result.id,
     orderNumber: result.orderNumber,
     status: result.status,
     paymentMethod: result.paymentMethod,
     paymentStatus: result.paymentStatus,
+    paymentMethodCode: paymentConfig?.code || "cod",
+    paymentMethodType: paymentConfig?.type || "COD",
     subtotal: String(result.subtotal),
     shippingCharge: String(result.shippingCharge),
     discountAmount: String(result.discountAmount),
