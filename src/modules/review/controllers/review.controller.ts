@@ -8,7 +8,22 @@ export const update = asyncHandler(async (req, res) => res.json(successResponse(
 export const remove = asyncHandler(async (req, res) => { await service.remove(Number(req.params.id), req.auth!.userId); res.json(successResponse("Review deleted successfully", null)); });
 export const publicList = asyncHandler(async (req, res) => { const q: any = req.query; const rows = await service.publicList(String(req.params.slug), q); res.json(paginatedResponse("Reviews fetched successfully", rows as any[], { page: q.page, limit: q.limit, total: rows.length, totalPages: rows.length === q.limit ? q.page + 1 : q.page })); });
 export const summary = asyncHandler(async (req, res) => res.json(successResponse("Rating summary fetched successfully", await service.ratingSummary(String(req.params.slug)))));
-export const adminList = asyncHandler(async (req, res) => { const q: any = req.query; const rows = await service.adminList(q); res.json(paginatedResponse("Reviews fetched successfully", rows as any[], { page: q.page, limit: q.limit, total: rows.length, totalPages: rows.length === q.limit ? q.page + 1 : q.page })); });
+export const adminList = asyncHandler(async (req, res) => {
+  const q: any = req.query;
+  const { rows, total } = await service.adminList(q);
+  const page = q.page ? Number(q.page) : 1;
+  const limit = q.limit ? Number(q.limit) : 20;
+  res.json(paginatedResponse("Reviews fetched successfully", rows as any[], {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit) || 1,
+  }));
+});
 export const adminDetail = asyncHandler(async (req, res) => res.json(successResponse("Review fetched successfully", await service.get(Number(req.params.id)))));
 export const approve = asyncHandler(async (req, res) => res.json(successResponse("Review approved successfully", await service.approve(Number(req.params.id), req.auth!.userId))));
 export const reject = asyncHandler(async (req, res) => res.json(successResponse("Review rejected successfully", await service.reject(Number(req.params.id), req.auth!.userId))));
+export const adminRemove = asyncHandler(async (req, res) => {
+  await service.adminRemove(Number(req.params.id));
+  res.json(successResponse("Review deleted successfully", null));
+});

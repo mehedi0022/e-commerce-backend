@@ -15,7 +15,26 @@ export const byProduct = async (slug: string, q: any) => {
   const order = q.sort === "oldest" ? (r: any) => r.createdAt.asc() : q.sort === "highest" ? (r: any) => r.rating.desc() : q.sort === "lowest" ? (r: any) => r.rating.asc() : (r: any) => r.createdAt.desc();
   return x.orderBy(order).offset((q.page - 1) * q.limit).limit(q.limit).all();
 };
-export const adminList = (q: any) => { let x: any = customer(db.orm.public.ProductReview); if (q.status) x = x.where({ status: q.status }); if (q.rating) x = x.where({ rating: q.rating }); if (q.productId) x = x.where({ productId: q.productId }); if (q.userId) x = x.where({ userId: q.userId }); return x.orderBy((r: any) => r.createdAt.desc()).offset((q.page - 1) * q.limit).limit(q.limit).all(); };
+export const adminList = async (q: any) => {
+  let filter: any = db.orm.public.ProductReview;
+  if (q.status) filter = filter.where({ status: q.status });
+  if (q.rating) filter = filter.where({ rating: q.rating });
+  if (q.productId) filter = filter.where({ productId: q.productId });
+  if (q.userId) filter = filter.where({ userId: q.userId });
+
+  const page = q.page ? Number(q.page) : 1;
+  const limit = q.limit ? Number(q.limit) : 20;
+
+  const countPromise = filter.aggregate((a: any) => ({ total: a.count() }));
+  const dataPromise = customer(filter)
+    .orderBy((r: any) => r.createdAt.desc())
+    .offset((page - 1) * limit)
+    .limit(limit)
+    .all();
+
+  const [countRes, rows] = await Promise.all([countPromise, dataPromise]);
+  return { rows, total: countRes?.total ?? rows.length };
+};
 export const mine = (userId: number) => customer(db.orm.public.ProductReview).where({ userId }).orderBy((r: any) => r.createdAt.desc()).all();
 export const summary = async (slug: string) => {
   const prod = await db.orm.public.Product.select("id").first({ slug });

@@ -13,3 +13,4 @@ export const ratingSummary = async (slug: string) => { const rows: any[] = await
 export const adminList = (q: any) => repo.adminList(q);
 export const approve = async (id: number, actorId: number) => { const x: any = await get(id); if (x.status !== "PENDING") throw new ConflictError("Only pending reviews can be approved"); return db.transaction((tx) => repo.update(tx, id, { status: "APPROVED", approvedAt: nowInstant(), rejectedAt: null, moderatedById: actorId })); };
 export const reject = async (id: number, actorId: number) => { const x: any = await get(id); if (x.status !== "PENDING") throw new ConflictError("Only pending reviews can be rejected"); return db.transaction((tx) => repo.update(tx, id, { status: "REJECTED", rejectedAt: nowInstant(), approvedAt: null, moderatedById: actorId })); };
+export const adminRemove = async (id: number) => { await get(id); await db.transaction((tx) => repo.remove(tx, id)); };

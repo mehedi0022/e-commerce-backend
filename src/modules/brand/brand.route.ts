@@ -9,6 +9,9 @@ import { imageUpload } from "../upload/upload.middleware.js";
 
 const router = Router();
 
+// Public route for storefront
+router.get("/public", validate(v.brandListQuerySchema), c.list);
+
 router.use(requireAuth);
 router.post("/:id/logo", validate(v.brandIdSchema), requirePermission(permissions.brandsUpdateAny), imageUpload.single("image"), c.uploadLogo);
 

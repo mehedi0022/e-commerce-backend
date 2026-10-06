@@ -35,7 +35,13 @@ const categories = z
 const fields = {
   name: z.string().trim().min(1).max(250),
   shortDescription: z.string().trim().max(500).nullable().optional(),
-  description: z.string().trim().max(10000).transform(sanitizeDescription).nullable().optional(),
+  description: z
+    .string()
+    .trim()
+    .max(10000)
+    .transform(sanitizeDescription)
+    .nullable()
+    .optional(),
   brandId: id.nullable().optional(),
   status: z
     .enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const)
@@ -45,7 +51,9 @@ const fields = {
 };
 
 export const productIdSchema = z.object({ params: z.object({ id }) });
-export const publicProductSlugSchema = z.object({ params: z.object({ slug: z.string().trim().min(1).max(250) }) });
+export const publicProductSlugSchema = z.object({
+  params: z.object({ slug: z.string().trim().min(1).max(250) }),
+});
 
 export const createProductSchema = z.object({
   body: z.object(fields).strict(),
@@ -75,9 +83,26 @@ export const productListQuerySchema = z.object({
         .enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const)
         .optional(),
       brandId: id.optional(),
+      brandIds: z.string().trim().optional(),
       categoryId: id.optional(),
+      categorySlug: z.string().trim().optional(),
       isFeatured: z.coerce.boolean().optional(),
-      sortBy: z.enum(["id", "name", "createdAt"] as const).default("createdAt"),
+      minPrice: z.coerce.number().min(0).optional(),
+      maxPrice: z.coerce.number().min(0).optional(),
+      rating: z.coerce.number().min(1).max(5).optional(),
+      inStock: z.coerce.boolean().optional(),
+      publicCards: z.coerce.boolean().optional(),
+      sortBy: z
+        .enum([
+          "id",
+          "name",
+          "createdAt",
+          "price",
+          "rating",
+          "isFeatured",
+        ] as const)
+        .default("createdAt"),
+      sortOrder: z.enum(["asc", "desc"] as const).default("desc"),
     })
     .strict(),
 });

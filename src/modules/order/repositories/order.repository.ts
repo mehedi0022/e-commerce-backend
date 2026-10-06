@@ -168,6 +168,23 @@ export const list = async (query: any) => {
         "deliveredAt",
       ),
     )
+    .include("addresses", (a: any) =>
+      a.select(
+        "id",
+        "type",
+        "fullName",
+        "phone",
+        "addressLine1",
+        "addressLine2",
+        "division",
+        "district",
+        "upazila",
+        "thana",
+        "area",
+        "postalCode",
+        "countryCode",
+      ),
+    )
     .include("items", (i: any) =>
       i
         .select(
@@ -190,6 +207,9 @@ export const list = async (query: any) => {
                 .select("id", "imageUrl", "isPrimary", "sortOrder")
                 .orderBy((x: any) => x.sortOrder.asc()),
             ),
+        )
+        .include("attributes", (a: any) =>
+          a.select("id", "attributeName", "attributeValue"),
         ),
     )
     .orderBy((x: any) => x.createdAt.desc())

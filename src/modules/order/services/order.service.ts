@@ -300,6 +300,7 @@ export const trackOrder = async (orderNumber: string, phone?: string) => {
     confirmedAt: order.confirmedAt,
     shippedAt: order.shippedAt,
     deliveredAt: order.deliveredAt,
+    cancelledAt: order.cancelledAt,
     customerName: order.customerName,
     itemCount: order.items?.length || 0,
     grandTotal: String(order.grandTotal),
@@ -318,6 +319,8 @@ export const trackOrder = async (orderNumber: string, phone?: string) => {
     items: (order.items || []).map((i: any) => ({
       id: i.id,
       productName: i.productName,
+      productSlug: i.productSlug,
+      imageUrl: i.product?.images?.[0]?.imageUrl ?? null,
       quantity: i.quantity,
       unitPrice: String(i.unitPrice),
       lineTotal: String(i.lineTotal),

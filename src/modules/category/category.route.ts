@@ -12,6 +12,9 @@ import { imageUpload } from "../upload/upload.middleware.js";
 
 const router = Router();
 
+// Public routes for storefront
+router.get("/public/tree", c.tree);
+router.get("/public", validate(v.categoryListQuerySchema), c.list);
 
 router.use(requireAuth);
 router.get("/:categoryId/attributes", validate(categoryAttributeValidation.categoryAttributesSchema), requirePermission(permissions.categoriesReadAny), categoryAttributeController.list);
