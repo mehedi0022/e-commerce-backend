@@ -79,12 +79,14 @@ enum OrderPaymentMethod {
   @@type("pg/text@1")
   CASH_ON_DELIVERY = "CASH_ON_DELIVERY"
   ONLINE = "ONLINE"
+  PARTIAL_COD = "PARTIAL_COD"
 }
 
 enum OrderPaymentStatus {
   @@type("pg/text@1")
   UNPAID = "UNPAID"
   PENDING = "PENDING"
+  PARTIALLY_PAID = "PARTIALLY_PAID"
   PAID = "PAID"
   FAILED = "FAILED"
   REFUNDED = "REFUNDED"
@@ -438,6 +440,10 @@ model Product {
 
   status            ProductStatus        @default(DRAFT)
   isFeatured        Boolean              @default(false)
+  isFreeShipping    Boolean              @default(false)
+  isCodAvailable    Boolean              @default(true)
+  requiresAdvancePayment Boolean         @default(false)
+  advancePaymentAmount Numeric(10, 2)?
 
   createdAt         DateTime             @default(now())
   updatedAt         temporal.updatedAt()
@@ -895,6 +901,10 @@ model Order {
   discountAmount            Numeric(12, 2)       @default(0)
   taxAmount                 Numeric(12, 2)       @default(0)
   grandTotal                Numeric(12, 2)
+  advanceAmount             Numeric(12, 2)       @default(0)
+  dueAmount                 Numeric(12, 2)       @default(0)
+  isAdvanceRequired         Boolean              @default(false)
+  isFreeShipping            Boolean              @default(false)
 
   coupon                    Coupon?              @relation(fields:[couponId], references:[id], onDelete: SetNull)
   couponUsages              CouponUsage[]

@@ -73,11 +73,16 @@ export const verifyTransaction = async (
     );
 
     if (input.status === "VERIFIED") {
+      const nextPaymentStatus =
+        order.isAdvanceRequired && Number(order.dueAmount) > 0
+          ? "PARTIALLY_PAID"
+          : "PAID";
+
       await tx.orm.public.Order.where({ id: order.id }).update({
-        paymentStatus: "PAID",
+        paymentStatus: nextPaymentStatus,
       });
 
-      const noteText = `Payment verified by admin. Method: ${transaction.paymentMethodCode}, TrxID: ${
+      const noteText = `Payment verified by admin (${nextPaymentStatus}). Method: ${transaction.paymentMethodCode}, TrxID: ${
         transaction.transactionId || "N/A"
       }${input.adminNote ? `. Note: ${input.adminNote}` : ""}`;
 
@@ -128,8 +133,8 @@ export const initiateGatewayPayment = async (orderId: number) => {
   const order = await db.orm.public.Order.first({ id: orderId });
   if (!order) throw new NotFoundError("Order not found");
 
-  if (order.paymentStatus === "PAID") {
-    throw new ConflictError("Order is already paid");
+  if (order.paymentStatus === "PAID" || order.paymentStatus === "PARTIALLY_PAID") {
+    throw new ConflictError("Order payment is already completed or partially paid");
   }
 
   // Find transaction with paymentMethodConfig
@@ -273,15 +278,20 @@ export const handleGatewayCallback = async (
         });
       }
 
+      const nextPaymentStatus =
+        order.isAdvanceRequired && Number(order.dueAmount) > 0
+          ? "PARTIALLY_PAID"
+          : "PAID";
+
       await tx.orm.public.Order.where({ id: order.id }).update({
-        paymentStatus: "PAID",
+        paymentStatus: nextPaymentStatus,
       });
 
       await tx.orm.public.OrderStatusHistory.create({
         orderId: order.id,
         fromStatus: order.status,
         toStatus: order.status,
-        note: `Payment successfully completed via ${paymentConfig.name}. TrxID: ${verifyResult.transactionId}`,
+        note: `Payment successfully completed via ${paymentConfig.name} (${nextPaymentStatus}). TrxID: ${verifyResult.transactionId}`,
       });
     } else {
       if (transaction) {

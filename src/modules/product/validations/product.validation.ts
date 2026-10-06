@@ -47,6 +47,10 @@ const fields = {
     .enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const)
     .optional(),
   isFeatured: z.boolean().optional(),
+  isFreeShipping: z.boolean().optional(),
+  isCodAvailable: z.boolean().optional(),
+  requiresAdvancePayment: z.boolean().optional(),
+  advancePaymentAmount: z.coerce.number().min(0).nullable().optional(),
   categories: categories.optional(),
 };
 

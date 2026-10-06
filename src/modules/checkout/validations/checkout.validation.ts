@@ -17,6 +17,7 @@ const common = {
   transactionId: z.string().trim().max(100).optional(),
   couponCode: z.string().trim().min(1).max(50).optional(),
   customerNote: z.string().max(1000).optional(),
+  paidInFull: z.boolean().optional(),
 };
 export const checkoutSchema = z.object({ shippingAddressId: z.coerce.number().int().positive(), billingSameAsShipping: z.boolean().default(true), billingAddressId: z.coerce.number().int().positive().optional(), ...common }).superRefine((x, ctx) => { if (!x.billingSameAsShipping && !x.billingAddressId) ctx.addIssue({ code: "custom", path: ["billingAddressId"], message: "Billing address is required" }); });
 export const guestCheckoutSchema = z.object({ customer: z.object({ name: z.string().min(2), email: z.string().email().optional(), phone: z.string().min(5) }), shippingAddress: address, billingSameAsShipping: z.boolean().default(true), billingAddress: address.optional(), ...common }).superRefine((x, ctx) => { if (!x.billingSameAsShipping && !x.billingAddress) ctx.addIssue({ code: "custom", path: ["billingAddress"], message: "Billing address is required" }); });

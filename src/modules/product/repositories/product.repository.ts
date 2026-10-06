@@ -19,6 +19,10 @@ const productFields = [
   "brandId",
   "status",
   "isFeatured",
+  "isFreeShipping",
+  "isCodAvailable",
+  "requiresAdvancePayment",
+  "advancePaymentAmount",
   "createdAt",
   "updatedAt",
 ] as const;

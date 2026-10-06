@@ -23,7 +23,16 @@ const withItems = (q: any) =>
         .select("id", "productId", "sku", "price", "isActive")
         .include("product", (p: any) =>
           p
-            .select("id", "name", "slug", "status")
+            .select(
+              "id",
+              "name",
+              "slug",
+              "status",
+              "isFreeShipping",
+              "isCodAvailable",
+              "requiresAdvancePayment",
+              "advancePaymentAmount",
+            )
             .include("images", (img: any) =>
               img
                 .select("id", "imageUrl", "altText", "isPrimary", "sortOrder")

@@ -1,0 +1,506 @@
+[
+  {
+    "id": "dropCheckConstraint.order.order_paymentMethod_check_191ce658",
+    "label": "Drop check constraint \"order_paymentMethod_check_191ce658\" on \"order\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "order_paymentMethod_check_191ce658",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_paymentMethod_check_191ce658\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentMethod_check_191ce658",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"order_paymentMethod_check_191ce658\"",
+        "sql": "ALTER TABLE \"public\".\"order\" DROP CONSTRAINT \"order_paymentMethod_check_191ce658\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_paymentMethod_check_191ce658\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentMethod_check_191ce658",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.order.order_paymentStatus_check_991aa452",
+    "label": "Drop check constraint \"order_paymentStatus_check_991aa452\" on \"order\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "order_paymentStatus_check_991aa452",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_paymentStatus_check_991aa452\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentStatus_check_991aa452",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"order_paymentStatus_check_991aa452\"",
+        "sql": "ALTER TABLE \"public\".\"order\" DROP CONSTRAINT \"order_paymentStatus_check_991aa452\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_paymentStatus_check_991aa452\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentStatus_check_991aa452",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.advanceAmount",
+    "label": "Add column \"advanceAmount\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "advanceAmount",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"advanceAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "advanceAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"advanceAmount\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"advanceAmount\" numeric(12,2) DEFAULT '0'::numeric(12,2) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"advanceAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "advanceAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.dueAmount",
+    "label": "Add column \"dueAmount\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "dueAmount",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"dueAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "dueAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"dueAmount\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"dueAmount\" numeric(12,2) DEFAULT '0'::numeric(12,2) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"dueAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "dueAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.isAdvanceRequired",
+    "label": "Add column \"isAdvanceRequired\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "isAdvanceRequired",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"isAdvanceRequired\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "isAdvanceRequired"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"isAdvanceRequired\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"isAdvanceRequired\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"isAdvanceRequired\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "isAdvanceRequired"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order.isFreeShipping",
+    "label": "Add column \"isFreeShipping\" to \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "isFreeShipping",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"isFreeShipping\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "isFreeShipping"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"isFreeShipping\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD COLUMN \"isFreeShipping\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"isFreeShipping\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order",
+          "isFreeShipping"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.product.advancePaymentAmount",
+    "label": "Add column \"advancePaymentAmount\" to \"product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "advancePaymentAmount",
+        "table": "product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"advancePaymentAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "advancePaymentAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"advancePaymentAmount\"",
+        "sql": "ALTER TABLE \"public\".\"product\" ADD COLUMN \"advancePaymentAmount\" numeric(10,2)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"advancePaymentAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "advancePaymentAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.product.isCodAvailable",
+    "label": "Add column \"isCodAvailable\" to \"product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "isCodAvailable",
+        "table": "product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"isCodAvailable\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "isCodAvailable"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"isCodAvailable\"",
+        "sql": "ALTER TABLE \"public\".\"product\" ADD COLUMN \"isCodAvailable\" bool DEFAULT true NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"isCodAvailable\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "isCodAvailable"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.product.isFreeShipping",
+    "label": "Add column \"isFreeShipping\" to \"product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "isFreeShipping",
+        "table": "product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"isFreeShipping\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "isFreeShipping"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"isFreeShipping\"",
+        "sql": "ALTER TABLE \"public\".\"product\" ADD COLUMN \"isFreeShipping\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"isFreeShipping\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "isFreeShipping"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.product.requiresAdvancePayment",
+    "label": "Add column \"requiresAdvancePayment\" to \"product\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "requiresAdvancePayment",
+        "table": "product"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"requiresAdvancePayment\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "requiresAdvancePayment"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"requiresAdvancePayment\"",
+        "sql": "ALTER TABLE \"public\".\"product\" ADD COLUMN \"requiresAdvancePayment\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"requiresAdvancePayment\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "product",
+          "requiresAdvancePayment"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.order.order_paymentMethod_check_d82c4bfd",
+    "label": "Add check constraint \"order_paymentMethod_check_d82c4bfd\" on \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "order_paymentMethod_check_d82c4bfd",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_paymentMethod_check_d82c4bfd\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentMethod_check_d82c4bfd",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"order_paymentMethod_check_d82c4bfd\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD CONSTRAINT \"order_paymentMethod_check_d82c4bfd\" CHECK (\"paymentMethod\" IN ('CASH_ON_DELIVERY', 'ONLINE', 'PARTIAL_COD'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_paymentMethod_check_d82c4bfd\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentMethod_check_d82c4bfd",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.order.order_paymentStatus_check_9ba965b9",
+    "label": "Add check constraint \"order_paymentStatus_check_9ba965b9\" on \"order\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "order_paymentStatus_check_9ba965b9",
+        "table": "order"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"order_paymentStatus_check_9ba965b9\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentStatus_check_9ba965b9",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"order_paymentStatus_check_9ba965b9\"",
+        "sql": "ALTER TABLE \"public\".\"order\" ADD CONSTRAINT \"order_paymentStatus_check_9ba965b9\" CHECK (\"paymentStatus\" IN ('UNPAID', 'PENDING', 'PARTIALLY_PAID', 'PAID', 'FAILED', 'REFUNDED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"order_paymentStatus_check_9ba965b9\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "order_paymentStatus_check_9ba965b9",
+          "public",
+          "\"public\".\"order\""
+        ]
+      }
+    ]
+  }
+]

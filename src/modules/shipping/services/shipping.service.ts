@@ -409,6 +409,7 @@ export const calculateOptions = async (address: any) => {
   const zone: any = await resolveZone(address);
   const rawMethods = await repo.zoneOptions(zone.id);
   const subtotalNum = address.subtotal ? Number(address.subtotal) : 0;
+  const isAllFreeShipping = Boolean(address.isAllFreeShipping);
 
   const methods = rawMethods
     .filter((x: any) => x.method.isActive)
@@ -416,7 +417,15 @@ export const calculateOptions = async (address: any) => {
       const regularChargeNum = Number(x.charge);
       const thresholdNum =
         x.freeShippingThreshold != null ? Number(x.freeShippingThreshold) : null;
-      const isFree = thresholdNum !== null && subtotalNum >= thresholdNum;
+      const isExpress = x.method.code.toUpperCase().includes("EXPRESS");
+
+      // Free shipping applies to standard / regular methods if all products in cart qualify (isAllFreeShipping),
+      // OR if cart subtotal reaches the method's freeShippingThreshold.
+      // If customer wants Express, it remains a paid option.
+      const isFree =
+        (!isExpress && isAllFreeShipping) ||
+        (thresholdNum !== null && subtotalNum >= thresholdNum) ||
+        regularChargeNum === 0;
       const finalChargeNum = isFree ? 0 : regularChargeNum;
 
       return {

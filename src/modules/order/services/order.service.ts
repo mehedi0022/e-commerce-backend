@@ -17,8 +17,7 @@ import type { OrderListQuery } from "../order.types.js";
 
 const tokenHash = (token: string) =>
   createHash("sha256").update(token).digest("hex");
-const orderNumber = () =>
-  `ORD-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Date.now().toString().slice(-6)}-${randomBytes(2).toString("hex")}`;
+const orderNumber = (id: number) => `ORD-${id}`;
 const available = (v: any) =>
   (v.inventory?.quantity ?? 0) - (v.inventory?.reservedQuantity ?? 0);
 const snapshotAddress = (x: any, type: string, orderId: number) => ({
@@ -96,25 +95,41 @@ export const checkout = async (
   guestToken?: string,
 ) => {
   // Resolve payment method configuration
-  const paymentMethodCode = input.paymentMethodCode || (input.paymentMethod === "CASH_ON_DELIVERY" ? "cod" : "bkash_manual");
-  const paymentConfig: any = await db.orm.public.PaymentMethodConfig.first({ code: paymentMethodCode });
+  const paymentMethodCode =
+    input.paymentMethodCode ||
+    (input.paymentMethod === "CASH_ON_DELIVERY" ? "cod" : "bkash_manual");
+  const paymentConfig: any = await db.orm.public.PaymentMethodConfig.first({
+    code: paymentMethodCode,
+  });
 
-  const isCOD = paymentConfig?.type === "COD" || input.paymentMethod === "CASH_ON_DELIVERY" || paymentMethodCode === "cod";
-  const isManualPayment = paymentConfig && (paymentConfig.type === "MANUAL_MFS" || paymentConfig.type === "MANUAL_BANK");
+  const isCOD =
+    paymentConfig?.type === "COD" ||
+    input.paymentMethod === "CASH_ON_DELIVERY" ||
+    paymentMethodCode === "cod";
+  const isManualPayment =
+    paymentConfig &&
+    (paymentConfig.type === "MANUAL_MFS" ||
+      paymentConfig.type === "MANUAL_BANK");
 
   if (!isCOD && !isManualPayment) {
     if (paymentConfig?.type === "AUTOMATED_GATEWAY") {
       if (!paymentConfig.isActive) {
-        throw new ConflictError("Selected payment gateway is currently unavailable");
+        throw new ConflictError(
+          "Selected payment gateway is currently unavailable",
+        );
       }
     } else {
-      throw new ConflictError("Selected payment method is currently unavailable");
+      throw new ConflictError(
+        "Selected payment method is currently unavailable",
+      );
     }
   }
 
   if (isManualPayment) {
     if (!input.transactionId || !input.transactionId.trim()) {
-      throw new ValidationError("Transaction ID (TrxID) is required for manual payment");
+      throw new ValidationError(
+        "Transaction ID (TrxID) is required for manual payment",
+      );
     }
   }
 
@@ -162,7 +177,68 @@ export const checkout = async (
       subtotal,
       userId,
     );
-  const shippingCharge = String(method.charge);
+
+  // 1. Free Shipping Check: Applies to standard/regular delivery if all products qualify or subtotal meets threshold
+  const isAllFreeShipping =
+    items.length > 0 &&
+    items.every((x: any) => Boolean(x.v.product?.isFreeShipping));
+
+  const isExpressMethod =
+    method.method?.code?.toUpperCase().includes("EXPRESS") || false;
+  const subtotalNum = Number(subtotal);
+  const thresholdNum =
+    method.freeShippingThreshold != null
+      ? Number(method.freeShippingThreshold)
+      : null;
+  const isFreeEligible =
+    (!isExpressMethod && isAllFreeShipping) ||
+    (thresholdNum !== null && subtotalNum >= thresholdNum) ||
+    Number(method.charge) === 0;
+
+  const shippingCharge = isFreeEligible ? "0.00" : String(method.charge);
+
+  // 2. Minimum Advance Payment / Partial COD Check
+  const anyRequiresAdvance = items.some((x: any) =>
+    Boolean(x.v.product?.requiresAdvancePayment),
+  );
+  const anyCodDisabled = items.some(
+    (x: any) => x.v.product?.isCodAvailable === false,
+  );
+
+  let advanceRequiredAmount = 0;
+  if (anyRequiresAdvance) {
+    for (const x of items) {
+      if (x.v.product?.requiresAdvancePayment) {
+        const perProductAdvance =
+          Number(x.v.product?.advancePaymentAmount) > 0
+            ? Number(x.v.product?.advancePaymentAmount)
+            : Number(shippingCharge) > 0
+              ? Number(shippingCharge)
+              : 100;
+        advanceRequiredAmount += perProductAdvance;
+      }
+    }
+  } else if (anyCodDisabled) {
+    advanceRequiredAmount =
+      Number(shippingCharge) > 0 ? Number(shippingCharge) : 100;
+  }
+
+  const isAdvanceRequired = advanceRequiredAmount > 0;
+
+  // If customer chose COD but advance is strictly required without payment details
+  if (
+    isCOD &&
+    isAdvanceRequired &&
+    !input.transactionId &&
+    paymentConfig?.type === "COD"
+  ) {
+    throw new ValidationError(
+      `Full Cash on Delivery is unavailable. A minimum advance payment of ৳${advanceRequiredAmount.toFixed(
+        2,
+      )} is required for this order. Remaining balance will be Cash on Delivery.`,
+    );
+  }
+
   const accessToken = userId ? undefined : randomBytes(32).toString("hex");
   const customerName = userId ? ship.fullName : input.customer.name;
   const customerPhone = userId ? ship.phone : input.customer.phone;
@@ -184,18 +260,55 @@ export const checkout = async (
       shippingCharge,
       `-${discountAmount}`,
     ]);
+
+    const grandTotalNum = Number(grandTotal);
+    const isPayingFull = Boolean(input.paidInFull) || !isAdvanceRequired;
+
+    let advanceAmountNum = 0;
+    let dueAmountNum = 0;
+    let orderPaymentMethod = "ONLINE";
+    let orderIsAdvanceRequired = false;
+
+    if (isCOD) {
+      advanceAmountNum = 0;
+      dueAmountNum = grandTotalNum;
+      orderPaymentMethod = "CASH_ON_DELIVERY";
+      orderIsAdvanceRequired = false;
+    } else if (isAdvanceRequired && !isPayingFull) {
+      // Customer chose to pay minimum advance online/MFS
+      advanceAmountNum = Math.min(advanceRequiredAmount, grandTotalNum);
+      dueAmountNum = Math.max(0, grandTotalNum - advanceAmountNum);
+      if (dueAmountNum > 0) {
+        orderPaymentMethod = "PARTIAL_COD";
+        orderIsAdvanceRequired = true;
+      } else {
+        // Full order is covered
+        orderPaymentMethod = "ONLINE";
+        orderIsAdvanceRequired = false;
+      }
+    } else {
+      // Customer chose to pay full amount online (or advance was not required)
+      advanceAmountNum = grandTotalNum;
+      dueAmountNum = 0;
+      orderPaymentMethod = "ONLINE";
+      orderIsAdvanceRequired = false;
+    }
+
+    const advanceAmount = advanceAmountNum.toFixed(2);
+    const dueAmount = dueAmountNum.toFixed(2);
+    const paymentStatus = isCOD ? "UNPAID" : "PENDING";
+
     for (const x of items)
       await inventory.reserveStock(x.v.id, x.item.quantity, tx);
 
-    const paymentStatus = isCOD ? "UNPAID" : "PENDING";
     const order = await repo.create(tx, {
-      orderNumber: orderNumber(),
+      orderNumber: "TEMP",
       userId: userId ?? null,
       customerName,
       customerEmail: customerEmail ?? null,
       customerPhone,
       status: "PENDING",
-      paymentMethod: isCOD ? "CASH_ON_DELIVERY" : "ONLINE",
+      paymentMethod: orderPaymentMethod,
       paymentStatus,
       couponId: appliedCoupon?.coupon.id ?? null,
       couponCode: appliedCoupon?.normalizedCode ?? null,
@@ -204,6 +317,10 @@ export const checkout = async (
       discountAmount,
       taxAmount: "0.00",
       grandTotal,
+      advanceAmount,
+      dueAmount,
+      isAdvanceRequired: orderIsAdvanceRequired,
+      isFreeShipping: isFreeEligible,
       shippingZoneId: zone.id,
       shippingMethodId: method.methodId,
       shippingZoneName: zone.name,
@@ -214,6 +331,11 @@ export const checkout = async (
         ? Temporal.Instant.fromEpochMilliseconds(Date.now() + 30 * 86400000)
         : null,
     });
+
+    const finalOrderNumber = `ORD-${1000 + parseInt(order.id)}`;
+    await repo.update(tx, order.id, { orderNumber: finalOrderNumber });
+    order.orderNumber = finalOrderNumber;
+
     for (const x of items) {
       const oi = await repo.item(tx, {
         orderId: order.id,
@@ -236,6 +358,10 @@ export const checkout = async (
     await repo.address(tx, snapshotAddress(ship, "SHIPPING", order.id));
     await repo.address(tx, snapshotAddress(bill, "BILLING", order.id));
 
+    const transactionAmount = orderIsAdvanceRequired
+      ? advanceAmount
+      : grandTotal;
+
     if (isManualPayment && paymentConfig) {
       await tx.orm.public.OrderPaymentTransaction.create({
         orderId: order.id,
@@ -244,7 +370,7 @@ export const checkout = async (
         type: paymentConfig.type,
         senderNumber: input.senderNumber || null,
         transactionId: input.transactionId.trim(),
-        amount: grandTotal,
+        amount: transactionAmount,
         status: "PENDING_VERIFICATION",
       });
     } else if (paymentConfig?.type === "AUTOMATED_GATEWAY") {
@@ -253,16 +379,18 @@ export const checkout = async (
         paymentMethodCode: paymentConfig.code,
         paymentMethodConfigId: paymentConfig.id,
         type: paymentConfig.type,
-        amount: grandTotal,
+        amount: transactionAmount,
         status: "PENDING_VERIFICATION",
       });
     }
 
-    const initialHistoryNote = isManualPayment && paymentConfig
-      ? `Order placed via ${paymentConfig.name}. Sender: ${input.senderNumber || "N/A"}, TrxID: ${input.transactionId.trim()}`
-      : paymentConfig?.type === "AUTOMATED_GATEWAY"
-      ? `Order placed via automated gateway: ${paymentConfig.name}`
-      : "Order placed via Cash on Delivery";
+    const initialHistoryNote = isAdvanceRequired
+      ? `Order placed with Partial COD. Required advance: ৳${advanceAmount} (Method: ${paymentConfig?.name || "MFS"}, TrxID: ${input.transactionId ? input.transactionId.trim() : "N/A"}). Due on Delivery: ৳${dueAmount}`
+      : isManualPayment && paymentConfig
+        ? `Order placed via ${paymentConfig.name}. Sender: ${input.senderNumber || "N/A"}, TrxID: ${input.transactionId.trim()}`
+        : paymentConfig?.type === "AUTOMATED_GATEWAY"
+          ? `Order placed via automated gateway: ${paymentConfig.name}`
+          : "Order placed via Cash on Delivery";
 
     await repo.history(tx, {
       orderId: order.id,
@@ -300,6 +428,10 @@ export const checkout = async (
     discountAmount: String(result.discountAmount),
     taxAmount: String(result.taxAmount),
     grandTotal: String(result.grandTotal),
+    advanceAmount: String(result.advanceAmount),
+    dueAmount: String(result.dueAmount),
+    isAdvanceRequired: Boolean(result.isAdvanceRequired),
+    isFreeShipping: Boolean(result.isFreeShipping),
     ...(accessToken ? { guestAccessToken: accessToken } : {}),
   };
 
@@ -310,6 +442,8 @@ export const checkout = async (
     customerName: ship.fullName,
     customerPhone: ship.phone,
     grandTotal: String(result.grandTotal),
+    advanceAmount: String(result.advanceAmount),
+    dueAmount: String(result.dueAmount),
     paymentMethod: paymentConfig?.name || result.paymentMethod,
   });
 
@@ -371,6 +505,12 @@ export const trackOrder = async (orderNumber: string, phone?: string) => {
     customerName: order.customerName,
     itemCount: order.items?.length || 0,
     grandTotal: String(order.grandTotal),
+    advanceAmount: String(order.advanceAmount ?? "0.00"),
+    dueAmount: String(order.dueAmount ?? order.grandTotal),
+    isAdvanceRequired: Boolean(order.isAdvanceRequired),
+    isFreeShipping: Boolean(order.isFreeShipping),
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
     shippingMethodName: order.shippingMethodName,
     shippingZoneName: order.shippingZoneName,
     shipment: order.shipment
@@ -461,8 +601,10 @@ export const transition = async (
     if (toStatus === "DELIVERED") {
       data.deliveredAt = now;
       if (
-        current.paymentMethod === "CASH_ON_DELIVERY" &&
-        current.paymentStatus === "UNPAID"
+        (current.paymentMethod === "CASH_ON_DELIVERY" ||
+          current.paymentMethod === "PARTIAL_COD") &&
+        (current.paymentStatus === "UNPAID" ||
+          current.paymentStatus === "PARTIALLY_PAID")
       ) {
         data.paymentStatus = "PAID";
       }

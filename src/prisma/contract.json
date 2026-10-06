@@ -354,6 +354,10 @@
               {
                 "name": "ONLINE",
                 "value": "ONLINE"
+              },
+              {
+                "name": "PARTIAL_COD",
+                "value": "PARTIAL_COD"
               }
             ]
           },
@@ -367,6 +371,10 @@
               {
                 "name": "PENDING",
                 "value": "PENDING"
+              },
+              {
+                "name": "PARTIALLY_PAID",
+                "value": "PARTIALLY_PAID"
               },
               {
                 "name": "PAID",
@@ -3242,6 +3250,17 @@
                   "kind": "scalar"
                 }
               },
+              "advanceAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
               "cancelledAt": {
                 "nullable": true,
                 "type": {
@@ -3323,6 +3342,17 @@
                   }
                 }
               },
+              "dueAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
               "grandTotal": {
                 "nullable": false,
                 "type": {
@@ -3352,6 +3382,20 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isAdvanceRequired": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isFreeShipping": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -3683,6 +3727,9 @@
                 "adminNote": {
                   "column": "adminNote"
                 },
+                "advanceAmount": {
+                  "column": "advanceAmount"
+                },
                 "cancelledAt": {
                   "column": "cancelledAt"
                 },
@@ -3716,6 +3763,9 @@
                 "discountAmount": {
                   "column": "discountAmount"
                 },
+                "dueAmount": {
+                  "column": "dueAmount"
+                },
                 "grandTotal": {
                   "column": "grandTotal"
                 },
@@ -3727,6 +3777,12 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "isAdvanceRequired": {
+                  "column": "isAdvanceRequired"
+                },
+                "isFreeShipping": {
+                  "column": "isFreeShipping"
                 },
                 "orderNumber": {
                   "column": "orderNumber"
@@ -5199,6 +5255,17 @@
           },
           "Product": {
             "fields": {
+              "advancePaymentAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 2
+                  }
+                }
+              },
               "brandId": {
                 "nullable": true,
                 "type": {
@@ -5227,7 +5294,21 @@
                   "kind": "scalar"
                 }
               },
+              "isCodAvailable": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "isFeatured": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isFreeShipping": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/bool@1",
@@ -5238,6 +5319,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "requiresAdvancePayment": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -5386,6 +5474,9 @@
             },
             "storage": {
               "fields": {
+                "advancePaymentAmount": {
+                  "column": "advancePaymentAmount"
+                },
                 "brandId": {
                   "column": "brandId"
                 },
@@ -5398,11 +5489,20 @@
                 "id": {
                   "column": "id"
                 },
+                "isCodAvailable": {
+                  "column": "isCodAvailable"
+                },
                 "isFeatured": {
                   "column": "isFeatured"
                 },
+                "isFreeShipping": {
+                  "column": "isFreeShipping"
+                },
                 "name": {
                   "column": "name"
+                },
+                "requiresAdvancePayment": {
+                  "column": "requiresAdvancePayment"
                 },
                 "shortDescription": {
                   "column": "shortDescription"
@@ -11348,13 +11448,13 @@
             "order": {
               "checks": [
                 {
-                  "expression": "\"paymentMethod\" IN ('CASH_ON_DELIVERY', 'ONLINE')",
-                  "name": "order_paymentMethod_check_191ce658",
+                  "expression": "\"paymentMethod\" IN ('CASH_ON_DELIVERY', 'ONLINE', 'PARTIAL_COD')",
+                  "name": "order_paymentMethod_check_d82c4bfd",
                   "prefix": "order_paymentMethod_check"
                 },
                 {
-                  "expression": "\"paymentStatus\" IN ('UNPAID', 'PENDING', 'PAID', 'FAILED', 'REFUNDED')",
-                  "name": "order_paymentStatus_check_991aa452",
+                  "expression": "\"paymentStatus\" IN ('UNPAID', 'PENDING', 'PARTIALLY_PAID', 'PAID', 'FAILED', 'REFUNDED')",
+                  "name": "order_paymentStatus_check_9ba965b9",
                   "prefix": "order_paymentStatus_check"
                 },
                 {
@@ -11368,6 +11468,19 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
+                },
+                "advanceAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
                 },
                 "cancelledAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -11436,6 +11549,19 @@
                     "scale": 2
                   }
                 },
+                "dueAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
                 "grandTotal": {
                   "codecId": "pg/numeric@1",
                   "nativeType": "numeric",
@@ -11462,6 +11588,24 @@
                     "kind": "function"
                   },
                   "nativeType": "int4",
+                  "nullable": false
+                },
+                "isAdvanceRequired": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isFreeShipping": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
                   "nullable": false
                 },
                 "orderNumber": {
@@ -12972,6 +13116,15 @@
                 }
               ],
               "columns": {
+                "advancePaymentAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 2
+                  }
+                },
                 "brandId": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
@@ -13000,7 +13153,25 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "isCodAvailable": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "isFeatured": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isFreeShipping": {
                   "codecId": "pg/bool@1",
                   "default": {
                     "kind": "literal",
@@ -13012,6 +13183,15 @@
                 "name": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
+                  "nullable": false
+                },
+                "requiresAdvancePayment": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
                   "nullable": false
                 },
                 "shortDescription": {
@@ -16411,7 +16591,8 @@
               "kind": "valueSet",
               "values": [
                 "CASH_ON_DELIVERY",
-                "ONLINE"
+                "ONLINE",
+                "PARTIAL_COD"
               ]
             },
             "OrderPaymentStatus": {
@@ -16419,6 +16600,7 @@
               "values": [
                 "UNPAID",
                 "PENDING",
+                "PARTIALLY_PAID",
                 "PAID",
                 "FAILED",
                 "REFUNDED"
@@ -16584,7 +16766,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e3fc77dd3c51db5997048215d3abb3ecc4be3b7af219c450b19e100f0080a7e8"
+    "storageHash": "d19867458f197ae5c7c140f6e1753f693a23bef0ac3dde5163e566e6b9adba11"
   },
   "execution": {
     "executionHash": "f21f8917527784ab38086789265548296129a9e90ed2ff5b0c173bd3267d585a",

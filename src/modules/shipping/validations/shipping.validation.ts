@@ -179,6 +179,7 @@ export const calculateShippingBody = z.object({
       countryCode: z.string().trim().length(2).optional(),
       postalCode: z.string().trim().max(20).optional().nullable(),
       subtotal: z.coerce.number().min(0).optional(),
+      isAllFreeShipping: z.boolean().optional(),
     })
     .strict(),
 });
