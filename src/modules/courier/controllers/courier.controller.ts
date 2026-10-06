@@ -39,3 +39,20 @@ export const trackParcel = asyncHandler(async (req: Request, res: Response) => {
   const tracking = await service.trackParcel(orderNumber);
   res.json(successResponse("Courier tracking status fetched successfully", tracking));
 });
+
+export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
+  const courierCode = String(req.params.code);
+  const result = await service.handleCourierWebhook(courierCode, req.body, req.headers);
+  res.json(successResponse("Courier webhook processed successfully", result));
+});
+
+export const syncOrderCourier = asyncHandler(async (req: Request, res: Response) => {
+  const orderNumber = String(req.params.orderNumber);
+  const result = await service.syncOrderCourierStatus(orderNumber);
+  res.json(successResponse("Courier status synced successfully", result));
+});
+
+export const syncActiveShipments = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await service.syncActiveShipments();
+  res.json(successResponse("Active courier shipments synced successfully", result));
+});

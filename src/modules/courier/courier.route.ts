@@ -8,8 +8,9 @@ import * as v from "./validations/courier.validation.js";
 
 const router = Router();
 
-// ─── Public Tracking Endpoint ───────────────────────────────────────────────
+// ─── Public Tracking & Webhook Endpoints ─────────────────────────────────────
 router.get("/track/:orderNumber", validate(v.trackParcelSchema), c.trackParcel);
+router.post("/webhooks/:code", c.handleWebhook);
 
 // ─── Protected Admin Endpoints ──────────────────────────────────────────────
 router.use(requireAuth);
@@ -52,6 +53,19 @@ router.post(
   validate(v.bookParcelSchema),
   requirePermission(permissions.ordersManage),
   c.bookParcel
+);
+
+router.post(
+  "/orders/:orderNumber/sync",
+  validate(v.trackParcelSchema),
+  requirePermission(permissions.ordersManage),
+  c.syncOrderCourier
+);
+
+router.post(
+  "/sync-active",
+  requirePermission(permissions.ordersManage),
+  c.syncActiveShipments
 );
 
 router.get(
