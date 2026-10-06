@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
 import { ConflictError, NotFoundError, ValidationError } from "../../../errors/AppError.js";
 import { moneyMultiply, moneySum } from "../../../utils/money.util.js";
@@ -12,7 +13,7 @@ import type { OrderListQuery } from "../order.types.js";
 const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
 const orderNumber = () => `ORD-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${Date.now().toString().slice(-6)}-${randomBytes(2).toString("hex")}`;
 const available = (v: any) => (v.inventory?.quantity ?? 0) - (v.inventory?.reservedQuantity ?? 0);
-const snapshotAddress = (x: any, type: string, orderId: number) => ({ orderId, type, fullName: x.fullName, phone: x.phone, addressLine1: x.addressLine1, addressLine2: x.addressLine2 ?? null, division: x.division ?? null, district: x.district, upazila: x.upazila ?? null, thana: x.thana ?? null, area: x.area ?? null, postalCode: x.postalCode ?? null, countryCode: String(x.countryCode ?? "BD").toUpperCase() });
+const snapshotAddress = (x: any, type: string, orderId: number) => ({ orderId, type, fullName: x.fullName, phone: x.phone, addressLine1: x.addressLine1, addressLine2: x.addressLine2 ?? null, divisionId: x.divisionId ?? null, districtId: x.districtId ?? null, upazilaId: x.upazilaId ?? null, unionId: x.unionId ?? null, division: x.division ?? null, district: x.district, upazila: x.upazila ?? null, thana: x.thana ?? null, area: x.area ?? null, postalCode: x.postalCode ?? null, countryCode: String(x.countryCode ?? "BD").toUpperCase() });
 
 const cartWithItems = async (userId?: number, guestToken?: string) => userId ? cartRepo.findUserCart(userId) : guestToken ? cartRepo.findGuestCart(guestToken) : null;
 const selectMethod = async (zoneId: number, methodId: number) => { const options = await (await import("../../shipping/repositories/shipping.repository.js")).zoneOptions(zoneId); const selected = options.find((x: any) => x.methodId === methodId && x.isActive && x.method.isActive); if (!selected) throw new ConflictError("Selected shipping method is not available for this address"); return selected; };
@@ -32,7 +33,7 @@ export const checkout = async (input: any, userId?: number, guestToken?: string)
   if (!cart || cart.status !== "ACTIVE" || !cart.items.length) throw new ValidationError("Cart is empty");
   let ship: any; let bill: any;
   if (userId) { ship = await shipping.getAddress(userId, input.shippingAddressId); bill = input.billingSameAsShipping ? ship : await shipping.getAddress(userId, input.billingAddressId); } else { ship = input.shippingAddress; bill = input.billingSameAsShipping ? ship : input.billingAddress; }
-  const zone = await shipping.resolveZone(ship); const method: any = await selectMethod(zone.id, input.shippingMethodId);
+  const zone: any = await shipping.resolveZone(ship); const method: any = await selectMethod(zone.id, input.shippingMethodId);
   const items = cart.items.map((item: any) => { const v = item.variant; if (!v || !v.isActive || v.product?.status !== "ACTIVE" || !v.inventory || item.quantity <= 0 || item.quantity > available(v)) throw new ConflictError(`Insufficient stock or unavailable product for ${v?.sku ?? item.variantId}`); const unitPrice = String(v.price); return { item, v, unitPrice, lineTotal: moneyMultiply(unitPrice, item.quantity) }; });
   const subtotal = moneySum(items.map((x: any) => x.lineTotal)); if (input.couponCode) await couponService.validateAndCalculate(input.couponCode, subtotal, userId);
   const shippingCharge = String(method.charge);
@@ -58,4 +59,52 @@ export const customerList = (userId: number, query: OrderListQuery) => repo.list
 export const adminList = (query: OrderListQuery) => repo.list(query);
 const isGuestExpired = (exp: any) => { if (!exp) return true; const ms = typeof exp?.epochMilliseconds === "number" ? exp.epochMilliseconds : new Date(exp).getTime(); return ms < Date.now(); };
 export const detail = async (number: string, userId?: number, accessToken?: string) => { const x: any = userId ? await repo.findByNumber(number) : accessToken ? await repo.findGuest(number, tokenHash(accessToken)) : null; if (!x || (userId && x.userId !== userId) || (!userId && (!x.guestAccessTokenExpiresAt || isGuestExpired(x.guestAccessTokenExpiresAt)))) throw new NotFoundError("Order not found"); return x; };
+export const trackOrder = async (orderNumber: string, phone?: string) => {
+  const normalizedNumber = orderNumber.trim();
+  const order: any = await repo.findByNumber(normalizedNumber);
+  if (!order) throw new NotFoundError("No order found with this order number");
+
+  if (phone) {
+    const cleanPhone = phone.trim().replace(/[\s-]/g, "");
+    const orderPhone = (order.customerPhone || "").replace(/[\s-]/g, "");
+    if (!orderPhone.includes(cleanPhone) && !cleanPhone.includes(orderPhone)) {
+      throw new NotFoundError("Order number and phone number do not match");
+    }
+  }
+
+  return {
+    orderNumber: order.orderNumber,
+    status: order.status,
+    placedAt: order.placedAt ?? order.createdAt,
+    confirmedAt: order.confirmedAt,
+    shippedAt: order.shippedAt,
+    deliveredAt: order.deliveredAt,
+    customerName: order.customerName,
+    itemCount: order.items?.length || 0,
+    grandTotal: String(order.grandTotal),
+    shippingMethodName: order.shippingMethodName,
+    shippingZoneName: order.shippingZoneName,
+    shipment: order.shipment
+      ? {
+          status: order.shipment.status,
+          courierName: order.shipment.courierName,
+          trackingNumber: order.shipment.trackingNumber,
+          trackingUrl: order.shipment.trackingUrl,
+          shippedAt: order.shipment.shippedAt,
+          deliveredAt: order.shipment.deliveredAt,
+        }
+      : null,
+    items: (order.items || []).map((i: any) => ({
+      id: i.id,
+      productName: i.productName,
+      quantity: i.quantity,
+      unitPrice: String(i.unitPrice),
+      lineTotal: String(i.lineTotal),
+      attributes: i.attributes || [],
+    })),
+    deliveryDistrict: order.addresses?.find((a: any) => a.type === "SHIPPING")?.district || "Bangladesh",
+  };
+};
+
 export const transition = async (number: string, toStatus: string, changedById: number, note?: string) => { const current: any = await repo.findByNumber(number); if (!current) throw new NotFoundError("Order not found"); const allowed: Record<string, string[]> = { PENDING: ["CONFIRMED", "CANCELLED"], CONFIRMED: ["PROCESSING", "CANCELLED"], PROCESSING: [], SHIPPED: ["DELIVERED"] }; if (!allowed[current.status]?.includes(toStatus)) throw new ConflictError(`Cannot move order from ${current.status} to ${toStatus}; use Shipment fulfillment for shipping`); return db.transaction(async (tx: any) => { if (toStatus === "CANCELLED") for (const item of current.items) { if (!item.variantId) continue; await inventory.releaseStock(item.variantId, item.quantity, tx, { referenceType: "ORDER", referenceId: current.orderNumber }); } const data: any = { status: toStatus }; if (toStatus === "CONFIRMED") data.confirmedAt = new Date(); if (toStatus === "DELIVERED") data.deliveredAt = new Date(); if (toStatus === "CANCELLED") data.cancelledAt = new Date(); const updated = await repo.update(tx, current.id, data); await repo.history(tx, { orderId: current.id, fromStatus: current.status, toStatus, note: note ?? null, changedById }); return updated; }); };
+

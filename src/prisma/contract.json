@@ -172,8 +172,8 @@
       "model": "ShippingZone",
       "namespace": "public"
     },
-    "shipping_zone_area": {
-      "model": "ShippingZoneArea",
+    "shipping_zone_location": {
+      "model": "ShippingZoneLocation",
       "namespace": "public"
     },
     "shipping_zone_method": {
@@ -812,7 +812,21 @@
                   "kind": "scalar"
                 }
               },
+              "districtId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "division": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "divisionId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -875,7 +889,21 @@
                   "kind": "scalar"
                 }
               },
+              "unionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "upazila": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "upazilaId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -935,8 +963,14 @@
                 "district": {
                   "column": "district"
                 },
+                "districtId": {
+                  "column": "districtId"
+                },
                 "division": {
                   "column": "division"
+                },
+                "divisionId": {
+                  "column": "divisionId"
                 },
                 "fullName": {
                   "column": "fullName"
@@ -962,8 +996,14 @@
                 "thana": {
                   "column": "thana"
                 },
+                "unionId": {
+                  "column": "unionId"
+                },
                 "upazila": {
                   "column": "upazila"
+                },
+                "upazilaId": {
+                  "column": "upazilaId"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -3550,7 +3590,21 @@
                   "kind": "scalar"
                 }
               },
+              "districtId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "division": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "divisionId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -3612,7 +3666,21 @@
                   "plane": "domain"
                 }
               },
+              "unionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "upazila": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "upazilaId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -3658,8 +3726,14 @@
                 "district": {
                   "column": "district"
                 },
+                "districtId": {
+                  "column": "districtId"
+                },
                 "division": {
                   "column": "division"
+                },
+                "divisionId": {
+                  "column": "divisionId"
                 },
                 "fullName": {
                   "column": "fullName"
@@ -3682,8 +3756,14 @@
                 "type": {
                   "column": "type"
                 },
+                "unionId": {
+                  "column": "unionId"
+                },
                 "upazila": {
                   "column": "upazila"
+                },
+                "upazilaId": {
+                  "column": "upazilaId"
                 }
               },
               "namespaceId": "public",
@@ -7030,7 +7110,7 @@
               }
             },
             "relations": {
-              "areas": {
+              "locations": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
@@ -7041,7 +7121,7 @@
                   ]
                 },
                 "to": {
-                  "model": "ShippingZoneArea",
+                  "model": "ShippingZoneLocation",
                   "namespace": "public"
                 }
               },
@@ -7089,22 +7169,8 @@
               "table": "shipping_zone"
             }
           },
-          "ShippingZoneArea": {
+          "ShippingZoneLocation": {
             "fields": {
-              "area": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "countryCode": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -7112,14 +7178,14 @@
                   "kind": "scalar"
                 }
               },
-              "district": {
+              "districtId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "division": {
+              "divisionId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -7133,21 +7199,14 @@
                   "kind": "scalar"
                 }
               },
-              "postalCode": {
+              "unionId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
-              "thana": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "upazila": {
+              "upazilaId": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -7189,32 +7248,23 @@
             },
             "storage": {
               "fields": {
-                "area": {
-                  "column": "area"
-                },
-                "countryCode": {
-                  "column": "countryCode"
-                },
                 "createdAt": {
                   "column": "createdAt"
                 },
-                "district": {
-                  "column": "district"
+                "districtId": {
+                  "column": "districtId"
                 },
-                "division": {
-                  "column": "division"
+                "divisionId": {
+                  "column": "divisionId"
                 },
                 "id": {
                   "column": "id"
                 },
-                "postalCode": {
-                  "column": "postalCode"
+                "unionId": {
+                  "column": "unionId"
                 },
-                "thana": {
-                  "column": "thana"
-                },
-                "upazila": {
-                  "column": "upazila"
+                "upazilaId": {
+                  "column": "upazilaId"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -7224,7 +7274,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "shipping_zone_area"
+              "table": "shipping_zone_location"
             }
           },
           "ShippingZoneMethod": {
@@ -7259,6 +7309,17 @@
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
+                }
+              },
+              "freeShippingThreshold": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
                 }
               },
               "id": {
@@ -7351,6 +7412,9 @@
                 },
                 "estimatedMinDays": {
                   "column": "estimatedMinDays"
+                },
+                "freeShippingThreshold": {
+                  "column": "freeShippingThreshold"
                 },
                 "id": {
                   "column": "id"
@@ -8203,7 +8267,17 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "districtId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "division": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "divisionId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -8260,7 +8334,17 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "unionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "upazila": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "upazilaId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -8303,6 +8387,14 @@
                   ],
                   "name": "address_countryCode_district_idx_52e170dc",
                   "prefix": "address_countryCode_district_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "districtId"
+                  ],
+                  "name": "address_districtId_idx_a3818dd3",
+                  "prefix": "address_districtId_idx",
                   "unique": false
                 },
                 {
@@ -10594,7 +10686,17 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "districtId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "division": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "divisionId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -10644,7 +10746,17 @@
                     "plane": "storage"
                   }
                 },
+                "unionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "upazila": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "upazilaId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -13729,22 +13841,8 @@
               },
               "uniques": []
             },
-            "shipping_zone_area": {
+            "shipping_zone_location": {
               "columns": {
-                "area": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "countryCode": {
-                  "codecId": "pg/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "BD"
-                  },
-                  "nativeType": "text",
-                  "nullable": false
-                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "default": {
@@ -13754,12 +13852,12 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
-                "district": {
+                "districtId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
                 },
-                "division": {
+                "divisionId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -13773,17 +13871,12 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
-                "postalCode": {
+                "unionId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
                 },
-                "thana": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "upazila": {
+                "upazilaId": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -13807,7 +13900,7 @@
                       "zoneId"
                     ],
                     "namespaceId": "public",
-                    "tableName": "shipping_zone_area"
+                    "tableName": "shipping_zone_location"
                   },
                   "target": {
                     "columns": [
@@ -13821,37 +13914,42 @@
               "indexes": [
                 {
                   "columns": [
-                    "countryCode",
-                    "district"
+                    "districtId"
                   ],
-                  "name": "shipping_zone_area_countryCode_district_idx_52e170dc",
-                  "prefix": "shipping_zone_area_countryCode_district_idx",
+                  "name": "shipping_zone_location_districtId_idx_a3818dd3",
+                  "prefix": "shipping_zone_location_districtId_idx",
                   "unique": false
                 },
                 {
                   "columns": [
-                    "district",
-                    "thana"
+                    "divisionId"
                   ],
-                  "name": "shipping_zone_area_district_thana_idx_448bdee4",
-                  "prefix": "shipping_zone_area_district_thana_idx",
+                  "name": "shipping_zone_location_divisionId_idx_c61115f7",
+                  "prefix": "shipping_zone_location_divisionId_idx",
                   "unique": false
                 },
                 {
                   "columns": [
-                    "district",
-                    "upazila"
+                    "unionId"
                   ],
-                  "name": "shipping_zone_area_district_upazila_idx_58c7a7f7",
-                  "prefix": "shipping_zone_area_district_upazila_idx",
+                  "name": "shipping_zone_location_unionId_idx_362d117a",
+                  "prefix": "shipping_zone_location_unionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "upazilaId"
+                  ],
+                  "name": "shipping_zone_location_upazilaId_idx_09579787",
+                  "prefix": "shipping_zone_location_upazilaId_idx",
                   "unique": false
                 },
                 {
                   "columns": [
                     "zoneId"
                   ],
-                  "name": "shipping_zone_area_zoneId_idx_1b631e86",
-                  "prefix": "shipping_zone_area_zoneId_idx",
+                  "name": "shipping_zone_location_zoneId_idx_1b631e86",
+                  "prefix": "shipping_zone_location_zoneId_idx",
                   "unique": false
                 }
               ],
@@ -13891,6 +13989,15 @@
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": true
+                },
+                "freeShippingThreshold": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
                 },
                 "id": {
                   "codecId": "pg/int4@1",
@@ -14626,10 +14733,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "977ad3ec267c4ec1b1586ba730a001e399bd4ac2e4ddb7a6355913263d2c2ec5"
+    "storageHash": "6c36c816c9203b79e31b074d53b64f9165c55ab6c061c11bcfcce8cbf9faba57"
   },
   "execution": {
-    "executionHash": "e88ee5543f2b6946e150688d173d1a17272342c8a56dde270238d9d5d8f16c64",
+    "executionHash": "9bbecc27cadf54dc02362c41b65c87e66f3d3af4f30fe65e49f02e6b124bd564",
     "mutations": {
       "defaults": [
         {
@@ -15069,7 +15176,7 @@
             "kind": "generator"
           },
           "ref": {
-            "entry": "shipping_zone_area",
+            "entry": "shipping_zone_location",
             "field": "updatedAt",
             "namespace": "public"
           }

@@ -2,7 +2,10 @@ import { z } from "zod";
 
 const address = z.object({
   fullName: z.string().min(2), phone: z.string().min(5), addressLine1: z.string().min(2),
-  addressLine2: z.string().optional(), division: z.string().optional(), district: z.string().min(2),
+  addressLine2: z.string().optional(),
+  divisionId: z.string().optional().nullable(), districtId: z.string().min(1).optional().nullable(),
+  upazilaId: z.string().optional().nullable(), unionId: z.string().optional().nullable(),
+  division: z.string().optional(), district: z.string().min(1),
   upazila: z.string().optional(), thana: z.string().optional(), area: z.string().optional(),
   postalCode: z.string().optional(), countryCode: z.string().length(2).default("BD"),
 });

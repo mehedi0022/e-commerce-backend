@@ -1,0 +1,732 @@
+[
+  {
+    "id": "dropTable.shipping_zone_area",
+    "label": "Drop table \"shipping_zone_area\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipping_zone_area"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipping_zone_area\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"shipping_zone_area\"",
+        "sql": "DROP TABLE \"public\".\"shipping_zone_area\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipping_zone_area\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_area\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.shipping_zone_location",
+    "label": "Create table \"shipping_zone_location\"",
+    "summary": "Creates table \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"shipping_zone_location\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"shipping_zone_location\"",
+        "sql": "CREATE TABLE \"public\".\"shipping_zone_location\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"districtId\" text,\n  \"divisionId\" text,\n  \"id\" SERIAL NOT NULL,\n  \"unionId\" text,\n  \"upazilaId\" text,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"zoneId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"shipping_zone_location\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.address.districtId",
+    "label": "Add column \"districtId\" to \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "districtId",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"districtId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "districtId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"districtId\"",
+        "sql": "ALTER TABLE \"public\".\"address\" ADD COLUMN \"districtId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"districtId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "districtId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.address.divisionId",
+    "label": "Add column \"divisionId\" to \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "divisionId",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"divisionId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "divisionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"divisionId\"",
+        "sql": "ALTER TABLE \"public\".\"address\" ADD COLUMN \"divisionId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"divisionId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "divisionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.address.unionId",
+    "label": "Add column \"unionId\" to \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "unionId",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"unionId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "unionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"unionId\"",
+        "sql": "ALTER TABLE \"public\".\"address\" ADD COLUMN \"unionId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"unionId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "unionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.address.upazilaId",
+    "label": "Add column \"upazilaId\" to \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "upazilaId",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"upazilaId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "upazilaId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"upazilaId\"",
+        "sql": "ALTER TABLE \"public\".\"address\" ADD COLUMN \"upazilaId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"upazilaId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "address",
+          "upazilaId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order_address.districtId",
+    "label": "Add column \"districtId\" to \"order_address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "districtId",
+        "table": "order_address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"districtId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "districtId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"districtId\"",
+        "sql": "ALTER TABLE \"public\".\"order_address\" ADD COLUMN \"districtId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"districtId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "districtId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order_address.divisionId",
+    "label": "Add column \"divisionId\" to \"order_address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "divisionId",
+        "table": "order_address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"divisionId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "divisionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"divisionId\"",
+        "sql": "ALTER TABLE \"public\".\"order_address\" ADD COLUMN \"divisionId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"divisionId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "divisionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order_address.unionId",
+    "label": "Add column \"unionId\" to \"order_address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "unionId",
+        "table": "order_address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"unionId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "unionId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"unionId\"",
+        "sql": "ALTER TABLE \"public\".\"order_address\" ADD COLUMN \"unionId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"unionId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "unionId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.order_address.upazilaId",
+    "label": "Add column \"upazilaId\" to \"order_address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "upazilaId",
+        "table": "order_address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"upazilaId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "upazilaId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"upazilaId\"",
+        "sql": "ALTER TABLE \"public\".\"order_address\" ADD COLUMN \"upazilaId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"upazilaId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "order_address",
+          "upazilaId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.shipping_zone_method.freeShippingThreshold",
+    "label": "Add column \"freeShippingThreshold\" to \"shipping_zone_method\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "freeShippingThreshold",
+        "table": "shipping_zone_method"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"freeShippingThreshold\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipping_zone_method",
+          "freeShippingThreshold"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"freeShippingThreshold\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_zone_method\" ADD COLUMN \"freeShippingThreshold\" numeric(12,2)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"freeShippingThreshold\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipping_zone_method",
+          "freeShippingThreshold"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.address.address_districtId_idx_a3818dd3",
+    "label": "Create index \"address_districtId_idx_a3818dd3\" on \"address\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "address_districtId_idx_a3818dd3",
+        "table": "address"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"address_districtId_idx_a3818dd3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_districtId_idx_a3818dd3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"address_districtId_idx_a3818dd3\"",
+        "sql": "CREATE INDEX \"address_districtId_idx_a3818dd3\" ON \"public\".\"address\" (\"districtId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"address_districtId_idx_a3818dd3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"address_districtId_idx_a3818dd3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_location.shipping_zone_location_districtId_idx_a3818dd3",
+    "label": "Create index \"shipping_zone_location_districtId_idx_a3818dd3\" on \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_location_districtId_idx_a3818dd3",
+        "table": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_location_districtId_idx_a3818dd3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_districtId_idx_a3818dd3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_location_districtId_idx_a3818dd3\"",
+        "sql": "CREATE INDEX \"shipping_zone_location_districtId_idx_a3818dd3\" ON \"public\".\"shipping_zone_location\" (\"districtId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_location_districtId_idx_a3818dd3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_districtId_idx_a3818dd3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_location.shipping_zone_location_divisionId_idx_c61115f7",
+    "label": "Create index \"shipping_zone_location_divisionId_idx_c61115f7\" on \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_location_divisionId_idx_c61115f7",
+        "table": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_location_divisionId_idx_c61115f7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_divisionId_idx_c61115f7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_location_divisionId_idx_c61115f7\"",
+        "sql": "CREATE INDEX \"shipping_zone_location_divisionId_idx_c61115f7\" ON \"public\".\"shipping_zone_location\" (\"divisionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_location_divisionId_idx_c61115f7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_divisionId_idx_c61115f7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_location.shipping_zone_location_unionId_idx_362d117a",
+    "label": "Create index \"shipping_zone_location_unionId_idx_362d117a\" on \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_location_unionId_idx_362d117a",
+        "table": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_location_unionId_idx_362d117a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_unionId_idx_362d117a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_location_unionId_idx_362d117a\"",
+        "sql": "CREATE INDEX \"shipping_zone_location_unionId_idx_362d117a\" ON \"public\".\"shipping_zone_location\" (\"unionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_location_unionId_idx_362d117a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_unionId_idx_362d117a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_location.shipping_zone_location_upazilaId_idx_09579787",
+    "label": "Create index \"shipping_zone_location_upazilaId_idx_09579787\" on \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_location_upazilaId_idx_09579787",
+        "table": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_location_upazilaId_idx_09579787\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_upazilaId_idx_09579787\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_location_upazilaId_idx_09579787\"",
+        "sql": "CREATE INDEX \"shipping_zone_location_upazilaId_idx_09579787\" ON \"public\".\"shipping_zone_location\" (\"upazilaId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_location_upazilaId_idx_09579787\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_upazilaId_idx_09579787\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipping_zone_location.shipping_zone_location_zoneId_idx_1b631e86",
+    "label": "Create index \"shipping_zone_location_zoneId_idx_1b631e86\" on \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipping_zone_location_zoneId_idx_1b631e86",
+        "table": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipping_zone_location_zoneId_idx_1b631e86\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_zoneId_idx_1b631e86\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipping_zone_location_zoneId_idx_1b631e86\"",
+        "sql": "CREATE INDEX \"shipping_zone_location_zoneId_idx_1b631e86\" ON \"public\".\"shipping_zone_location\" (\"zoneId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipping_zone_location_zoneId_idx_1b631e86\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipping_zone_location_zoneId_idx_1b631e86\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.shipping_zone_location.shipping_zone_location_zoneId_fkey",
+    "label": "Add foreign key \"shipping_zone_location_zoneId_fkey\" on \"shipping_zone_location\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "shipping_zone_location_zoneId_fkey",
+        "table": "shipping_zone_location"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"shipping_zone_location_zoneId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_location_zoneId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_location\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"shipping_zone_location_zoneId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"shipping_zone_location\"\nADD CONSTRAINT \"shipping_zone_location_zoneId_fkey\"\nFOREIGN KEY (\"zoneId\")\nREFERENCES \"public\".\"shipping_zone\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"shipping_zone_location_zoneId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "shipping_zone_location_zoneId_fkey",
+          "public",
+          "\"public\".\"shipping_zone_location\""
+        ]
+      }
+    ]
+  }
+]

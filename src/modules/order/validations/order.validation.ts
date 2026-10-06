@@ -15,6 +15,13 @@ export const guestOrderSchema = z.object({
   query: guestOrderAccessSchema,
 });
 
+export const trackOrderSchema = z.object({
+  query: z.object({
+    orderNumber: z.string().trim().min(3).max(80),
+    phone: z.string().trim().min(5).max(30).optional(),
+  }),
+});
+
 export const orderListSchema = z.object({
   query: z
     .object({

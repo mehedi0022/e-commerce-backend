@@ -4,10 +4,12 @@ import { permissions } from "../../auth/authorization.js";
 import { requirePermission } from "../../middlewares/authorization.middleware.js";
 import { validate } from "../../middlewares/validate.middleware.js";
 import * as c from "./controllers/order.controller.js";
-import { guestOrderSchema, orderListSchema, orderNumberSchema, orderTransitionSchema } from "./validations/order.validation.js";
+import { guestOrderSchema, orderListSchema, orderNumberSchema, orderTransitionSchema, trackOrderSchema } from "./validations/order.validation.js";
 const router = Router();
+router.get("/orders/track", validate(trackOrderSchema), c.track);
 router.get("/orders/guest/:orderNumber", validate(guestOrderSchema), c.guestDetail);
 router.use((req, res, next) => {
+  if (req.path === "/orders/track") return next();
   const ownsPath = req.path.startsWith("/orders") || req.path.startsWith("/admin/orders");
   return ownsPath ? authenticate(req, res, next) : next();
 });

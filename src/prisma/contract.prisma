@@ -721,6 +721,11 @@ model Address {
   addressLine1      String
   addressLine2      String?
 
+  divisionId        String?
+  districtId        String?
+  upazilaId         String?
+  unionId           String?
+
   division          String?
   district          String
   upazila           String?
@@ -742,40 +747,36 @@ model Address {
   @@index([userId, isDefaultShipping])
   @@index([userId, isDefaultBilling])
   @@index([countryCode, district])
+  @@index([districtId])
   @@map("address")
 }
 
 model ShippingZone {
-  id          Int                  @id @default(autoincrement())
+  id          Int                    @id @default(autoincrement())
   name        String
   description String?
 
-  isActive    Boolean              @default(true)
-  sortOrder   Int                  @default(0)
+  isActive    Boolean                @default(true)
+  sortOrder   Int                    @default(0)
 
-  areas       ShippingZoneArea[]
+  locations   ShippingZoneLocation[]
   methods     ShippingZoneMethod[]
 
-  createdAt   DateTime             @default(now())
+  createdAt   DateTime               @default(now())
   updatedAt   temporal.updatedAt()
 
   @@index([isActive, sortOrder])
   @@map("shipping_zone")
 }
 
-model ShippingZoneArea {
+model ShippingZoneLocation {
   id          Int                  @id @default(autoincrement())
   zoneId      Int
 
-  countryCode String               @default("BD")
-
-  division    String?
-  district    String?
-  upazila     String?
-  thana       String?
-  area        String?
-
-  postalCode  String?
+  divisionId  String?
+  districtId  String?
+  upazilaId   String?
+  unionId     String?
 
   zone        ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
 
@@ -783,10 +784,11 @@ model ShippingZoneArea {
   updatedAt   temporal.updatedAt()
 
   @@index([zoneId])
-  @@index([countryCode, district])
-  @@index([district, thana])
-  @@index([district, upazila])
-  @@map("shipping_zone_area")
+  @@index([divisionId])
+  @@index([districtId])
+  @@index([upazilaId])
+  @@index([unionId])
+  @@map("shipping_zone_location")
 }
 
 model ShippingMethod {
@@ -808,24 +810,25 @@ model ShippingMethod {
 }
 
 model ShippingZoneMethod {
-  id               Int                  @id @default(autoincrement())
-  zoneId           Int
-  methodId         Int
+  id                    Int                  @id @default(autoincrement())
+  zoneId                Int
+  methodId              Int
 
-  charge           Numeric(12, 2)
+  charge                Numeric(12, 2)
+  freeShippingThreshold Numeric(12, 2)?
 
-  estimatedMinDays Int?
-  estimatedMaxDays Int?
+  estimatedMinDays      Int?
+  estimatedMaxDays      Int?
 
-  isActive         Boolean              @default(true)
-  sortOrder        Int                  @default(0)
+  isActive              Boolean              @default(true)
+  sortOrder             Int                  @default(0)
 
-  zone             ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
+  zone                  ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
 
-  method           ShippingMethod       @relation(fields:[methodId], references:[id], onDelete: Cascade)
+  method                ShippingMethod       @relation(fields:[methodId], references:[id], onDelete: Cascade)
 
-  createdAt        DateTime             @default(now())
-  updatedAt        temporal.updatedAt()
+  createdAt             DateTime             @default(now())
+  updatedAt             temporal.updatedAt()
 
   @@unique([zoneId, methodId])
   @@index([zoneId, isActive])
@@ -957,6 +960,11 @@ model OrderAddress {
 
   addressLine1 String
   addressLine2 String?
+
+  divisionId   String?
+  districtId   String?
+  upazilaId    String?
+  unionId      String?
 
   division     String?
   district     String
