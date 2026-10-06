@@ -1110,8 +1110,13 @@ model Shipment {
   status         ShipmentStatus          @default(PENDING)
 
   courierName    String?
+  courierCode    String?
+  consignmentId  String?
   trackingNumber String?
   trackingUrl    String?
+  codAmount      Numeric(12, 2)?
+  courierStatus  String?
+  courierPayload Json?
 
   note           String?
 
@@ -1497,4 +1502,20 @@ model SmsLog {
   @@map("sms_log")
 }
 
+model CourierProviderConfig {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  apiKey      String?
+  apiSecret   String?
+  apiUrl      String?
+  isActive    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  isLive      Boolean  @default(false)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   temporal.updatedAt()
 
+  @@index([isActive])
+  @@map("courier_provider_config")
+}

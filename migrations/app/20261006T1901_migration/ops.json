@@ -1,0 +1,332 @@
+[
+  {
+    "id": "table.courier_provider_config",
+    "label": "Create table \"courier_provider_config\"",
+    "summary": "Creates table \"courier_provider_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "courier_provider_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"courier_provider_config\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_provider_config\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"courier_provider_config\"",
+        "sql": "CREATE TABLE \"public\".\"courier_provider_config\" (\n  \"apiKey\" text,\n  \"apiSecret\" text,\n  \"apiUrl\" text,\n  \"code\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT false NOT NULL,\n  \"isDefault\" bool DEFAULT false NOT NULL,\n  \"isLive\" bool DEFAULT false NOT NULL,\n  \"name\" text NOT NULL,\n  \"settings\" json,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"courier_provider_config\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_provider_config\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.shipment.codAmount",
+    "label": "Add column \"codAmount\" to \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "codAmount",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"codAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "codAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"codAmount\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\" ADD COLUMN \"codAmount\" numeric(12,2)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"codAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "codAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.shipment.consignmentId",
+    "label": "Add column \"consignmentId\" to \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "consignmentId",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"consignmentId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "consignmentId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"consignmentId\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\" ADD COLUMN \"consignmentId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"consignmentId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "consignmentId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.shipment.courierCode",
+    "label": "Add column \"courierCode\" to \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "courierCode",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"courierCode\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "courierCode"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"courierCode\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\" ADD COLUMN \"courierCode\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"courierCode\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "courierCode"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.shipment.courierPayload",
+    "label": "Add column \"courierPayload\" to \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "courierPayload",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"courierPayload\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "courierPayload"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"courierPayload\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\" ADD COLUMN \"courierPayload\" json"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"courierPayload\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "courierPayload"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.shipment.courierStatus",
+    "label": "Add column \"courierStatus\" to \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "courierStatus",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"courierStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "courierStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"courierStatus\"",
+        "sql": "ALTER TABLE \"public\".\"shipment\" ADD COLUMN \"courierStatus\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"courierStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "shipment",
+          "courierStatus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.courier_provider_config.courier_provider_config_code_key",
+    "label": "Add unique constraint on \"courier_provider_config\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "courier_provider_config_code_key",
+        "table": "courier_provider_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"courier_provider_config_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "courier_provider_config_code_key",
+          "public",
+          "\"public\".\"courier_provider_config\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"courier_provider_config_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"courier_provider_config\" ADD CONSTRAINT \"courier_provider_config_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"courier_provider_config_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "courier_provider_config_code_key",
+          "public",
+          "\"public\".\"courier_provider_config\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.courier_provider_config.courier_provider_config_isActive_idx_77fe3ba1",
+    "label": "Create index \"courier_provider_config_isActive_idx_77fe3ba1\" on \"courier_provider_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "courier_provider_config_isActive_idx_77fe3ba1",
+        "table": "courier_provider_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"courier_provider_config_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_provider_config_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"courier_provider_config_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"courier_provider_config_isActive_idx_77fe3ba1\" ON \"public\".\"courier_provider_config\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"courier_provider_config_isActive_idx_77fe3ba1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_provider_config_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ]
+  }
+]

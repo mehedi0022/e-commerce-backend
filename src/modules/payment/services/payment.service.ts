@@ -174,11 +174,14 @@ export const initiateGatewayPayment = async (orderId: number) => {
     ipnUrl: `${backendBaseUrl}/payments/gateway/${paymentConfig.code}/ipn?orderId=${order.id}`,
   };
 
+  const payableAmount = transaction.amount || order.grandTotal;
+
   const result = await adapter.initiatePayment(paymentConfig as any, {
     order: {
       id: order.id,
       orderNumber: order.orderNumber,
       grandTotal: order.grandTotal,
+      payableAmount,
       customerName: order.customerName,
       customerEmail: order.customerEmail,
       customerPhone: order.customerPhone,
@@ -246,7 +249,7 @@ export const handleGatewayCallback = async (
   }
 
   // If failed
-  if (statusParam === "fail") {
+  if (statusParam === "fail" || statusParam === "failure") {
     if (transaction) {
       await db.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
         status: "REJECTED",

@@ -33,7 +33,7 @@ export class SSLCommerzAdapter implements PaymentGatewayAdapter {
     const postData = new URLSearchParams({
       store_id: storeId,
       store_passwd: storePassword,
-      total_amount: String(order.grandTotal),
+      total_amount: String(order.payableAmount || order.grandTotal),
       currency: "BDT",
       tran_id: `${order.orderNumber}_${Date.now()}`,
       success_url: callbackUrls.successUrl,

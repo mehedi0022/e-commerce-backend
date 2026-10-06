@@ -23,6 +23,7 @@ import sliderRoutes from "../modules/slider/slider.route.js";
 import popupRoutes from "../modules/popup/popup.route.js";
 import paymentRoutes from "../modules/payment/payment.route.js";
 import smsRoutes from "../modules/sms/sms.route.js";
+import courierRoutes from "../modules/courier/courier.route.js";
 
 const router = Router();
 
@@ -41,6 +42,7 @@ router.use(checkoutRoutes);
 router.use(orderRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/notifications", smsRoutes);
+router.use("/courier", courierRoutes);
 router.use(couponRoutes);
 router.use(shipmentRoutes);
 router.use(returnRoutes);

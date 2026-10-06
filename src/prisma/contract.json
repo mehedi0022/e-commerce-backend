@@ -48,6 +48,10 @@
       "model": "CouponUsage",
       "namespace": "public"
     },
+    "courier_provider_config": {
+      "model": "CourierProviderConfig",
+      "namespace": "public"
+    },
     "inventory": {
       "model": "Inventory",
       "namespace": "public"
@@ -2330,6 +2334,137 @@
               },
               "namespaceId": "public",
               "table": "coupon_usage"
+            }
+          },
+          "CourierProviderConfig": {
+            "fields": {
+              "apiKey": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "apiSecret": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "apiUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "code": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isDefault": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "isLive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "settings": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "apiKey": {
+                  "column": "apiKey"
+                },
+                "apiSecret": {
+                  "column": "apiSecret"
+                },
+                "apiUrl": {
+                  "column": "apiUrl"
+                },
+                "code": {
+                  "column": "code"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isActive": {
+                  "column": "isActive"
+                },
+                "isDefault": {
+                  "column": "isDefault"
+                },
+                "isLive": {
+                  "column": "isLive"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "settings": {
+                  "column": "settings"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "courier_provider_config"
             }
           },
           "Inventory": {
@@ -7473,7 +7608,46 @@
                   "kind": "scalar"
                 }
               },
+              "codAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "consignmentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "courierCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "courierName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "courierPayload": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "courierStatus": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -7616,8 +7790,23 @@
                 "cancelledAt": {
                   "column": "cancelledAt"
                 },
+                "codAmount": {
+                  "column": "codAmount"
+                },
+                "consignmentId": {
+                  "column": "consignmentId"
+                },
+                "courierCode": {
+                  "column": "courierCode"
+                },
                 "courierName": {
                   "column": "courierName"
+                },
+                "courierPayload": {
+                  "column": "courierPayload"
+                },
+                "courierStatus": {
+                  "column": "courierStatus"
                 },
                 "createdAt": {
                   "column": "createdAt"
@@ -10623,6 +10812,113 @@
                   "columns": [
                     "couponId",
                     "orderId"
+                  ]
+                }
+              ]
+            },
+            "courier_provider_config": {
+              "columns": {
+                "apiKey": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "apiSecret": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "apiUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "code": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isActive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isDefault": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "isLive": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "settings": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "isActive"
+                  ],
+                  "name": "courier_provider_config_isActive_idx_77fe3ba1",
+                  "prefix": "courier_provider_config_isActive_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "code"
                   ]
                 }
               ]
@@ -15150,7 +15446,36 @@
                   "nativeType": "timestamptz",
                   "nullable": true
                 },
+                "codAmount": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "consignmentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "courierCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "courierName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "courierPayload": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "courierStatus": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -16766,10 +17091,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "d19867458f197ae5c7c140f6e1753f693a23bef0ac3dde5163e566e6b9adba11"
+    "storageHash": "3feda7e7d7be5b8b2823aec82ca548fff1796c292a99656f32391582504cef37"
   },
   "execution": {
-    "executionHash": "f21f8917527784ab38086789265548296129a9e90ed2ff5b0c173bd3267d585a",
+    "executionHash": "507e6fbe213d2e3448c73387f0c51b67ca63e63d26060d02b3ea183b86ddc911",
     "mutations": {
       "defaults": [
         {
@@ -16903,6 +17228,21 @@
           },
           "ref": {
             "entry": "coupon",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "courier_provider_config",
             "field": "updatedAt",
             "namespace": "public"
           }

@@ -1,13 +1,7 @@
 import { db, closeDatabase } from "../prisma/db.js";
 
 async function main() {
-  console.log("Seeding initial payment method configurations...");
-
-  const existing = await db.orm.public.PaymentMethodConfig.all();
-  if (existing.length > 0) {
-    console.log(`Payment methods already seeded (${existing.length} methods found). Skipping.`);
-    return;
-  }
+  console.log("Ensuring all payment method configurations exist...");
 
   const methods = [
     {
@@ -135,8 +129,13 @@ async function main() {
   ];
 
   for (const m of methods) {
-    await db.orm.public.PaymentMethodConfig.create(m as any);
-    console.log(`Created payment method: ${m.name} (${m.code})`);
+    const existing = await db.orm.public.PaymentMethodConfig.first({ code: m.code });
+    if (!existing) {
+      await db.orm.public.PaymentMethodConfig.create(m as any);
+      console.log(`Created payment method: ${m.name} (${m.code})`);
+    } else {
+      console.log(`Payment method already exists: ${m.code}`);
+    }
   }
 
   console.log("Seeding payment methods completed successfully!");

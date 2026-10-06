@@ -70,7 +70,7 @@ export class BkashMerchantAdapter implements PaymentGatewayAdapter {
         mode: "0011",
         payerReference: order.customerPhone || "01700000000",
         callbackURL: callbackUrls.ipnUrl,
-        amount: String(order.grandTotal),
+        amount: String(order.payableAmount || order.grandTotal),
         currency: "BDT",
         intent: "sale",
         merchantInvoiceNumber: invoiceNumber,

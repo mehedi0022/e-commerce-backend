@@ -5,6 +5,7 @@ export interface InitiatePaymentParams {
     id: number;
     orderNumber: string;
     grandTotal: string | number;
+    payableAmount?: string | number;
     customerName: string;
     customerEmail?: string | null;
     customerPhone: string;
