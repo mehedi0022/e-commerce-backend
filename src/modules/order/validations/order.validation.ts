@@ -40,6 +40,7 @@ export const orderListSchema = z.object({
       paymentStatus: z
         .enum(["UNPAID", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED"])
         .optional(),
+      search: z.string().trim().max(100).optional(),
       orderNumber: z.string().trim().min(1).max(80).optional(),
       customerPhone: z.string().trim().min(1).max(30).optional(),
       customerEmail: z.string().trim().email().optional(),
@@ -62,3 +63,17 @@ export const orderTransitionSchema = z.object({
     })
     .strict(),
 });
+
+export const updateAdminOrderSchema = z.object({
+  params: orderNumberParams,
+  body: z
+    .object({
+      paymentStatus: z
+        .enum(["UNPAID", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED"])
+        .optional(),
+      adminNote: z.string().max(1000).nullable().optional(),
+    })
+    .strict()
+    .refine((d) => Object.keys(d).length > 0, "At least one field is required"),
+});
+

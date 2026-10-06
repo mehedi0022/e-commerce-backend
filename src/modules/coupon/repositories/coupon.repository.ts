@@ -1,4 +1,5 @@
 import { db } from "../../../prisma/db.js";
+import { or } from "@prisma/orm-postgres/orm-client";
 const fields = ["id", "code", "name", "description", "discountType", "discountValue", "minimumOrderAmount", "maximumDiscountAmount", "usageLimit", "usageLimitPerUser", "startsAt", "expiresAt", "isActive", "createdAt", "updatedAt"] as const;
 export const findByCode = (code: string) => db.orm.public.Coupon.select(...fields).first({ code });
 export const findByCodeInTransaction = (tx: any, code: string) => tx.orm.public.Coupon.select(...fields).first({ code });
@@ -21,4 +22,27 @@ export const lockCouponForCheckout = async (tx: any, couponId: number) => {
   return rows[0] ?? null;
 };
 export const createUsage = (tx: any, data: any) => tx.orm.public.CouponUsage.create(data);
-export const list = async (q: any) => { let query: any = db.orm.public.Coupon.select(...fields); if (q.discountType) query = query.where({ discountType: q.discountType }); if (q.isActive !== undefined) query = query.where({ isActive: q.isActive }); const rows = await query.orderBy((x: any) => x.createdAt.desc()).offset((q.page - 1) * q.limit).limit(q.limit).all(); return rows; };
+export const list = async (q: any) => {
+  let filter: any = db.orm.public.Coupon;
+  if (q.discountType) filter = filter.where({ discountType: q.discountType });
+  if (q.isActive !== undefined) filter = filter.where({ isActive: q.isActive });
+  if (q.search) {
+    const term = String(q.search).trim();
+    filter = filter.where((c: any) =>
+      or(c.code.ilike(`%${term}%`), c.name.ilike(`%${term}%`)),
+    );
+  }
+  const page = q.page ? Number(q.page) : 1;
+  const limit = q.limit ? Number(q.limit) : 20;
+
+  const countPromise = filter.aggregate((a: any) => ({ total: a.count() }));
+  const dataPromise = filter
+    .select(...fields)
+    .orderBy((x: any) => x.createdAt.desc())
+    .offset((page - 1) * limit)
+    .limit(limit)
+    .all();
+
+  const [countRes, rows] = await Promise.all([countPromise, dataPromise]);
+  return { rows, total: countRes?.total ?? rows.length };
+};
