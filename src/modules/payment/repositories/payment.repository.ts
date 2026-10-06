@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
 import type {
   CreatePaymentMethodInput,
@@ -82,13 +83,14 @@ export const findTransactionsByOrderId = async (orderId: number) => {
   }));
 };
 
-export const findTransactionById = async (id: number) => {
-  const transaction = await db.orm.public.OrderPaymentTransaction.first({ id });
+export const findTransactionById = async (id: number, txOrDb?: any) => {
+  const client = txOrDb || db;
+  const transaction = await client.orm.public.OrderPaymentTransaction.first({ id });
   if (!transaction) return null;
 
   let verifiedByUser = null;
   if (transaction.verifiedByUserId) {
-    const user = await db.orm.public.User.first({ id: transaction.verifiedByUserId });
+    const user = await client.orm.public.User.first({ id: transaction.verifiedByUserId });
     if (user) {
       verifiedByUser = {
         id: user.id,
@@ -98,7 +100,7 @@ export const findTransactionById = async (id: number) => {
     }
   }
 
-  const order = await db.orm.public.Order.first({ id: transaction.orderId });
+  const order = await client.orm.public.Order.first({ id: transaction.orderId });
 
   return {
     ...transaction,
@@ -118,9 +120,9 @@ export const updateTransactionVerification = async (
   await client.orm.public.OrderPaymentTransaction.where({ id }).update({
     status,
     verifiedByUserId,
-    verifiedAt: new Date(),
+    verifiedAt: Temporal.Now.instant(),
     ...(adminNote ? { adminNote } : {}),
   });
 
-  return findTransactionById(id);
+  return findTransactionById(id, client);
 };

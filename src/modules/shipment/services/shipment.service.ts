@@ -3,10 +3,177 @@ import { db } from "../../../prisma/db.js";
 import { ConflictError, NotFoundError } from "../../../errors/AppError.js";
 import * as repo from "../repositories/shipment.repository.js";
 import * as orderService from "../../order/services/order.service.js";
+import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
 
-const transitions: Record<string, string[]> = { PENDING: ["READY_TO_SHIP", "CANCELLED"], READY_TO_SHIP: ["SHIPPED", "CANCELLED"], SHIPPED: ["IN_TRANSIT"], IN_TRANSIT: ["OUT_FOR_DELIVERY", "FAILED", "RETURNED"], OUT_FOR_DELIVERY: ["DELIVERED", "FAILED", "RETURNED"], FAILED: ["IN_TRANSIT"], DELIVERED: [], RETURNED: [], CANCELLED: [] };
-export const create = async (number: string, actorId: number, data: any) => { const order: any = await db.orm.public.Order.select("id", "orderNumber", "status").first({ orderNumber: number }); if (!order) throw new NotFoundError("Order not found"); if (!["PROCESSING", "SHIPPED"].includes(order.status)) throw new ConflictError("Shipment can only be created for a PROCESSING or SHIPPED order"); if (await repo.findByOrder(order.id)) throw new ConflictError("Shipment already exists"); const now = Temporal.Now.instant(); const initialStatus = order.status === "SHIPPED" ? "SHIPPED" : "PENDING"; return db.transaction(async (tx: any) => { const shipment = await repo.create(tx, { orderId: order.id, status: initialStatus, courierName: data.courierName ?? null, trackingNumber: data.trackingNumber ?? null, trackingUrl: data.trackingUrl ?? null, note: data.note ?? null, ...(order.status === "SHIPPED" ? { shippedAt: now } : {}) }); await repo.history(tx, { shipmentId: shipment.id, fromStatus: null, toStatus: initialStatus, changedById: actorId, note: null }); return shipment; }); };
-export const get = async (number: string) => { const x = await repo.findByOrderNumber(number); if (!x) throw new NotFoundError("Shipment not found"); return x; };
-export const update = async (number: string, data: any) => { const x: any = await get(number); if (["DELIVERED", "RETURNED", "CANCELLED"].includes(x.status)) throw new ConflictError("Shipment metadata cannot be changed after completion"); return db.transaction((tx) => repo.update(tx, x.id, { ...data, trackingUrl: data.trackingUrl ?? null })); };
-export const transition = async (number: string, target: string, actorId: number, note?: string) => { const current: any = await get(number); if (!transitions[current.status]?.includes(target)) throw new ConflictError(`Invalid shipment transition ${current.status} to ${target}`); return db.transaction(async (tx: any) => { const now = Temporal.Now.instant(); const locked: any = await tx.orm.public.Shipment.select("id", "orderId", "status").first({ id: current.id }); if (!locked || locked.status !== current.status) throw new ConflictError("Shipment state changed; retry the transition"); const order: any = await tx.orm.public.Order.select("id", "status", "orderNumber").first({ id: locked.orderId }); if (!order) throw new NotFoundError("Order not found"); if (target === "SHIPPED") { if (locked.status !== "READY_TO_SHIP" || order.status !== "PROCESSING") throw new ConflictError("Shipment must be READY_TO_SHIP and Order must be PROCESSING before shipment"); const claimed = await repo.claimReadyToShip(tx, locked.id, { status: "SHIPPED", shippedAt: now }); if (!claimed) throw new ConflictError("Shipment has already been shipped or changed"); await orderService.commitOrderFulfillment(tx, order.id, order.orderNumber); const orderUpdated = await tx.orm.public.Order.where({ id: order.id, status: "PROCESSING" }).select("id").update({ status: "SHIPPED", shippedAt: now }); if (!orderUpdated) throw new ConflictError("Order state changed during fulfillment"); await tx.orm.public.OrderStatusHistory.create({ orderId: order.id, fromStatus: "PROCESSING", toStatus: "SHIPPED", changedById: actorId, note: note ?? null }); } if (target === "DELIVERED") { if (order.status !== "SHIPPED") throw new ConflictError("Order must be SHIPPED before delivery"); const delivered = await tx.orm.public.Order.where({ id: order.id, status: "SHIPPED" }).select("id").update({ status: "DELIVERED", deliveredAt: now }); if (!delivered) throw new ConflictError("Order state changed during delivery"); await tx.orm.public.OrderStatusHistory.create({ orderId: order.id, fromStatus: "SHIPPED", toStatus: "DELIVERED", changedById: actorId, note: note ?? null }); } const shipmentData: any = { status: target }; if (target === "READY_TO_SHIP") shipmentData.readyAt = now; if (target === "SHIPPED") shipmentData.shippedAt = now; if (target === "DELIVERED") shipmentData.deliveredAt = now; if (target === "FAILED") shipmentData.failedAt = now; if (target === "RETURNED") shipmentData.returnedAt = now; if (target === "CANCELLED") shipmentData.cancelledAt = now; const updated = await repo.update(tx, current.id, shipmentData); await repo.history(tx, { shipmentId: current.id, fromStatus: current.status, toStatus: target, changedById: actorId, note: note ?? null }); return updated; }); };
+const transitions: Record<string, string[]> = {
+  PENDING: ["READY_TO_SHIP", "CANCELLED"],
+  READY_TO_SHIP: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["IN_TRANSIT"],
+  IN_TRANSIT: ["OUT_FOR_DELIVERY", "FAILED", "RETURNED"],
+  OUT_FOR_DELIVERY: ["DELIVERED", "FAILED", "RETURNED"],
+  FAILED: ["IN_TRANSIT"],
+  DELIVERED: [],
+  RETURNED: [],
+  CANCELLED: [],
+};
+export const create = async (number: string, actorId: number, data: any) => {
+  const order: any = await db.orm.public.Order.select(
+    "id",
+    "orderNumber",
+    "status",
+  ).first({ orderNumber: number });
+  if (!order) throw new NotFoundError("Order not found");
+  if (!["PROCESSING", "SHIPPED"].includes(order.status))
+    throw new ConflictError(
+      "Shipment can only be created for a PROCESSING or SHIPPED order",
+    );
+  if (await repo.findByOrder(order.id))
+    throw new ConflictError("Shipment already exists");
+  const now = Temporal.Now.instant();
+  const initialStatus = order.status === "SHIPPED" ? "SHIPPED" : "PENDING";
+  return db.transaction(async (tx: any) => {
+    const shipment = await repo.create(tx, {
+      orderId: order.id,
+      status: initialStatus,
+      courierName: data.courierName ?? null,
+      trackingNumber: data.trackingNumber ?? null,
+      trackingUrl: data.trackingUrl ?? null,
+      note: data.note ?? null,
+      ...(order.status === "SHIPPED" ? { shippedAt: now } : {}),
+    });
+    await repo.history(tx, {
+      shipmentId: shipment.id,
+      fromStatus: null,
+      toStatus: initialStatus,
+      changedById: actorId,
+      note: null,
+    });
+    return shipment;
+  });
+};
+export const get = async (number: string) => {
+  const x = await repo.findByOrderNumber(number);
+  if (!x) throw new NotFoundError("Shipment not found");
+  return x;
+};
+export const update = async (number: string, data: any) => {
+  const x: any = await get(number);
+  if (["DELIVERED", "RETURNED", "CANCELLED"].includes(x.status))
+    throw new ConflictError(
+      "Shipment metadata cannot be changed after completion",
+    );
+  return db.transaction((tx) =>
+    repo.update(tx, x.id, { ...data, trackingUrl: data.trackingUrl ?? null }),
+  );
+};
+export const transition = async (
+  number: string,
+  target: string,
+  actorId: number,
+  note?: string,
+) => {
+  const current: any = await get(number);
+  if (!transitions[current.status]?.includes(target))
+    throw new ConflictError(
+      `Invalid shipment transition ${current.status} to ${target}`,
+    );
+  const updatedShipment = await db.transaction(async (tx: any) => {
+    const now = Temporal.Now.instant();
+    const locked: any = await tx.orm.public.Shipment.select(
+      "id",
+      "orderId",
+      "status",
+    ).first({ id: current.id });
+    if (!locked || locked.status !== current.status)
+      throw new ConflictError("Shipment state changed; retry the transition");
+    const order: any = await tx.orm.public.Order.select(
+      "id",
+      "status",
+      "orderNumber",
+    ).first({ id: locked.orderId });
+    if (!order) throw new NotFoundError("Order not found");
+    if (target === "SHIPPED") {
+      if (locked.status !== "READY_TO_SHIP" || order.status !== "PROCESSING")
+        throw new ConflictError(
+          "Shipment must be READY_TO_SHIP and Order must be PROCESSING before shipment",
+        );
+      const claimed = await repo.claimReadyToShip(tx, locked.id, {
+        status: "SHIPPED",
+        shippedAt: now,
+      });
+      if (!claimed)
+        throw new ConflictError("Shipment has already been shipped or changed");
+      await orderService.commitOrderFulfillment(
+        tx,
+        order.id,
+        order.orderNumber,
+      );
+      const orderUpdated = await tx.orm.public.Order.where({
+        id: order.id,
+        status: "PROCESSING",
+      })
+        .select("id")
+        .update({ status: "SHIPPED", shippedAt: now });
+      if (!orderUpdated)
+        throw new ConflictError("Order state changed during fulfillment");
+      await tx.orm.public.OrderStatusHistory.create({
+        orderId: order.id,
+        fromStatus: "PROCESSING",
+        toStatus: "SHIPPED",
+        changedById: actorId,
+        note: note ?? null,
+      });
+    }
+    if (target === "DELIVERED") {
+      if (order.status !== "SHIPPED")
+        throw new ConflictError("Order must be SHIPPED before delivery");
+      const delivered = await tx.orm.public.Order.where({
+        id: order.id,
+        status: "SHIPPED",
+      })
+        .select("id")
+        .update({ status: "DELIVERED", deliveredAt: now });
+      if (!delivered)
+        throw new ConflictError("Order state changed during delivery");
+      await tx.orm.public.OrderStatusHistory.create({
+        orderId: order.id,
+        fromStatus: "SHIPPED",
+        toStatus: "DELIVERED",
+        changedById: actorId,
+        note: note ?? null,
+      });
+    }
+    const shipmentData: any = { status: target };
+    if (target === "READY_TO_SHIP") shipmentData.readyAt = now;
+    if (target === "SHIPPED") shipmentData.shippedAt = now;
+    if (target === "DELIVERED") shipmentData.deliveredAt = now;
+    if (target === "FAILED") shipmentData.failedAt = now;
+    if (target === "RETURNED") shipmentData.returnedAt = now;
+    if (target === "CANCELLED") shipmentData.cancelledAt = now;
+    const updated = await repo.update(tx, current.id, shipmentData);
+    await repo.history(tx, {
+      shipmentId: current.id,
+      fromStatus: current.status,
+      toStatus: target,
+      changedById: actorId,
+      note: note ?? null,
+    });
+    return updated;
+  });
+
+  if (target === "SHIPPED") {
+    void triggerNotification("ORDER_SHIPPED", {
+      orderId: current.orderId,
+      courierName: current.courierName,
+      courierTrackingNumber: current.trackingNumber,
+      courierTrackingUrl: current.trackingUrl,
+    });
+  } else if (target === "DELIVERED") {
+    void triggerNotification("ORDER_DELIVERED", {
+      orderId: current.orderId,
+    });
+  }
+
+  return updatedShipment;
+};
 export const list = (q: any) => repo.list(q);

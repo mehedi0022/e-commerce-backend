@@ -195,6 +195,13 @@ enum PaymentTransactionStatus {
   REFUNDED = "REFUNDED"
 }
 
+enum SmsDeliveryStatus {
+  @@type("pg/text@1")
+  PENDING = "PENDING"
+  SENT = "SENT"
+  FAILED = "FAILED"
+}
+
 // Database-driven RBAC foundation. `User.role` remains temporarily during the
 // expand/backfill rollout; `rbacRole` becomes the authorization source once
 // existing users have been migrated.
@@ -1423,4 +1430,61 @@ model OrderPaymentTransaction {
   @@index([createdAt])
   @@map("order_payment_transaction")
 }
+
+model SmsProviderConfig {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  senderId    String?
+  apiKey      String?
+  apiSecret   String?
+  apiUrl      String?
+  isActive    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   temporal.updatedAt()
+
+  logs        SmsLog[]
+
+  @@index([isActive])
+  @@map("sms_provider_config")
+}
+
+model NotificationTemplate {
+  id              Int      @id @default(autoincrement())
+  event           String   @unique
+  name            String
+  smsEnabled      Boolean  @default(true)
+  smsTemplate     String
+  emailEnabled    Boolean  @default(true)
+  emailSubject    String
+  emailTemplate   String?
+  availableVars   String?
+  createdAt       DateTime @default(now())
+  updatedAt       temporal.updatedAt()
+
+  @@map("notification_template")
+}
+
+model SmsLog {
+  id                  Int               @id @default(autoincrement())
+  smsProviderConfigId Int?
+  providerCode        String
+  recipientPhone      String
+  message             String
+  status              SmsDeliveryStatus @default(PENDING)
+  responsePayload     Json?
+  orderId             Int?
+  createdAt           DateTime          @default(now())
+
+  provider            SmsProviderConfig? @relation(fields:[smsProviderConfigId], references:[id], onDelete: SetNull)
+
+  @@index([recipientPhone])
+  @@index([status])
+  @@index([orderId])
+  @@index([createdAt])
+  @@map("sms_log")
+}
+
 

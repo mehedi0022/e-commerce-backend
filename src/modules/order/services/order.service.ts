@@ -12,6 +12,7 @@ import * as shipping from "../../shipping/services/shipping.service.js";
 import * as repo from "../repositories/order.repository.js";
 import * as couponService from "../../coupon/services/coupon.service.js";
 import * as inventory from "../../inventory/services/inventory.service.js";
+import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
 import type { OrderListQuery } from "../order.types.js";
 
 const tokenHash = (token: string) =>
@@ -301,6 +302,17 @@ export const checkout = async (
     grandTotal: String(result.grandTotal),
     ...(accessToken ? { guestAccessToken: accessToken } : {}),
   };
+
+  // Trigger event notification (SMS & Email) asynchronously
+  void triggerNotification("ORDER_PLACED", {
+    orderId: result.id,
+    orderNumber: result.orderNumber,
+    customerName: ship.fullName,
+    customerPhone: ship.phone,
+    grandTotal: String(result.grandTotal),
+    paymentMethod: paymentConfig?.name || result.paymentMethod,
+  });
+
   return safe;
 };
 
@@ -408,7 +420,7 @@ export const transition = async (
       `Cannot move order from ${current.status} to ${toStatus}`,
     );
   }
-  return db.transaction(async (tx: any) => {
+  const orderResult = await db.transaction(async (tx: any) => {
     if (toStatus === "CANCELLED") {
       for (const item of current.items) {
         if (!item.variantId) continue;
@@ -494,6 +506,20 @@ export const transition = async (
     });
     return updated;
   });
+
+  if (toStatus === "SHIPPED") {
+    void triggerNotification("ORDER_SHIPPED", {
+      orderId: current.id,
+      orderNumber: current.orderNumber,
+    });
+  } else if (toStatus === "DELIVERED") {
+    void triggerNotification("ORDER_DELIVERED", {
+      orderId: current.id,
+      orderNumber: current.orderNumber,
+    });
+  }
+
+  return orderResult;
 };
 
 export const updateAdmin = async (number: string, data: any) => {

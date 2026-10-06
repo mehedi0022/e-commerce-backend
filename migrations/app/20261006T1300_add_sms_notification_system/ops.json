@@ -1,0 +1,479 @@
+[
+  {
+    "id": "table.notification_template",
+    "label": "Create table \"notification_template\"",
+    "summary": "Creates table \"notification_template\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "notification_template"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"notification_template\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"notification_template\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"notification_template\"",
+        "sql": "CREATE TABLE \"public\".\"notification_template\" (\n  \"availableVars\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"emailEnabled\" bool DEFAULT true NOT NULL,\n  \"emailSubject\" text NOT NULL,\n  \"emailTemplate\" text,\n  \"event\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"name\" text NOT NULL,\n  \"smsEnabled\" bool DEFAULT true NOT NULL,\n  \"smsTemplate\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"notification_template\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"notification_template\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.sms_log",
+    "label": "Create table \"sms_log\"",
+    "summary": "Creates table \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"sms_log\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"sms_log\"",
+        "sql": "CREATE TABLE \"public\".\"sms_log\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"message\" text NOT NULL,\n  \"orderId\" int4,\n  \"providerCode\" text NOT NULL,\n  \"recipientPhone\" text NOT NULL,\n  \"responsePayload\" json,\n  \"smsProviderConfigId\" int4,\n  \"status\" text DEFAULT 'PENDING' NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"sms_log_status_check_cbc544c0\" CHECK (\"status\" IN ('PENDING', 'SENT', 'FAILED'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"sms_log\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.sms_provider_config",
+    "label": "Create table \"sms_provider_config\"",
+    "summary": "Creates table \"sms_provider_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "sms_provider_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"sms_provider_config\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_provider_config\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"sms_provider_config\"",
+        "sql": "CREATE TABLE \"public\".\"sms_provider_config\" (\n  \"apiKey\" text,\n  \"apiSecret\" text,\n  \"apiUrl\" text,\n  \"code\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"isActive\" bool DEFAULT false NOT NULL,\n  \"isDefault\" bool DEFAULT false NOT NULL,\n  \"name\" text NOT NULL,\n  \"senderId\" text,\n  \"settings\" json,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"sms_provider_config\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_provider_config\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.notification_template.notification_template_event_key",
+    "label": "Add unique constraint on \"notification_template\" (event)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "notification_template_event_key",
+        "table": "notification_template"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"notification_template_event_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "notification_template_event_key",
+          "public",
+          "\"public\".\"notification_template\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"notification_template_event_key\"",
+        "sql": "ALTER TABLE \"public\".\"notification_template\" ADD CONSTRAINT \"notification_template_event_key\" UNIQUE (\"event\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"notification_template_event_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "notification_template_event_key",
+          "public",
+          "\"public\".\"notification_template\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.sms_provider_config.sms_provider_config_code_key",
+    "label": "Add unique constraint on \"sms_provider_config\" (code)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "sms_provider_config_code_key",
+        "table": "sms_provider_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"sms_provider_config_code_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sms_provider_config_code_key",
+          "public",
+          "\"public\".\"sms_provider_config\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"sms_provider_config_code_key\"",
+        "sql": "ALTER TABLE \"public\".\"sms_provider_config\" ADD CONSTRAINT \"sms_provider_config_code_key\" UNIQUE (\"code\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"sms_provider_config_code_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sms_provider_config_code_key",
+          "public",
+          "\"public\".\"sms_provider_config\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sms_log.sms_log_createdAt_idx_9575dbd7",
+    "label": "Create index \"sms_log_createdAt_idx_9575dbd7\" on \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sms_log_createdAt_idx_9575dbd7",
+        "table": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sms_log_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sms_log_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"sms_log_createdAt_idx_9575dbd7\" ON \"public\".\"sms_log\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sms_log_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sms_log.sms_log_orderId_idx_d284871b",
+    "label": "Create index \"sms_log_orderId_idx_d284871b\" on \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sms_log_orderId_idx_d284871b",
+        "table": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sms_log_orderId_idx_d284871b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_orderId_idx_d284871b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sms_log_orderId_idx_d284871b\"",
+        "sql": "CREATE INDEX \"sms_log_orderId_idx_d284871b\" ON \"public\".\"sms_log\" (\"orderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sms_log_orderId_idx_d284871b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_orderId_idx_d284871b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sms_log.sms_log_recipientPhone_idx_3d769e58",
+    "label": "Create index \"sms_log_recipientPhone_idx_3d769e58\" on \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sms_log_recipientPhone_idx_3d769e58",
+        "table": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sms_log_recipientPhone_idx_3d769e58\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_recipientPhone_idx_3d769e58\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sms_log_recipientPhone_idx_3d769e58\"",
+        "sql": "CREATE INDEX \"sms_log_recipientPhone_idx_3d769e58\" ON \"public\".\"sms_log\" (\"recipientPhone\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sms_log_recipientPhone_idx_3d769e58\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_recipientPhone_idx_3d769e58\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sms_log.sms_log_smsProviderConfigId_idx_627b7301",
+    "label": "Create index \"sms_log_smsProviderConfigId_idx_627b7301\" on \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sms_log_smsProviderConfigId_idx_627b7301",
+        "table": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sms_log_smsProviderConfigId_idx_627b7301\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_smsProviderConfigId_idx_627b7301\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sms_log_smsProviderConfigId_idx_627b7301\"",
+        "sql": "CREATE INDEX \"sms_log_smsProviderConfigId_idx_627b7301\" ON \"public\".\"sms_log\" (\"smsProviderConfigId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sms_log_smsProviderConfigId_idx_627b7301\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_smsProviderConfigId_idx_627b7301\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sms_log.sms_log_status_idx_e98638ab",
+    "label": "Create index \"sms_log_status_idx_e98638ab\" on \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sms_log_status_idx_e98638ab",
+        "table": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sms_log_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sms_log_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"sms_log_status_idx_e98638ab\" ON \"public\".\"sms_log\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sms_log_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_log_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sms_provider_config.sms_provider_config_isActive_idx_77fe3ba1",
+    "label": "Create index \"sms_provider_config_isActive_idx_77fe3ba1\" on \"sms_provider_config\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sms_provider_config_isActive_idx_77fe3ba1",
+        "table": "sms_provider_config"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sms_provider_config_isActive_idx_77fe3ba1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_provider_config_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sms_provider_config_isActive_idx_77fe3ba1\"",
+        "sql": "CREATE INDEX \"sms_provider_config_isActive_idx_77fe3ba1\" ON \"public\".\"sms_provider_config\" (\"isActive\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sms_provider_config_isActive_idx_77fe3ba1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sms_provider_config_isActive_idx_77fe3ba1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.sms_log.sms_log_smsProviderConfigId_fkey",
+    "label": "Add foreign key \"sms_log_smsProviderConfigId_fkey\" on \"sms_log\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "sms_log_smsProviderConfigId_fkey",
+        "table": "sms_log"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"sms_log_smsProviderConfigId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sms_log_smsProviderConfigId_fkey",
+          "public",
+          "\"public\".\"sms_log\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"sms_log_smsProviderConfigId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"sms_log\"\nADD CONSTRAINT \"sms_log_smsProviderConfigId_fkey\"\nFOREIGN KEY (\"smsProviderConfigId\")\nREFERENCES \"public\".\"sms_provider_config\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"sms_log_smsProviderConfigId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sms_log_smsProviderConfigId_fkey",
+          "public",
+          "\"public\".\"sms_log\""
+        ]
+      }
+    ]
+  }
+]

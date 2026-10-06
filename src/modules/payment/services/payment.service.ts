@@ -1,7 +1,9 @@
+import { Temporal } from "temporal-polyfill";
 import * as repo from "../repositories/payment.repository.js";
 import { NotFoundError, ConflictError, ValidationError } from "../../../errors/AppError.js";
 import { db } from "../../../prisma/db.js";
 import { getPaymentAdapter } from "../gateways/gateway.factory.js";
+import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
 import { config as appConfig } from "../../../config/env.js";
 import type {
   CreatePaymentMethodInput,
@@ -61,7 +63,7 @@ export const verifyTransaction = async (
   const order = await db.orm.public.Order.first({ id: transaction.orderId });
   if (!order) throw new NotFoundError("Order not found");
 
-  return db.transaction(async (tx: any) => {
+  const verifyResult = await db.transaction(async (tx: any) => {
     const updatedTransaction = await repo.updateTransactionVerification(
       tx,
       transactionId,
@@ -81,9 +83,10 @@ export const verifyTransaction = async (
 
       await tx.orm.public.OrderStatusHistory.create({
         orderId: order.id,
-        status: order.status,
+        fromStatus: order.status,
+        toStatus: order.status,
         note: noteText,
-        changedByUserId: adminUserId,
+        changedById: adminUserId,
       });
     } else if (input.status === "REJECTED") {
       await tx.orm.public.Order.where({ id: order.id }).update({
@@ -96,14 +99,27 @@ export const verifyTransaction = async (
 
       await tx.orm.public.OrderStatusHistory.create({
         orderId: order.id,
-        status: order.status,
+        fromStatus: order.status,
+        toStatus: order.status,
         note: noteText,
-        changedByUserId: adminUserId,
+        changedById: adminUserId,
       });
     }
 
     return updatedTransaction;
   });
+
+  if (input.status === "VERIFIED") {
+    void triggerNotification("PAYMENT_VERIFIED", {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      trxId: transaction.transactionId || "",
+      amount: String(transaction.amount || order.grandTotal),
+      paymentMethod: transaction.paymentMethodCode,
+    });
+  }
+
+  return verifyResult;
 };
 
 // ─── Automated Gateway Methods (Phase 5) ────────────────────────────────────
@@ -252,7 +268,7 @@ export const handleGatewayCallback = async (
           status: "VERIFIED",
           transactionId: verifyResult.transactionId || transaction.transactionId,
           gatewayResponse: verifyResult.rawResponse,
-          verifiedAt: new Date(),
+          verifiedAt: Temporal.Now.instant(),
           adminNote: `Verified automatically via ${paymentConfig.name}`,
         });
       }
@@ -263,7 +279,8 @@ export const handleGatewayCallback = async (
 
       await tx.orm.public.OrderStatusHistory.create({
         orderId: order.id,
-        status: order.status,
+        fromStatus: order.status,
+        toStatus: order.status,
         note: `Payment successfully completed via ${paymentConfig.name}. TrxID: ${verifyResult.transactionId}`,
       });
     } else {
@@ -279,6 +296,16 @@ export const handleGatewayCallback = async (
       });
     }
   });
+
+  if (verifyResult.isValid) {
+    void triggerNotification("PAYMENT_VERIFIED", {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      trxId: verifyResult.transactionId || transaction?.transactionId || "",
+      amount: String(transaction?.amount || order.grandTotal),
+      paymentMethod: paymentConfig.name,
+    });
+  }
 
   const querySuffix = verifyResult.isValid ? "?payment=success" : "?payment=failed";
   return { redirectUrl: `${frontendUrl}/order-success/${order.orderNumber}${querySuffix}` };
