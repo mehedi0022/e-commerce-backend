@@ -59,3 +59,32 @@ export const history = asyncHandler(async (req, res) => {
     ),
   );
 });
+
+export const list = asyncHandler(async (req, res) =>
+  res.json(
+    successResponse(
+      "Inventory list fetched successfully",
+      await service.list(req.query),
+    ),
+  ),
+);
+
+export const globalHistory = asyncHandler(async (req, res) => {
+  const result = await service.globalHistory(req.query);
+  res.json(
+    paginatedResponse(
+      "Inventory movements fetched successfully",
+      result.rows,
+      result.meta,
+    ),
+  );
+});
+
+export const updateThreshold = asyncHandler(async (req, res) =>
+  res.json(
+    successResponse(
+      "Low stock threshold updated successfully",
+      await service.updateThreshold(Number(req.params.variantId), req.body),
+    ),
+  ),
+);

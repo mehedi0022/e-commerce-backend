@@ -52,9 +52,33 @@ export const initialize = async (variantId: number, data: InitializeInput) => {
 };
 const requireInventory = async (variantId: number) => {
   await getVariant(variantId);
-  const x = await repo.find(variantId);
-  if (!x) throw new NotFoundError("Inventory is not initialized");
+  let x = await repo.find(variantId);
+  if (!x) {
+    x = await db.orm.public.Inventory.create({
+      variantId,
+      quantity: 0,
+      reservedQuantity: 0,
+      lowStockThreshold: 5,
+    });
+  }
   return x;
+};
+
+export const list = async (query: any) => {
+  return repo.listInventory(query);
+};
+
+export const globalHistory = async (query: any) => {
+  return repo.listGlobalMovements(query);
+};
+
+export const updateThreshold = async (
+  variantId: number,
+  data: { lowStockThreshold: number },
+) => {
+  await getVariant(variantId);
+  const updated = await repo.updateThreshold(variantId, data.lowStockThreshold);
+  return view(updated);
 };
 export const restock = async (variantId: number, data: QuantityInput) => {
   const x = await restockStock(variantId, data.quantity, undefined, { movementType: "RESTOCK", note: data.note ?? undefined, referenceType: data.referenceType ?? undefined, referenceId: data.referenceId ?? undefined });
