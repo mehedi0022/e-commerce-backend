@@ -1519,3 +1519,16 @@ model CourierProviderConfig {
   @@index([isActive])
   @@map("courier_provider_config")
 }
+
+model StoreSetting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   temporal.updatedAt()
+
+  @@index([key])
+  @@map("store_setting")
+}
+

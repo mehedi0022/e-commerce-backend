@@ -20,6 +20,8 @@
     "rbac:seed": "tsx src/scripts/seed-rbac.ts",
     "shipping:seed": "tsx src/scripts/seed-shipping.ts",
     "super-admin:seed": "tsx src/scripts/seed-super-admin.ts",
+    "settings:seed": "tsx src/scripts/seed-invoice-settings.ts",
+    "promo:seed": "tsx src/scripts/seed-storefront-promo.ts",
     "db:emit": "npx prisma contract emit",
     "db:format": "npx prisma contract format",
     "db:verify": "npx prisma db verify",

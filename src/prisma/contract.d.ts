@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'3feda7e7d7be5b8b2823aec82ca548fff1796c292a99656f32391582504cef37'>;
+  StorageHashBase<'9e516c91d4f218df963c5ad415c99abf7ab9d60102eb04a6ecb0286a7f8cf72f'>;
 export type ExecutionHash =
-  ExecutionHashBase<'507e6fbe213d2e3448c73387f0c51b67ca63e63d26060d02b3ea183b86ddc911'>;
+  ExecutionHashBase<'edfc49ee1694acf76296712287549c57f3ff59dfd27e9c3c75391632784b6eef'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -962,6 +962,14 @@ export type FieldOutputTypes = {
       readonly settings: CodecTypes['pg/json@1']['output'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly StoreSetting: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly key: CodecTypes['pg/text@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly value: CodecTypes['pg/json@1']['output'];
+    };
     readonly User: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly email: CodecTypes['pg/text@1']['output'];
@@ -1699,6 +1707,14 @@ export type FieldInputTypes = {
       readonly senderId: CodecTypes['pg/text@1']['input'] | null;
       readonly settings: CodecTypes['pg/json@1']['input'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
+    readonly StoreSetting: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly key: CodecTypes['pg/text@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly value: CodecTypes['pg/json@1']['input'];
     };
     readonly User: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -2438,6 +2454,14 @@ export type StorageColumnTypes = {
       readonly settings: CodecTypes['pg/json@1']['output'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly store_setting: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly key: CodecTypes['pg/text@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly value: CodecTypes['pg/json@1']['output'];
+    };
     readonly user: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly email: CodecTypes['pg/text@1']['output'];
@@ -3175,6 +3199,14 @@ export type StorageColumnInputTypes = {
       readonly senderId: CodecTypes['pg/text@1']['input'] | null;
       readonly settings: CodecTypes['pg/json@1']['input'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
+    readonly store_setting: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly key: CodecTypes['pg/text@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly value: CodecTypes['pg/json@1']['input'];
     };
     readonly user: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -4087,6 +4119,15 @@ export namespace Models {
     logs: public_SmsLog[];
     readonly [RelationKeys]?: 'logs';
   };
+  export type public_StoreSetting = {
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    description: CodecTypes['pg/text@1']['output'] | null;
+    id: CodecTypes['pg/int4@1']['output'];
+    key: CodecTypes['pg/text@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    value: CodecTypes['pg/json@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
   export type public_User = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     email: CodecTypes['pg/text@1']['output'];
@@ -4205,6 +4246,7 @@ export declare const models: {
     Slider: Models.public_Slider;
     SmsLog: Models.public_SmsLog;
     SmsProviderConfig: Models.public_SmsProviderConfig;
+    StoreSetting: Models.public_StoreSetting;
     User: Models.public_User;
     VariantAttributeValue: Models.public_VariantAttributeValue;
     WishlistItem: Models.public_WishlistItem;
@@ -9673,6 +9715,56 @@ type ContractBase = Omit<
               ];
               foreignKeys: readonly [];
             };
+            readonly store_setting: {
+              columns: {
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly description: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly key: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly value: {
+                  readonly nativeType: 'json';
+                  readonly codecId: 'pg/json@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['key'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'store_setting_key_idx_2077e847';
+                  readonly prefix: 'store_setting_key_idx';
+                  readonly columns: readonly ['key'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
+            };
             readonly user: {
               columns: {
                 readonly createdAt: {
@@ -10220,6 +10312,10 @@ type ContractBase = Omit<
     readonly sms_provider_config: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'SmsProviderConfig';
+    };
+    readonly store_setting: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'StoreSetting';
     };
     readonly user: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
     readonly variant_attribute_value: {
@@ -15300,6 +15396,53 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly StoreSetting: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly key: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly value: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'store_setting';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly description: { readonly column: 'description' };
+                readonly id: { readonly column: 'id' };
+                readonly key: { readonly column: 'key' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly value: { readonly column: 'value' };
+              };
+            };
+          };
           readonly User: {
             readonly fields: {
               readonly createdAt: {
@@ -16246,6 +16389,15 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'sms_provider_config';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'store_setting';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };

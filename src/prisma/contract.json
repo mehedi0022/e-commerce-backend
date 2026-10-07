@@ -208,6 +208,10 @@
       "model": "SmsProviderConfig",
       "namespace": "public"
     },
+    "store_setting": {
+      "model": "StoreSetting",
+      "namespace": "public"
+    },
     "user": {
       "model": "User",
       "namespace": "public"
@@ -8899,6 +8903,77 @@
               "table": "sms_provider_config"
             }
           },
+          "StoreSetting": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "key": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "value": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "key": {
+                  "column": "key"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "value": {
+                  "column": "value"
+                }
+              },
+              "namespaceId": "public",
+              "table": "store_setting"
+            }
+          },
           "User": {
             "fields": {
               "createdAt": {
@@ -16563,6 +16638,71 @@
                 }
               ]
             },
+            "store_setting": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "key": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "value": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "key"
+                  ],
+                  "name": "store_setting_key_idx_2077e847",
+                  "prefix": "store_setting_key_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "key"
+                  ]
+                }
+              ]
+            },
             "user": {
               "columns": {
                 "createdAt": {
@@ -17091,10 +17231,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3feda7e7d7be5b8b2823aec82ca548fff1796c292a99656f32391582504cef37"
+    "storageHash": "9e516c91d4f218df963c5ad415c99abf7ab9d60102eb04a6ecb0286a7f8cf72f"
   },
   "execution": {
-    "executionHash": "507e6fbe213d2e3448c73387f0c51b67ca63e63d26060d02b3ea183b86ddc911",
+    "executionHash": "edfc49ee1694acf76296712287549c57f3ff59dfd27e9c3c75391632784b6eef",
     "mutations": {
       "defaults": [
         {
@@ -17640,6 +17780,21 @@
           },
           "ref": {
             "entry": "sms_provider_config",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "store_setting",
             "field": "updatedAt",
             "namespace": "public"
           }

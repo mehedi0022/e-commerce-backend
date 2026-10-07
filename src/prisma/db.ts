@@ -24,7 +24,7 @@ const poolConfig: PoolConfig = {
   },
 };
 
-const pool = new Pool(poolConfig);
+export const pool = new Pool(poolConfig);
 export const db = postgres<Contract>({ contractJson, pg: pool });
 
 export const closeDatabase = async () => {

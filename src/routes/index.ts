@@ -24,6 +24,7 @@ import popupRoutes from "../modules/popup/popup.route.js";
 import paymentRoutes from "../modules/payment/payment.route.js";
 import smsRoutes from "../modules/sms/sms.route.js";
 import courierRoutes from "../modules/courier/courier.route.js";
+import settingRoutes from "../modules/setting/setting.route.js";
 
 const router = Router();
 
@@ -43,6 +44,7 @@ router.use(orderRoutes);
 router.use("/payments", paymentRoutes);
 router.use("/notifications", smsRoutes);
 router.use("/courier", courierRoutes);
+router.use("/settings", settingRoutes);
 router.use(couponRoutes);
 router.use(shipmentRoutes);
 router.use(returnRoutes);
