@@ -381,6 +381,10 @@ export const checkout = async (
         type: paymentConfig.type,
         amount: transactionAmount,
         status: "PENDING_VERIFICATION",
+        gatewayPayload: {
+          cartId: cart.id,
+          guestToken: guestToken || null,
+        },
       });
     }
 
@@ -389,7 +393,7 @@ export const checkout = async (
       : isManualPayment && paymentConfig
         ? `Order placed via ${paymentConfig.name}. Sender: ${input.senderNumber || "N/A"}, TrxID: ${input.transactionId.trim()}`
         : paymentConfig?.type === "AUTOMATED_GATEWAY"
-          ? `Order placed via automated gateway: ${paymentConfig.name}`
+          ? `Order initiated via automated gateway: ${paymentConfig.name}`
           : "Order placed via Cash on Delivery";
 
     await repo.history(tx, {
@@ -405,14 +409,21 @@ export const checkout = async (
         orderId: order.id,
         userId: userId ?? null,
       });
-    const converted = await tx.orm.public.Cart.where({
-      id: cart.id,
-      status: "ACTIVE",
-    })
-      .select("id")
-      .update({ status: "CONVERTED" });
-    if (!converted)
-      throw new ConflictError("Cart has already been checked out");
+
+    const isAutomatedGateway = paymentConfig?.type === "AUTOMATED_GATEWAY";
+
+    // For automated gateways, do NOT convert/empty cart yet; cart is converted only when payment succeeds
+    if (!isAutomatedGateway) {
+      const converted = await tx.orm.public.Cart.where({
+        id: cart.id,
+        status: "ACTIVE",
+      })
+        .select("id")
+        .update({ status: "CONVERTED" });
+      if (!converted)
+        throw new ConflictError("Cart has already been checked out");
+    }
+
     return order;
   });
   const safe = {
@@ -435,17 +446,19 @@ export const checkout = async (
     ...(accessToken ? { guestAccessToken: accessToken } : {}),
   };
 
-  // Trigger event notification (SMS & Email) asynchronously
-  void triggerNotification("ORDER_PLACED", {
-    orderId: result.id,
-    orderNumber: result.orderNumber,
-    customerName: ship.fullName,
-    customerPhone: ship.phone,
-    grandTotal: String(result.grandTotal),
-    advanceAmount: String(result.advanceAmount),
-    dueAmount: String(result.dueAmount),
-    paymentMethod: paymentConfig?.name || result.paymentMethod,
-  });
+  // Trigger event notification (SMS & Email) asynchronously only if order is finalized (non-automated gateway)
+  if (paymentConfig?.type !== "AUTOMATED_GATEWAY") {
+    void triggerNotification("ORDER_PLACED", {
+      orderId: result.id,
+      orderNumber: result.orderNumber,
+      customerName: ship.fullName,
+      customerPhone: ship.phone,
+      grandTotal: String(result.grandTotal),
+      advanceAmount: String(result.advanceAmount),
+      dueAmount: String(result.dueAmount),
+      paymentMethod: paymentConfig?.name || result.paymentMethod,
+    });
+  }
 
   return safe;
 };

@@ -19,7 +19,9 @@ export const guest = asyncHandler(async (req: Request, res: Response) => {
     undefined,
     req.cookies?.[guestCartCookieName],
   );
-  res.clearCookie(guestCartCookieName);
+  if (result.paymentMethodType !== "AUTOMATED_GATEWAY") {
+    res.clearCookie(guestCartCookieName);
+  }
   res
     .status(201)
     .json(successResponse("Guest checkout completed successfully", result));

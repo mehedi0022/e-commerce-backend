@@ -27,10 +27,10 @@ type ActorContext = {
 };
 
 const canManageTarget = (actor: ActorContext, targetRoleRank: number) =>
-  actor.roleRank > targetRoleRank;
+  actor.roleRank > targetRoleRank || (actor.roleRank >= 8 && actor.roleRank >= targetRoleRank);
 
 const canAssignRole = (actor: ActorContext, roleRank: number) =>
-  actor.roleRank > roleRank;
+  actor.roleRank > roleRank || (actor.roleRank >= 8 && actor.roleRank >= roleRank);
 
 export const getAllUsers = async (query: UserListQuery) => {
   return userRepository.findAllUsers(query);

@@ -17,7 +17,35 @@ export const requirePermission =
     try {
       const auth = getAuth(req.auth);
 
+      if (auth.roleRank >= 8 || auth.roleKey === "SUPER_ADMIN") {
+        return next();
+      }
+
       if (!auth.permissions.includes(permission)) {
+        throw new AuthorizationError();
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const requireAnyPermission =
+  (...allowedPermissions: Permission[]): RequestHandler =>
+  (req, _res, next) => {
+    try {
+      const auth = getAuth(req.auth);
+
+      if (auth.roleRank >= 8 || auth.roleKey === "SUPER_ADMIN") {
+        return next();
+      }
+
+      const hasAny = allowedPermissions.some((perm) =>
+        auth.permissions.includes(perm),
+      );
+
+      if (!hasAny) {
         throw new AuthorizationError();
       }
 

@@ -4,6 +4,7 @@ import { NotFoundError, ConflictError, ValidationError } from "../../../errors/A
 import { db } from "../../../prisma/db.js";
 import { getPaymentAdapter } from "../gateways/gateway.factory.js";
 import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
+import * as inventory from "../../inventory/services/inventory.service.js";
 import { config as appConfig } from "../../../config/env.js";
 import type {
   CreatePaymentMethodInput,
@@ -196,13 +197,53 @@ export const initiateGatewayPayment = async (orderId: number) => {
     callbackUrls,
   });
 
-  // Update transaction with session key and payload
+  // Update transaction with session key and payload without erasing cartId info
+  const existingPayload =
+    typeof transaction.gatewayPayload === "object" && transaction.gatewayPayload
+      ? (transaction.gatewayPayload as any)
+      : {};
   await db.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
     transactionId: result.transactionId || transaction.transactionId,
-    gatewayPayload: result.gatewayResponse || null,
+    gatewayPayload: {
+      ...existingPayload,
+      sessionKey: result.sessionKey || null,
+    },
+    gatewayResponse: result.gatewayResponse || null,
   });
 
   return result;
+};
+
+const cleanupUnplacedGatewayOrder = async (
+  orderId: number,
+  orderNumber: string,
+  reason: string,
+) => {
+  await db.transaction(async (tx: any) => {
+    const orderItems: any[] = await tx.orm.public.OrderItem
+      .select("id", "variantId", "quantity")
+      .where({ orderId })
+      .all();
+
+    for (const item of orderItems) {
+      if (item.variantId) {
+        await inventory.releaseStock(item.variantId, item.quantity, tx, {
+          referenceType: reason,
+          referenceId: orderNumber,
+        });
+      }
+    }
+
+    await tx.orm.public.OrderPaymentTransaction.where({ orderId }).delete();
+    await tx.orm.public.OrderStatusHistory.where({ orderId }).delete();
+    await tx.orm.public.OrderAddress.where({ orderId }).delete();
+    await tx.orm.public.CouponUsage.where({ orderId }).delete();
+    for (const item of orderItems) {
+      await tx.orm.public.OrderItemAttribute.where({ orderItemId: item.id }).delete();
+    }
+    await tx.orm.public.OrderItem.where({ orderId }).delete();
+    await tx.orm.public.Order.where({ id: orderId }).delete();
+  });
 };
 
 export const handleGatewayCallback = async (
@@ -210,19 +251,26 @@ export const handleGatewayCallback = async (
   query: any,
   body: any,
 ) => {
-  const orderId = Number(query.orderId);
-  const statusParam = query.status;
+  let orderId = Number(query.orderId || body?.orderId);
+  const statusParam = String(query.status || body?.status || "").toLowerCase();
 
-  if (!orderId) throw new ValidationError("Missing orderId in callback");
+  let order: any = null;
+  if (orderId) {
+    order = await db.orm.public.Order.first({ id: orderId });
+  } else if (body?.tran_id || query?.tran_id) {
+    const rawTranId = String(body?.tran_id || query?.tran_id);
+    const orderNum = rawTranId.includes("_") ? rawTranId.split("_")[0] : rawTranId;
+    order = await db.orm.public.Order.first({ orderNumber: orderNum });
+    if (order) orderId = order.id;
+  }
 
-  const order = await db.orm.public.Order.first({ id: orderId });
   if (!order) throw new NotFoundError("Order not found");
 
   const paymentConfig = await repo.findByCode(gatewayCode);
   if (!paymentConfig) throw new NotFoundError("Payment gateway configuration not found");
 
   const transaction = await db.orm.public.OrderPaymentTransaction
-    .where({ orderId })
+    .where({ orderId: order.id })
     .orderBy((t: any) => t.createdAt.desc())
     .first();
 
@@ -234,31 +282,23 @@ export const handleGatewayCallback = async (
     return { redirectUrl: `${frontendUrl}/order-success/${order.orderNumber}` };
   }
 
-  // If user cancelled
-  if (statusParam === "cancel") {
-    if (transaction) {
-      await db.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
-        status: "REJECTED",
-        adminNote: "Customer cancelled payment on gateway page",
-        gatewayResponse: body || query,
-      });
-    }
-    return {
-      redirectUrl: `${frontendUrl}/order-success/${order.orderNumber}?payment=cancelled`,
-    };
-  }
+  const isCancelled = statusParam === "cancel" || statusParam === "cancelled";
+  const isFailed =
+    statusParam === "fail" ||
+    statusParam === "failure" ||
+    statusParam === "failed";
 
-  // If failed
-  if (statusParam === "fail" || statusParam === "failure") {
-    if (transaction) {
-      await db.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
-        status: "REJECTED",
-        adminNote: "Payment failed on gateway",
-        gatewayResponse: body || query,
-      });
-    }
+  // If customer cancelled or payment failed on gateway portal:
+  // Release reserved stock, purge unconfirmed order, and send customer back to checkout with cart intact
+  if (isCancelled || isFailed) {
+    await cleanupUnplacedGatewayOrder(
+      order.id,
+      order.orderNumber,
+      isCancelled ? "ORDER_PAYMENT_CANCELLED" : "ORDER_PAYMENT_FAILED",
+    );
+    const param = isCancelled ? "cancelled" : "failed";
     return {
-      redirectUrl: `${frontendUrl}/order-success/${order.orderNumber}?payment=failed`,
+      redirectUrl: `${frontendUrl}/checkout?payment=${param}`,
     };
   }
 
@@ -269,57 +309,85 @@ export const handleGatewayCallback = async (
     payload: { ...query, ...body },
   });
 
+  if (!verifyResult.isValid) {
+    // Gateway validation rejected: release stock, purge order, return customer to checkout
+    await cleanupUnplacedGatewayOrder(
+      order.id,
+      order.orderNumber,
+      "ORDER_PAYMENT_REJECTED",
+    );
+    return {
+      redirectUrl: `${frontendUrl}/checkout?payment=failed`,
+    };
+  }
+
+  // Gateway payment is VALID: confirm order, convert cart, send notification
   await db.transaction(async (tx: any) => {
-    if (verifyResult.isValid) {
-      if (transaction) {
-        await tx.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
-          status: "VERIFIED",
-          transactionId: verifyResult.transactionId || transaction.transactionId,
-          gatewayResponse: verifyResult.rawResponse,
-          verifiedAt: Temporal.Now.instant(),
-          adminNote: `Verified automatically via ${paymentConfig.name}`,
-        });
-      }
-
-      const nextPaymentStatus =
-        order.isAdvanceRequired && Number(order.dueAmount) > 0
-          ? "PARTIALLY_PAID"
-          : "PAID";
-
-      await tx.orm.public.Order.where({ id: order.id }).update({
-        paymentStatus: nextPaymentStatus,
+    if (transaction) {
+      await tx.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
+        status: "VERIFIED",
+        transactionId: verifyResult.transactionId || transaction.transactionId,
+        gatewayResponse: verifyResult.rawResponse,
+        verifiedAt: Temporal.Now.instant(),
+        adminNote: `Verified automatically via ${paymentConfig.name}`,
       });
+    }
 
-      await tx.orm.public.OrderStatusHistory.create({
-        orderId: order.id,
-        fromStatus: order.status,
-        toStatus: order.status,
-        note: `Payment successfully completed via ${paymentConfig.name} (${nextPaymentStatus}). TrxID: ${verifyResult.transactionId}`,
+    const nextPaymentStatus =
+      order.isAdvanceRequired && Number(order.dueAmount) > 0
+        ? "PARTIALLY_PAID"
+        : "PAID";
+
+    await tx.orm.public.Order.where({ id: order.id }).update({
+      status: "CONFIRMED",
+      confirmedAt: Temporal.Now.instant(),
+      paymentStatus: nextPaymentStatus,
+    });
+
+    await tx.orm.public.OrderStatusHistory.create({
+      orderId: order.id,
+      fromStatus: order.status,
+      toStatus: "CONFIRMED",
+      note: `Payment successfully completed via ${paymentConfig.name} (${nextPaymentStatus}). TrxID: ${verifyResult.transactionId}`,
+    });
+
+    // NOW convert the cart into CONVERTED state
+    const rawPayload = transaction?.gatewayPayload as any;
+    const cartId = rawPayload?.cartId;
+    if (cartId) {
+      await tx.orm.public.Cart.where({ id: cartId, status: "ACTIVE" }).update({
+        status: "CONVERTED",
       });
-    } else {
-      if (transaction) {
-        await tx.orm.public.OrderPaymentTransaction.where({ id: transaction.id }).update({
-          status: "REJECTED",
-          gatewayResponse: verifyResult.rawResponse,
-          adminNote: verifyResult.message || "Gateway verification failed",
-        });
-      }
-      await tx.orm.public.Order.where({ id: order.id }).update({
-        paymentStatus: "FAILED",
+    } else if (order.userId) {
+      await tx.orm.public.Cart.where({ userId: order.userId, status: "ACTIVE" }).update({
+        status: "CONVERTED",
+      });
+    } else if (rawPayload?.guestToken) {
+      await tx.orm.public.Cart.where({ guestToken: rawPayload.guestToken, status: "ACTIVE" }).update({
+        status: "CONVERTED",
       });
     }
   });
 
-  if (verifyResult.isValid) {
-    void triggerNotification("PAYMENT_VERIFIED", {
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      trxId: verifyResult.transactionId || transaction?.transactionId || "",
-      amount: String(transaction?.amount || order.grandTotal),
-      paymentMethod: paymentConfig.name,
-    });
-  }
+  // Trigger event notifications
+  void triggerNotification("ORDER_PLACED", {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    customerName: order.customerName,
+    customerPhone: order.customerPhone,
+    grandTotal: String(order.grandTotal),
+    advanceAmount: String(order.advanceAmount),
+    dueAmount: String(order.dueAmount),
+    paymentMethod: paymentConfig.name,
+  });
 
-  const querySuffix = verifyResult.isValid ? "?payment=success" : "?payment=failed";
-  return { redirectUrl: `${frontendUrl}/order-success/${order.orderNumber}${querySuffix}` };
+  void triggerNotification("PAYMENT_VERIFIED", {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    trxId: verifyResult.transactionId || transaction?.transactionId || "",
+    amount: String(transaction?.amount || order.grandTotal),
+    paymentMethod: paymentConfig.name,
+  });
+
+  return { redirectUrl: `${frontendUrl}/order-success/${order.orderNumber}?payment=success` };
 };

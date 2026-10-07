@@ -6,8 +6,9 @@ export const createUserSchema = z.object({
   body: z
     .object({
       userName: z
-        .string("Username is required")
-        .min(3, "Username must be at least 3 characters"),
+        .string()
+        .min(3, "Username must be at least 3 characters")
+        .optional(),
 
       fullName: z
         .string("Full name is required")
