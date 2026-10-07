@@ -11,9 +11,11 @@ import { or } from "@prisma/orm-postgres/orm-client";
 type CreateUserData = {
   userName?: string;
   fullName: string;
-  email: string;
+  phone?: string;
+  email?: string;
   password: string;
   roleId: number;
+  mustChangePassword?: boolean;
 };
 
 export const findRoleById = (id: number) =>
@@ -31,15 +33,45 @@ export const findUserIdByEmail = (email: string) =>
     email,
   });
 
-export const findUserByEmail = async (email: string) => {
+export const findUserIdByPhone = (phone: string) =>
+  db.orm.public.User.select("id").first({
+    phone,
+  });
+
+export const findUserByPhone = async (phone: string) => {
   return db.orm.public.User.select(
     "id",
+    "phone",
     "email",
     "userName",
     "fullName",
     "password",
     "roleId",
     "isActive",
+    "mustChangePassword",
+    "emailVerifiedAt",
+    "createdAt",
+    "updatedAt",
+  )
+    .include("rbacRole", (role) =>
+      role.select("id", "key", "name", "rank", "isSystem"),
+    )
+    .first({
+      phone,
+    });
+};
+
+export const findUserByEmail = async (email: string) => {
+  return db.orm.public.User.select(
+    "id",
+    "phone",
+    "email",
+    "userName",
+    "fullName",
+    "password",
+    "roleId",
+    "isActive",
+    "mustChangePassword",
     "emailVerifiedAt",
     "createdAt",
     "updatedAt",
@@ -66,11 +98,13 @@ export const findAllUsers = async ({
 }: UserListQuery) => {
   const selectedUsers = db.orm.public.User.select(
     "id",
+    "phone",
     "email",
     "userName",
     "fullName",
     "roleId",
     "isActive",
+    "mustChangePassword",
     "emailVerifiedAt",
     "createdAt",
     "updatedAt",
@@ -100,6 +134,7 @@ export const findAllUsers = async ({
         user.fullName.ilike(term),
         user.userName.ilike(term),
         user.email.ilike(term),
+        user.phone.ilike(term),
       ),
     );
   }
@@ -171,11 +206,13 @@ export const findAllUsers = async ({
 export const createUser = async (data: CreateUserData) => {
   const user = await db.orm.public.User.select(
     "id",
+    "phone",
     "email",
     "userName",
     "fullName",
     "roleId",
     "isActive",
+    "mustChangePassword",
     "emailVerifiedAt",
     "createdAt",
     "updatedAt",
@@ -186,9 +223,11 @@ export const createUser = async (data: CreateUserData) => {
     .create({
       userName: data.userName,
       fullName: data.fullName,
-      email: data.email,
+      phone: data.phone ?? null,
+      email: data.email ?? null,
       password: data.password,
       roleId: data.roleId,
+      mustChangePassword: data.mustChangePassword ?? false,
     });
 
   return toPublicUserDto(user);
@@ -240,11 +279,13 @@ export const getPermissionKeysForUserId = async (
 export const findUserById = async (id: number) => {
   const user = await db.orm.public.User.select(
     "id",
+    "phone",
     "email",
     "userName",
     "fullName",
     "roleId",
     "isActive",
+    "mustChangePassword",
     "emailVerifiedAt",
     "createdAt",
     "updatedAt",
@@ -274,11 +315,13 @@ export const updateUserById = async (
   })
     .select(
       "id",
+      "phone",
       "email",
       "userName",
       "fullName",
       "roleId",
       "isActive",
+      "mustChangePassword",
       "emailVerifiedAt",
       "createdAt",
       "updatedAt",
@@ -326,11 +369,13 @@ export const updateUserRoleById = async (id: number, roleId: number) => {
   })
     .select(
       "id",
+      "phone",
       "email",
       "userName",
       "fullName",
       "roleId",
       "isActive",
+      "mustChangePassword",
       "emailVerifiedAt",
       "createdAt",
       "updatedAt",
@@ -360,11 +405,13 @@ export const updateUserStatusAndRevokeSessions = async (
     })
       .select(
         "id",
+        "phone",
         "email",
         "userName",
         "fullName",
         "roleId",
         "isActive",
+        "mustChangePassword",
         "emailVerifiedAt",
         "createdAt",
         "updatedAt",

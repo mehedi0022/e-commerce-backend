@@ -1,11 +1,18 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  body: z.object({
-    email: z.email("Invalid email address"),
-    password: z.string().min(1, "Password is required"),
-    rememberMe: z.boolean().default(false),
-  }),
+  body: z
+    .object({
+      identifier: z.string().trim().optional(),
+      email: z.string().trim().optional(),
+      phone: z.string().trim().optional(),
+      password: z.string().min(1, "Password is required"),
+      rememberMe: z.boolean().default(false),
+    })
+    .refine((data) => Boolean(data.identifier || data.email || data.phone), {
+      message: "Email or phone number is required",
+      path: ["identifier"],
+    }),
 });
 
 export const refreshTokenSchema = z.object({

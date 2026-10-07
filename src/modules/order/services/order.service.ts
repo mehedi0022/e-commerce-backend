@@ -12,6 +12,14 @@ import * as shipping from "../../shipping/services/shipping.service.js";
 import * as repo from "../repositories/order.repository.js";
 import * as couponService from "../../coupon/services/coupon.service.js";
 import * as inventory from "../../inventory/services/inventory.service.js";
+import { normalizeBdPhone } from "../../../utils/phone.util.js";
+import { hashPassword } from "../../../utils/password.util.js";
+import { generateSecureToken, hashToken } from "../../../utils/token.util.js";
+import * as accountTokenRepository from "../../auth/repositories/account-token.repository.js";
+import { emailService } from "../../email/email.service.js";
+import { createGuestAccountCreatedEmail } from "../../email/templates/guest-account-created.template.js";
+import { config } from "../../../config/env.js";
+import { logger } from "../../../config/logger.js";
 import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
 import type { OrderListQuery } from "../order.types.js";
 
@@ -239,12 +247,90 @@ export const checkout = async (
     );
   }
 
-  const accessToken = userId ? undefined : randomBytes(32).toString("hex");
+  const accessToken = !userId ? randomBytes(32).toString("hex") : undefined;
   const customerName = userId ? ship.fullName : input.customer.name;
   const customerPhone = userId ? ship.phone : input.customer.phone;
   const customerEmail = userId
     ? (await db.orm.public.User.select("email").first({ id: userId }))?.email
     : input.customer.email;
+
+  let effectiveUserId: number | null = userId ?? null;
+  let newlyCreatedUser: { id: number; phone: string; email: string | null; fullName: string | null } | null = null;
+
+  if (!effectiveUserId && input.createAccount && input.customer) {
+    const normPhone = normalizeBdPhone(input.customer.phone);
+    const normEmail = input.customer.email ? input.customer.email.trim().toLowerCase() : undefined;
+
+    // a. Check if user already exists with the same phone (or email, if given).
+    let existingUser = await db.orm.public.User.select("id", "phone", "email").first({ phone: normPhone });
+    if (!existingUser && normEmail) {
+      existingUser = await db.orm.public.User.select("id", "phone", "email").first({ email: normEmail });
+    }
+
+    if (existingUser) {
+      // User exists - link order to existing account without touching password
+      effectiveUserId = existingUser.id;
+    } else {
+      // b. Create new customer account with random secure temp password and mustChangePassword = true
+      const customerRole = await db.orm.public.Role.select("id").first({ key: "CUSTOMER" });
+      const tempPassword = randomBytes(16).toString("base64url");
+      const passwordHash = await hashPassword(tempPassword);
+
+      const created = await db.orm.public.User.select(
+        "id",
+        "phone",
+        "email",
+        "fullName",
+        "userName",
+        "roleId",
+        "isActive",
+        "mustChangePassword",
+        "emailVerifiedAt",
+        "createdAt",
+        "updatedAt",
+      ).create({
+        fullName: input.customer.name,
+        phone: normPhone,
+        email: normEmail ?? null,
+        password: passwordHash,
+        roleId: customerRole?.id ?? 1,
+        mustChangePassword: true,
+      });
+
+      effectiveUserId = created.id;
+      newlyCreatedUser = {
+        id: created.id,
+        phone: normPhone,
+        email: normEmail ?? null,
+        fullName: input.customer.name,
+      };
+
+      if (input.shippingAddress) {
+        await db.orm.public.Address.create({
+          userId: created.id,
+          label: "Default Address",
+          fullName: input.shippingAddress.fullName || input.customer.name,
+          phone: normPhone,
+          addressLine1: input.shippingAddress.addressLine1,
+          addressLine2: input.shippingAddress.addressLine2 ?? null,
+          divisionId: input.shippingAddress.divisionId ?? null,
+          districtId: input.shippingAddress.districtId ?? null,
+          upazilaId: input.shippingAddress.upazilaId ?? null,
+          unionId: input.shippingAddress.unionId ?? null,
+          division: input.shippingAddress.division ?? null,
+          district: input.shippingAddress.district,
+          upazila: input.shippingAddress.upazila ?? null,
+          thana: input.shippingAddress.thana ?? null,
+          area: input.shippingAddress.area ?? null,
+          postalCode: input.shippingAddress.postalCode ?? null,
+          countryCode: input.shippingAddress.countryCode ?? "BD",
+          isDefaultShipping: true,
+          isDefaultBilling: true,
+        });
+      }
+    }
+  }
+
   const result = await db.transaction(async (tx: any) => {
     const appliedCoupon: any = input.couponCode
       ? await couponService.validateAndCalculateInTransaction(
@@ -303,7 +389,7 @@ export const checkout = async (
 
     const order = await repo.create(tx, {
       orderNumber: "TEMP",
-      userId: userId ?? null,
+      userId: effectiveUserId,
       customerName,
       customerEmail: customerEmail ?? null,
       customerPhone,
@@ -458,6 +544,47 @@ export const checkout = async (
       dueAmount: String(result.dueAmount),
       paymentMethod: paymentConfig?.name || result.paymentMethod,
     });
+  }
+
+  // If newly created account provided an email, send non-blocking account creation confirmation and set-password link
+  if (newlyCreatedUser && newlyCreatedUser.email && config.smtp.enabled) {
+    const emailTo = newlyCreatedUser.email;
+    const userSnapshot = { ...newlyCreatedUser };
+    void (async () => {
+      try {
+        const token = generateSecureToken();
+        const now = Temporal.Now.instant();
+        const expiresAt = now.add({ hours: 24 });
+
+        await accountTokenRepository.replaceAccountToken({
+          userId: userSnapshot.id,
+          type: "PASSWORD_RESET",
+          tokenHash: hashToken(token),
+          expiresAt,
+        });
+
+        const setPasswordUrl = `${config.email.appUrl!.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
+
+        await emailService.sendEmail({
+          to: emailTo,
+          ...createGuestAccountCreatedEmail({
+            setPasswordUrl,
+            recipientName: userSnapshot.fullName ?? undefined,
+            phone: userSnapshot.phone,
+            email: emailTo,
+            expiresIn: "24 hours",
+          }),
+        });
+      } catch (err: unknown) {
+        logger.error(
+          {
+            errorName: err instanceof Error ? err.name : "UnknownError",
+            userId: userSnapshot.id,
+          },
+          "Guest account creation set-password email delivery failed",
+        );
+      }
+    })();
   }
 
   return safe;

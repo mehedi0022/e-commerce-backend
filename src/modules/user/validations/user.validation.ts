@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { paginationQuerySchema } from "../../../utils/pagination.js";
+import { isValidBdPhone, normalizeBdPhone } from "../../../utils/phone.util.js";
 
 export const createUserSchema = z.object({
   body: z
@@ -11,17 +12,29 @@ export const createUserSchema = z.object({
         .optional(),
 
       fullName: z
-        .string("Full name is required")
-        .min(4, "Full name must be at least 4 characters"),
+        .string()
+        .min(2, "Full name must be at least 2 characters"),
+
+      phone: z
+        .string()
+        .trim()
+        .refine((val) => isValidBdPhone(val), {
+          message: "Valid Bangladeshi phone number is required (e.g. 01XXXXXXXXX)",
+        })
+        .transform((val) => normalizeBdPhone(val))
+        .optional()
+        .or(z.literal("").transform(() => undefined)),
 
       email: z
-        .string("Email is required")
+        .string()
         .trim()
         .toLowerCase()
-        .pipe(z.email("Invalid email address")),
+        .pipe(z.email("Invalid email address"))
+        .optional()
+        .or(z.literal("").transform(() => undefined)),
 
       password: z
-        .string("Password is required")
+        .string()
         .min(8, "Password must be at least 8 characters")
         .regex(/[A-Z]/, "Must contain at least one uppercase letter")
         .regex(/[a-z]/, "Must contain at least one lowercase letter")
@@ -40,14 +53,24 @@ export const registerUserSchema = z.object({
   body: z
     .object({
       userName: z.string().min(3, "Username must be at least 3 characters").optional(),
-      fullName: z.string("Full name is required").min(4, "Full name must be at least 4 characters"),
+      fullName: z.string().min(2, "Full name must be at least 2 characters"),
+      phone: z
+        .string()
+        .trim()
+        .min(1, "Phone number is required")
+        .refine((val) => isValidBdPhone(val), {
+          message: "Valid Bangladeshi phone number is required (e.g. 01XXXXXXXXX or +8801XXXXXXXXX)",
+        })
+        .transform((val) => normalizeBdPhone(val)),
       email: z
-        .string("Email is required")
+        .string()
         .trim()
         .toLowerCase()
-        .pipe(z.email("Invalid email address")),
+        .pipe(z.email("Invalid email address"))
+        .optional()
+        .or(z.literal("").transform(() => undefined)),
       password: z
-        .string("Password is required")
+        .string()
         .min(8, "Password must be at least 8 characters")
         .regex(/[A-Z]/, "Must contain at least one uppercase letter")
         .regex(/[a-z]/, "Must contain at least one lowercase letter")

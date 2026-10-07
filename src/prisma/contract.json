@@ -8984,7 +8984,7 @@
                 }
               },
               "email": {
-                "nullable": false,
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -9018,8 +9018,22 @@
                   "kind": "scalar"
                 }
               },
+              "mustChangePassword": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "password": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "phone": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -9325,8 +9339,14 @@
                 "isActive": {
                   "column": "isActive"
                 },
+                "mustChangePassword": {
+                  "column": "mustChangePassword"
+                },
                 "password": {
                   "column": "password"
+                },
+                "phone": {
+                  "column": "phone"
                 },
                 "roleId": {
                   "column": "roleId"
@@ -16717,7 +16737,7 @@
                 "email": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
-                  "nullable": false
+                  "nullable": true
                 },
                 "emailVerifiedAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -16747,10 +16767,24 @@
                   "nativeType": "bool",
                   "nullable": false
                 },
+                "mustChangePassword": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "password": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "phone": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "roleId": {
                   "codecId": "pg/int4@1",
@@ -16803,6 +16837,11 @@
                 ]
               },
               "uniques": [
+                {
+                  "columns": [
+                    "phone"
+                  ]
+                },
                 {
                   "columns": [
                     "email"
@@ -17231,7 +17270,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "9e516c91d4f218df963c5ad415c99abf7ab9d60102eb04a6ecb0286a7f8cf72f"
+    "storageHash": "bec62e13c82eb5e569059a5062a5c0c61503e15122aa7abdbb5e37bacaf2d3cf"
   },
   "execution": {
     "executionHash": "edfc49ee1694acf76296712287549c57f3ff59dfd27e9c3c75391632784b6eef",

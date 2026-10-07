@@ -19,6 +19,40 @@ const common = {
   customerNote: z.string().max(1000).optional(),
   paidInFull: z.boolean().optional(),
 };
+import { isValidBdPhone, normalizeBdPhone } from "../../../utils/phone.util.js";
+
 export const checkoutSchema = z.object({ shippingAddressId: z.coerce.number().int().positive(), billingSameAsShipping: z.boolean().default(true), billingAddressId: z.coerce.number().int().positive().optional(), ...common }).superRefine((x, ctx) => { if (!x.billingSameAsShipping && !x.billingAddressId) ctx.addIssue({ code: "custom", path: ["billingAddressId"], message: "Billing address is required" }); });
-export const guestCheckoutSchema = z.object({ customer: z.object({ name: z.string().min(2), email: z.string().email().optional(), phone: z.string().min(5) }), shippingAddress: address, billingSameAsShipping: z.boolean().default(true), billingAddress: address.optional(), ...common }).superRefine((x, ctx) => { if (!x.billingSameAsShipping && !x.billingAddress) ctx.addIssue({ code: "custom", path: ["billingAddress"], message: "Billing address is required" }); });
+export const guestCheckoutSchema = z
+  .object({
+    customer: z.object({
+      name: z.string().min(2, "Name must be at least 2 characters"),
+      email: z
+        .string()
+        .trim()
+        .toLowerCase()
+        .pipe(z.email("Invalid email address"))
+        .optional()
+        .or(z.literal("").transform(() => undefined)),
+      phone: z
+        .string()
+        .trim()
+        .refine((val) => isValidBdPhone(val), {
+          message: "Valid Bangladeshi phone number is required (e.g. 01XXXXXXXXX)",
+        })
+        .transform((val) => normalizeBdPhone(val)),
+    }),
+    createAccount: z.boolean().default(false),
+    shippingAddress: address,
+    billingSameAsShipping: z.boolean().default(true),
+    billingAddress: address.optional(),
+    ...common,
+  })
+  .superRefine((x, ctx) => {
+    if (!x.billingSameAsShipping && !x.billingAddress)
+      ctx.addIssue({
+        code: "custom",
+        path: ["billingAddress"],
+        message: "Billing address is required",
+      });
+  });
 export const guestOrderAccessSchema = z.object({ accessToken: z.string().min(32) });

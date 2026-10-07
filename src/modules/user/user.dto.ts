@@ -11,11 +11,13 @@ export type PublicRoleDto = Pick<
 type PublicUserRecord = Pick<
   UserRecord,
   | "id"
+  | "phone"
   | "email"
   | "userName"
   | "fullName"
   | "roleId"
   | "isActive"
+  | "mustChangePassword"
   | "emailVerifiedAt"
   | "createdAt"
   | "updatedAt"
@@ -42,10 +44,12 @@ export const toPublicUserDto = (user: UserWithRole): PublicUserDto => {
 
   return {
     id: user.id,
+    phone: user.phone,
     email: user.email,
     userName: user.userName,
     fullName: user.fullName,
     roleId: user.roleId,
+    mustChangePassword: user.mustChangePassword,
 
     role: {
       id: role.id,

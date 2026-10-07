@@ -29,7 +29,8 @@ export interface RoleDetail {
   users: Array<{
     id: number;
     fullName: string;
-    email: string;
+    email: string | null;
+    phone?: string | null;
     isActive: boolean;
   }>;
   permissions: PermissionItem[];

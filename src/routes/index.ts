@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import authRoutes from "../modules/auth/auth.route.js";
 import userRoutes from "../modules/user/user.route.js";
+import customerRoutes from "../modules/customer/customer.route.js";
 import roleRoutes from "../modules/role/role.route.js";
 import categoryRoutes from "../modules/category/category.route.js";
 import brandRoutes from "../modules/brand/brand.route.js";
@@ -31,6 +32,7 @@ const router = Router();
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
+router.use("/customers", customerRoutes);
 router.use("/roles", roleRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/brands", brandRoutes);

@@ -59,7 +59,7 @@ export const findRoleById = async (id: number): Promise<RoleDetail | null> => {
       ),
     )
     .include("users", (u) =>
-      u.select("id", "fullName", "email", "isActive"),
+      u.select("id", "fullName", "email", "phone", "isActive"),
     )
     .first({ id });
 
@@ -94,6 +94,7 @@ export const findRoleById = async (id: number): Promise<RoleDetail | null> => {
         id: u.id,
         fullName: u.fullName ?? "",
         email: u.email,
+        phone: u.phone,
         isActive: u.isActive,
       })) ?? [],
     permissions,

@@ -251,10 +251,12 @@ model RolePermission {
 
 model User {
   id                      Int                     @id @default(autoincrement())
-  email                   String                  @unique
+  phone                   String?                 @unique
+  email                   String?                 @unique
   userName                String?
   fullName                String?
   password                String
+  mustChangePassword      Boolean                 @default(false)
   createdAt               DateTime                @default(now())
   updatedAt               temporal.updatedAt()
   roleId                  Int

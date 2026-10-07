@@ -19,6 +19,8 @@ import { createPasswordChangedEmail } from "../../email/templates/password-chang
 import { createPasswordResetEmail } from "../../email/templates/password-reset.template.js";
 import { createVerificationEmail } from "../../email/templates/verification.template.js";
 import * as accountTokenRepository from "../repositories/account-token.repository.js";
+import { db } from "../../../prisma/db.js";
+import { isValidBdPhone, normalizeBdPhone } from "../../../utils/phone.util.js";
 
 import * as userRepository from "../../user/repositories/user.repository.js";
 import { toAuthenticatedUserDto } from "../../user/user.dto.js";
@@ -80,20 +82,36 @@ const issueAccountToken = async (
 };
 
 export const login = async (data: LoginInput) => {
-  const user = await userRepository.findUserByEmail(data.email);
+  const rawIdentifier = (data.identifier || data.email || data.phone || "").trim();
+  let user = null;
+
+  if (isValidBdPhone(rawIdentifier)) {
+    const normalized = normalizeBdPhone(rawIdentifier);
+    user = await userRepository.findUserByPhone(normalized);
+  } else if (rawIdentifier.includes("@")) {
+    user = await userRepository.findUserByEmail(rawIdentifier.toLowerCase());
+  } else {
+    const normalized = normalizeBdPhone(rawIdentifier);
+    if (normalized) {
+      user = await userRepository.findUserByPhone(normalized);
+    }
+    if (!user) {
+      user = await userRepository.findUserByEmail(rawIdentifier.toLowerCase());
+    }
+  }
 
   if (!user) {
-    throw new AuthenticationError("Invalid email or password");
+    throw new AuthenticationError("Invalid login credentials");
   }
 
   if (!user.isActive) {
-    throw new AuthenticationError("Invalid email or password");
+    throw new AuthenticationError("Account has been deactivated. Please contact support.");
   }
 
   const isPasswordValid = await verifyPassword(user.password, data.password);
 
   if (!isPasswordValid) {
-    throw new AuthenticationError("Invalid email or password");
+    throw new AuthenticationError("Invalid login credentials");
   }
 
   const now = Temporal.Now.instant();
@@ -199,8 +217,10 @@ export const logoutAll = async (userId: number) =>
   sessionService.revokeAllUserSessions(userId);
 
 export const forgotPassword = async (data: ForgotPasswordInput) => {
-  const user = await userRepository.findUserByEmail(data.email);
-  if (user) await issueAccountToken(user, "PASSWORD_RESET");
+  const user = await userRepository.findUserByEmail(data.email.trim().toLowerCase());
+  if (user && user.email) {
+    await issueAccountToken({ id: user.id, email: user.email, fullName: user.fullName }, "PASSWORD_RESET");
+  }
 };
 
 export const resetPassword = async (data: ResetPasswordInput) => {
@@ -211,8 +231,10 @@ export const resetPassword = async (data: ResetPasswordInput) => {
   });
   if (!userId) throw new AuthenticationError("Invalid or expired reset token");
 
+  await db.orm.public.User.where({ id: userId }).update({ mustChangePassword: false });
+
   const user = await userRepository.findUserById(userId);
-  if (user) {
+  if (user?.email) {
     sendAuthEmail(user.email, createPasswordChangedEmail({
       appUrl: config.email.appUrl!,
       recipientName: user.fullName ?? undefined,
@@ -224,12 +246,10 @@ export const changePassword = async (
   userId: number,
   data: ChangePasswordInput,
 ) => {
-  const user = await userRepository.findUserByEmail(
-    (await userRepository.findUserById(userId))?.email ?? "",
-  );
-  if (!user || !(await verifyPassword(user.password, data.currentPassword)))
+  const userRecord = await db.orm.public.User.select("id", "email", "password", "fullName").first({ id: userId });
+  if (!userRecord || !(await verifyPassword(userRecord.password, data.currentPassword)))
     throw new AuthenticationError("Current password is incorrect");
-  if (await verifyPassword(user.password, data.newPassword))
+  if (await verifyPassword(userRecord.password, data.newPassword))
     throw new ConflictError(
       "New password must be different from the current password",
     );
@@ -239,16 +259,21 @@ export const changePassword = async (
     now: Temporal.Now.instant(),
   });
 
-  sendAuthEmail(user.email, createPasswordChangedEmail({
-    appUrl: config.email.appUrl!,
-    recipientName: user.fullName ?? undefined,
-  }));
+  await db.orm.public.User.where({ id: userId }).update({ mustChangePassword: false });
+
+  if (userRecord.email) {
+    sendAuthEmail(userRecord.email, createPasswordChangedEmail({
+      appUrl: config.email.appUrl!,
+      recipientName: userRecord.fullName ?? undefined,
+    }));
+  }
 };
 
 export const resendVerification = async (email: string) => {
-  const user = await userRepository.findUserByEmail(email);
-  if (user && !user.emailVerifiedAt)
-    await issueAccountToken(user, "EMAIL_VERIFICATION");
+  const user = await userRepository.findUserByEmail(email.trim().toLowerCase());
+  if (user && user.email && !user.emailVerifiedAt) {
+    await issueAccountToken({ id: user.id, email: user.email, fullName: user.fullName }, "EMAIL_VERIFICATION");
+  }
 };
 
 export const verifyEmail = async (token: string) => {
@@ -260,7 +285,7 @@ export const verifyEmail = async (token: string) => {
     throw new AuthenticationError("Invalid or expired verification token");
 
   const user = await userRepository.findUserById(userId);
-  if (user) {
+  if (user?.email) {
     sendAuthEmail(user.email, createEmailVerifiedEmail({
       appUrl: config.email.appUrl!,
       recipientName: user.fullName ?? undefined,

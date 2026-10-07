@@ -46,17 +46,21 @@ export const getUserById = async (id: number) => {
   return user;
 };
 
+import { normalizeBdPhone } from "../../../utils/phone.util.js";
+
 export const createUser = async (
   actor: ActorContext,
   data: {
-    userName: string;
+    userName?: string;
     fullName: string;
-    email: string;
+    phone?: string;
+    email?: string;
     password: string;
     roleId: number;
   },
 ) => {
-  const email = data.email.trim().toLowerCase();
+  const email = data.email ? data.email.trim().toLowerCase() : undefined;
+  const phone = data.phone ? normalizeBdPhone(data.phone) : undefined;
 
   const role = await userRepository.findRoleById(data.roleId);
 
@@ -68,15 +72,24 @@ export const createUser = async (
     throw new AuthorizationError("You cannot create a user with this role");
   }
 
-  const existingUser = await userRepository.findUserIdByEmail(email);
+  if (phone) {
+    const existingPhone = await userRepository.findUserIdByPhone(phone);
+    if (existingPhone) {
+      throw new ConflictError("A user with this phone number already exists");
+    }
+  }
 
-  if (existingUser) {
-    throw new ConflictError("A user with this email already exists");
+  if (email) {
+    const existingUser = await userRepository.findUserIdByEmail(email);
+    if (existingUser) {
+      throw new ConflictError("A user with this email already exists");
+    }
   }
 
   return userRepository.createUser({
     userName: data.userName,
     fullName: data.fullName,
+    phone,
     email,
     password: await hashPassword(data.password),
     roleId: role.id,
@@ -84,7 +97,9 @@ export const createUser = async (
 };
 
 export const registerUser = async (data: RegisterUserInput) => {
-  const email = data.email.trim().toLowerCase();
+  const phone = normalizeBdPhone(data.phone);
+  const email = data.email ? data.email.trim().toLowerCase() : undefined;
+
   const role = await userRepository.findRoleByKey(
     DEFAULT_REGISTRATION_ROLE_KEY,
   );
@@ -93,28 +108,35 @@ export const registerUser = async (data: RegisterUserInput) => {
     throw new NotFoundError("Default registration role not found");
   }
 
+  const existingPhone = await userRepository.findUserIdByPhone(phone);
+  if (existingPhone) {
+    throw new ConflictError("A user with this phone number already exists");
+  }
 
-  const existingUser = await userRepository.findUserIdByEmail(email);
-
-  if (existingUser) {
-    throw new ConflictError("A user with this email already exists");
+  if (email) {
+    const existingEmail = await userRepository.findUserIdByEmail(email);
+    if (existingEmail) {
+      throw new ConflictError("A user with this email already exists");
+    }
   }
 
   const user = await userRepository.createUser({
     userName: data.userName,
     fullName: data.fullName,
+    phone,
     email,
     password: await hashPassword(data.password),
     roleId: role.id,
   });
 
-  if (config.smtp.enabled) {
+  if (user.email && config.smtp.enabled) {
     void emailService
       .sendEmail({
         to: user.email,
         ...createWelcomeEmail({
           appUrl: config.email.appUrl!,
           recipientName: user.fullName ?? undefined,
+          userEmail: user.email,
         }),
       })
       .catch((error: unknown) => {

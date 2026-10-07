@@ -1,0 +1,291 @@
+[
+  {
+    "id": "table.store_setting",
+    "label": "Create table \"store_setting\"",
+    "summary": "Creates table \"store_setting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "store_setting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"store_setting\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"store_setting\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"store_setting\"",
+        "sql": "CREATE TABLE \"public\".\"store_setting\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"id\" SERIAL NOT NULL,\n  \"key\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"value\" json NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"store_setting\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"store_setting\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.user.mustChangePassword",
+    "label": "Add column \"mustChangePassword\" to \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "mustChangePassword",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"mustChangePassword\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "mustChangePassword"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"mustChangePassword\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD COLUMN \"mustChangePassword\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"mustChangePassword\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "mustChangePassword"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.user.phone",
+    "label": "Add column \"phone\" to \"user\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "phone",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"phone\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "phone"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"phone\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD COLUMN \"phone\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"phone\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "phone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.user.email",
+    "label": "Drop NOT NULL on \"user\".\"email\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "email",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"email\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "email"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"email\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ALTER COLUMN \"email\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"email\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "user",
+          "email",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.store_setting.store_setting_key_key",
+    "label": "Add unique constraint on \"store_setting\" (key)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "store_setting_key_key",
+        "table": "store_setting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"store_setting_key_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "store_setting_key_key",
+          "public",
+          "\"public\".\"store_setting\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"store_setting_key_key\"",
+        "sql": "ALTER TABLE \"public\".\"store_setting\" ADD CONSTRAINT \"store_setting_key_key\" UNIQUE (\"key\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"store_setting_key_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "store_setting_key_key",
+          "public",
+          "\"public\".\"store_setting\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.user.user_phone_key",
+    "label": "Add unique constraint on \"user\" (phone)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "user_phone_key",
+        "table": "user"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"user_phone_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_phone_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"user_phone_key\"",
+        "sql": "ALTER TABLE \"public\".\"user\" ADD CONSTRAINT \"user_phone_key\" UNIQUE (\"phone\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"user_phone_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "user_phone_key",
+          "public",
+          "\"public\".\"user\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.store_setting.store_setting_key_idx_2077e847",
+    "label": "Create index \"store_setting_key_idx_2077e847\" on \"store_setting\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "store_setting_key_idx_2077e847",
+        "table": "store_setting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"store_setting_key_idx_2077e847\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"store_setting_key_idx_2077e847\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"store_setting_key_idx_2077e847\"",
+        "sql": "CREATE INDEX \"store_setting_key_idx_2077e847\" ON \"public\".\"store_setting\" (\"key\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"store_setting_key_idx_2077e847\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"store_setting_key_idx_2077e847\""
+        ]
+      }
+    ]
+  }
+]
