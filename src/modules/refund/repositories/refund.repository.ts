@@ -1,10 +1,10 @@
 import { db } from "../../../prisma/db.js";
 const fields = ["id", "refundNumber", "orderId", "returnId", "amount", "status", "method", "reason", "note", "processedById", "processedAt", "completedAt", "failedAt", "cancelledAt", "createdAt", "updatedAt"] as const;
-const detail = (q: any) => q.select(...fields).include("statusHistory", (h: any) => h.select("id", "fromStatus", "toStatus", "note", "changedById", "createdAt").orderBy((x: any) => x.createdAt.asc()));
+const detail = (q: any) => q.select(...fields).include("order", (o: any) => o.select("id", "orderNumber", "customerName", "customerPhone", "customerEmail")).include("return", (r: any) => r.select("id", "returnNumber", "status")).include("statusHistory", (h: any) => h.select("id", "fromStatus", "toStatus", "note", "changedById", "createdAt").orderBy((x: any) => x.createdAt.asc()));
 export const find = (number: string) => detail(db.orm.public.Refund).first({ refundNumber: number });
 export const byReturn = (returnId: number) => db.orm.public.Refund.select("amount", "status").where({ returnId }).all();
 export const consumedAmount = (tx: any, returnId: number, statuses: string[]) => tx.orm.public.Refund.where({ returnId }).where((r: any) => r.status.in(statuses)).aggregate((a: any) => ({ total: a.sum("amount") }));
 export const create = (tx: any, data: any) => tx.orm.public.Refund.select(...fields).create(data);
 export const update = (tx: any, id: number, data: any) => tx.orm.public.Refund.where({ id }).select(...fields).update(data);
 export const history = (tx: any, data: any) => tx.orm.public.RefundStatusHistory.create(data);
-export const list = (q: any) => { let x: any = db.orm.public.Refund.select(...fields); if (q.status) x = x.where({ status: q.status }); if (q.method) x = x.where({ method: q.method }); return x.orderBy((r: any) => r.createdAt.desc()).offset((q.page - 1) * q.limit).limit(q.limit).all(); };
+export const list = (q: any) => { let x: any = detail(db.orm.public.Refund); if (q.status) x = x.where({ status: q.status }); if (q.method) x = x.where({ method: q.method }); return x.orderBy((r: any) => r.createdAt.desc()).offset((q.page - 1) * q.limit).limit(q.limit).all(); };

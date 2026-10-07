@@ -66,7 +66,19 @@ const detail = (q: any) =>
         )
         .include("attributes", (a: any) =>
           a.select("id", "attributeName", "attributeValue"),
+        )
+        .include("returnItems", (ri: any) =>
+          ri
+            .select("id", "quantity", "reason", "restockStatus")
+            .include("return", (r: any) =>
+              r.select("id", "returnNumber", "status", "requestedAt"),
+            ),
         ),
+    )
+    .include("returns", (ret: any) =>
+      ret
+        .select("id", "returnNumber", "status", "requestedAt", "createdAt")
+        .orderBy((x: any) => x.createdAt.desc()),
     )
     .include("addresses", (a: any) =>
       a.select(
@@ -222,7 +234,19 @@ export const list = async (query: any) => {
         )
         .include("attributes", (a: any) =>
           a.select("id", "attributeName", "attributeValue"),
+        )
+        .include("returnItems", (ri: any) =>
+          ri
+            .select("id", "quantity", "reason", "restockStatus")
+            .include("return", (r: any) =>
+              r.select("id", "returnNumber", "status", "requestedAt"),
+            ),
         ),
+    )
+    .include("returns", (ret: any) =>
+      ret
+        .select("id", "returnNumber", "status", "requestedAt", "createdAt")
+        .orderBy((x: any) => x.createdAt.desc()),
     )
     .orderBy((x: any) => x.createdAt.desc())
     .offset((page - 1) * limit)
