@@ -46,8 +46,8 @@ export class SteadfastCourierAdapter implements CourierAdapter {
 
     const { order, shippingAddress, customNote } = params;
 
-    // COD collection amount: if paid in full or COD not applicable, cod_amount is 0; otherwise dueAmount
-    const codAmount = Math.max(0, Number(order.dueAmount ?? order.grandTotal ?? 0));
+    // COD collection amount: dueAmount (0 for prepaid orders)
+    const codAmount = Math.max(0, Number(order.dueAmount ?? 0));
 
     const addressParts = [
       shippingAddress.addressLine1,

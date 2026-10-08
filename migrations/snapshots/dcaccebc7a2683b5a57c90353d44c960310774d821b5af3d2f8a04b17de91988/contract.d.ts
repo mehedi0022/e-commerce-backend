@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'5276e22a2119246fd52bb60eeb9445ebabe8b30d096fc92a3b9c944a91014eb5'>;
+  StorageHashBase<'dcaccebc7a2683b5a57c90353d44c960310774d821b5af3d2f8a04b17de91988'>;
 export type ExecutionHash =
   ExecutionHashBase<'edfc49ee1694acf76296712287549c57f3ff59dfd27e9c3c75391632784b6eef'>;
 export type ProfileHash =
@@ -388,20 +388,6 @@ export type FieldOutputTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly settings: CodecTypes['pg/json@1']['output'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    };
-    readonly CourierWebhookEvent: {
-      readonly consignmentId: CodecTypes['pg/text@1']['output'] | null;
-      readonly courierCode: CodecTypes['pg/text@1']['output'];
-      readonly error: CodecTypes['pg/text@1']['output'] | null;
-      readonly event: CodecTypes['pg/text@1']['output'] | null;
-      readonly headers: CodecTypes['pg/json@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly merchantOrderId: CodecTypes['pg/text@1']['output'] | null;
-      readonly outcome: CodecTypes['pg/text@1']['output'] | null;
-      readonly payload: CodecTypes['pg/json@1']['output'] | null;
-      readonly receivedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly status: CodecTypes['pg/text@1']['output'] | null;
-      readonly trackingCode: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly Inventory: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1152,20 +1138,6 @@ export type FieldInputTypes = {
       readonly settings: CodecTypes['pg/json@1']['input'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
-    readonly CourierWebhookEvent: {
-      readonly consignmentId: CodecTypes['pg/text@1']['input'] | null;
-      readonly courierCode: CodecTypes['pg/text@1']['input'];
-      readonly error: CodecTypes['pg/text@1']['input'] | null;
-      readonly event: CodecTypes['pg/text@1']['input'] | null;
-      readonly headers: CodecTypes['pg/json@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly merchantOrderId: CodecTypes['pg/text@1']['input'] | null;
-      readonly outcome: CodecTypes['pg/text@1']['input'] | null;
-      readonly payload: CodecTypes['pg/json@1']['input'] | null;
-      readonly receivedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly status: CodecTypes['pg/text@1']['input'] | null;
-      readonly trackingCode: CodecTypes['pg/text@1']['input'] | null;
-    };
     readonly Inventory: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -1915,20 +1887,6 @@ export type StorageColumnTypes = {
       readonly settings: CodecTypes['pg/json@1']['output'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
-    readonly courier_webhook_event: {
-      readonly consignmentId: CodecTypes['pg/text@1']['output'] | null;
-      readonly courierCode: CodecTypes['pg/text@1']['output'];
-      readonly error: CodecTypes['pg/text@1']['output'] | null;
-      readonly event: CodecTypes['pg/text@1']['output'] | null;
-      readonly headers: CodecTypes['pg/json@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly merchantOrderId: CodecTypes['pg/text@1']['output'] | null;
-      readonly outcome: CodecTypes['pg/text@1']['output'] | null;
-      readonly payload: CodecTypes['pg/json@1']['output'] | null;
-      readonly receivedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly status: CodecTypes['pg/text@1']['output'] | null;
-      readonly trackingCode: CodecTypes['pg/text@1']['output'] | null;
-    };
     readonly inventory: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -2677,20 +2635,6 @@ export type StorageColumnInputTypes = {
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly settings: CodecTypes['pg/json@1']['input'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-    };
-    readonly courier_webhook_event: {
-      readonly consignmentId: CodecTypes['pg/text@1']['input'] | null;
-      readonly courierCode: CodecTypes['pg/text@1']['input'];
-      readonly error: CodecTypes['pg/text@1']['input'] | null;
-      readonly event: CodecTypes['pg/text@1']['input'] | null;
-      readonly headers: CodecTypes['pg/json@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly merchantOrderId: CodecTypes['pg/text@1']['input'] | null;
-      readonly outcome: CodecTypes['pg/text@1']['input'] | null;
-      readonly payload: CodecTypes['pg/json@1']['input'] | null;
-      readonly receivedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly status: CodecTypes['pg/text@1']['input'] | null;
-      readonly trackingCode: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly inventory: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -3476,21 +3420,6 @@ export namespace Models {
     name: CodecTypes['pg/text@1']['output'];
     settings: CodecTypes['pg/json@1']['output'] | null;
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    readonly [RelationKeys]?: never;
-  };
-  export type public_CourierWebhookEvent = {
-    consignmentId: CodecTypes['pg/text@1']['output'] | null;
-    courierCode: CodecTypes['pg/text@1']['output'];
-    error: CodecTypes['pg/text@1']['output'] | null;
-    event: CodecTypes['pg/text@1']['output'] | null;
-    headers: CodecTypes['pg/json@1']['output'] | null;
-    id: CodecTypes['pg/int4@1']['output'];
-    merchantOrderId: CodecTypes['pg/text@1']['output'] | null;
-    outcome: CodecTypes['pg/text@1']['output'] | null;
-    payload: CodecTypes['pg/json@1']['output'] | null;
-    receivedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    status: CodecTypes['pg/text@1']['output'] | null;
-    trackingCode: CodecTypes['pg/text@1']['output'] | null;
     readonly [RelationKeys]?: never;
   };
   export type public_Inventory = {
@@ -4293,7 +4222,6 @@ export declare const models: {
     Coupon: Models.public_Coupon;
     CouponUsage: Models.public_CouponUsage;
     CourierProviderConfig: Models.public_CourierProviderConfig;
-    CourierWebhookEvent: Models.public_CourierWebhookEvent;
     Inventory: Models.public_Inventory;
     InventoryMovement: Models.public_InventoryMovement;
     NavigationEntry: Models.public_NavigationEntry;
@@ -5512,98 +5440,6 @@ type ContractBase = Omit<
                   readonly name: 'courier_provider_config_isActive_idx_77fe3ba1';
                   readonly prefix: 'courier_provider_config_isActive_idx';
                   readonly columns: readonly ['isActive'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [];
-            };
-            readonly courier_webhook_event: {
-              columns: {
-                readonly consignmentId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly courierCode: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly error: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly event: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly headers: {
-                  readonly nativeType: 'json';
-                  readonly codecId: 'pg/json@1';
-                  readonly nullable: true;
-                };
-                readonly id: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'function';
-                    readonly expression: 'autoincrement()';
-                  };
-                };
-                readonly merchantOrderId: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly outcome: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly payload: {
-                  readonly nativeType: 'json';
-                  readonly codecId: 'pg/json@1';
-                  readonly nullable: true;
-                };
-                readonly receivedAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-                readonly status: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly trackingCode: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'courier_webhook_event_consignmentId_idx_f3252185';
-                  readonly prefix: 'courier_webhook_event_consignmentId_idx';
-                  readonly columns: readonly ['consignmentId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'courier_webhook_event_courierCode_receivedAt_idx_320dc77f';
-                  readonly prefix: 'courier_webhook_event_courierCode_receivedAt_idx';
-                  readonly columns: readonly ['courierCode', 'receivedAt'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'courier_webhook_event_merchantOrderId_idx_1327195c';
-                  readonly prefix: 'courier_webhook_event_merchantOrderId_idx';
-                  readonly columns: readonly ['merchantOrderId'];
                   readonly unique: false;
                 },
               ];
@@ -9121,12 +8957,6 @@ type ContractBase = Omit<
               uniques: readonly [{ readonly columns: readonly ['orderId'] }];
               indexes: readonly [
                 {
-                  readonly name: 'shipment_consignmentId_idx_f3252185';
-                  readonly prefix: 'shipment_consignmentId_idx';
-                  readonly columns: readonly ['consignmentId'];
-                  readonly unique: false;
-                },
-                {
                   readonly name: 'shipment_createdAt_idx_9575dbd7';
                   readonly prefix: 'shipment_createdAt_idx';
                   readonly columns: readonly ['createdAt'];
@@ -10397,10 +10227,6 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'CourierProviderConfig';
     };
-    readonly courier_webhook_event: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'CourierWebhookEvent';
-    };
     readonly inventory: { readonly namespace: 'public' & NamespaceId; readonly model: 'Inventory' };
     readonly inventory_movement: {
       readonly namespace: 'public' & NamespaceId;
@@ -11611,80 +11437,6 @@ type ContractBase = Omit<
                 readonly name: { readonly column: 'name' };
                 readonly settings: { readonly column: 'settings' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
-              };
-            };
-          };
-          readonly CourierWebhookEvent: {
-            readonly fields: {
-              readonly consignmentId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly courierCode: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly error: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly event: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly headers: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
-              };
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly merchantOrderId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly outcome: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly payload: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
-              };
-              readonly receivedAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-              readonly status: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly trackingCode: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-            };
-            readonly relations: Record<string, never>;
-            readonly storage: {
-              readonly table: 'courier_webhook_event';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly consignmentId: { readonly column: 'consignmentId' };
-                readonly courierCode: { readonly column: 'courierCode' };
-                readonly error: { readonly column: 'error' };
-                readonly event: { readonly column: 'event' };
-                readonly headers: { readonly column: 'headers' };
-                readonly id: { readonly column: 'id' };
-                readonly merchantOrderId: { readonly column: 'merchantOrderId' };
-                readonly outcome: { readonly column: 'outcome' };
-                readonly payload: { readonly column: 'payload' };
-                readonly receivedAt: { readonly column: 'receivedAt' };
-                readonly status: { readonly column: 'status' };
-                readonly trackingCode: { readonly column: 'trackingCode' };
               };
             };
           };

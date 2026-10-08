@@ -1,0 +1,197 @@
+[
+  {
+    "id": "table.courier_webhook_event",
+    "label": "Create table \"courier_webhook_event\"",
+    "summary": "Creates table \"courier_webhook_event\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "courier_webhook_event"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"courier_webhook_event\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"courier_webhook_event\"",
+        "sql": "CREATE TABLE \"public\".\"courier_webhook_event\" (\n  \"consignmentId\" text,\n  \"courierCode\" text NOT NULL,\n  \"error\" text,\n  \"event\" text,\n  \"headers\" json,\n  \"id\" SERIAL NOT NULL,\n  \"merchantOrderId\" text,\n  \"outcome\" text,\n  \"payload\" json,\n  \"receivedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"status\" text,\n  \"trackingCode\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"courier_webhook_event\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.courier_webhook_event.courier_webhook_event_consignmentId_idx_f3252185",
+    "label": "Create index \"courier_webhook_event_consignmentId_idx_f3252185\" on \"courier_webhook_event\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "courier_webhook_event_consignmentId_idx_f3252185",
+        "table": "courier_webhook_event"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"courier_webhook_event_consignmentId_idx_f3252185\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event_consignmentId_idx_f3252185\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"courier_webhook_event_consignmentId_idx_f3252185\"",
+        "sql": "CREATE INDEX \"courier_webhook_event_consignmentId_idx_f3252185\" ON \"public\".\"courier_webhook_event\" (\"consignmentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"courier_webhook_event_consignmentId_idx_f3252185\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event_consignmentId_idx_f3252185\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.courier_webhook_event.courier_webhook_event_courierCode_receivedAt_idx_320dc77f",
+    "label": "Create index \"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\" on \"courier_webhook_event\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "courier_webhook_event_courierCode_receivedAt_idx_320dc77f",
+        "table": "courier_webhook_event"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\"",
+        "sql": "CREATE INDEX \"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\" ON \"public\".\"courier_webhook_event\" (\"courierCode\", \"receivedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event_courierCode_receivedAt_idx_320dc77f\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.courier_webhook_event.courier_webhook_event_merchantOrderId_idx_1327195c",
+    "label": "Create index \"courier_webhook_event_merchantOrderId_idx_1327195c\" on \"courier_webhook_event\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "courier_webhook_event_merchantOrderId_idx_1327195c",
+        "table": "courier_webhook_event"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"courier_webhook_event_merchantOrderId_idx_1327195c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event_merchantOrderId_idx_1327195c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"courier_webhook_event_merchantOrderId_idx_1327195c\"",
+        "sql": "CREATE INDEX \"courier_webhook_event_merchantOrderId_idx_1327195c\" ON \"public\".\"courier_webhook_event\" (\"merchantOrderId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"courier_webhook_event_merchantOrderId_idx_1327195c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"courier_webhook_event_merchantOrderId_idx_1327195c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.shipment.shipment_consignmentId_idx_f3252185",
+    "label": "Create index \"shipment_consignmentId_idx_f3252185\" on \"shipment\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "shipment_consignmentId_idx_f3252185",
+        "table": "shipment"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"shipment_consignmentId_idx_f3252185\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_consignmentId_idx_f3252185\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"shipment_consignmentId_idx_f3252185\"",
+        "sql": "CREATE INDEX \"shipment_consignmentId_idx_f3252185\" ON \"public\".\"shipment\" (\"consignmentId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"shipment_consignmentId_idx_f3252185\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"shipment_consignmentId_idx_f3252185\""
+        ]
+      }
+    ]
+  }
+]

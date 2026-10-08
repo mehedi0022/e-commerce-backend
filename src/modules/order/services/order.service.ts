@@ -593,6 +593,7 @@ export const checkout = async (
 export const customerList = (userId: number, query: OrderListQuery) =>
   repo.list({ ...query, userId });
 export const adminList = (query: OrderListQuery) => repo.list(query);
+export const adminStatusCounts = () => repo.countByStatuses();
 const isGuestExpired = (exp: any) => {
   if (!exp) return true;
   const ms =
@@ -621,17 +622,23 @@ export const detail = async (
     throw new NotFoundError("Order not found");
   return x;
 };
-export const trackOrder = async (orderNumber: string, phone?: string) => {
+const last10Digits = (v: unknown) =>
+  String(v ?? "")
+    .replace(/\D/g, "")
+    .slice(-10);
+
+export const trackOrder = async (orderNumber: string, phone: string) => {
   const normalizedNumber = orderNumber.trim();
   const order: any = await repo.findByNumber(normalizedNumber);
-  if (!order) throw new NotFoundError("No order found with this order number");
 
-  if (phone) {
-    const cleanPhone = phone.trim().replace(/[\s-]/g, "");
-    const orderPhone = (order.customerPhone || "").replace(/[\s-]/g, "");
-    if (!orderPhone.includes(cleanPhone) && !cleanPhone.includes(orderPhone)) {
-      throw new NotFoundError("Order number and phone number do not match");
-    }
+  const givenPhone = last10Digits(phone);
+  const match =
+    order &&
+    givenPhone.length === 10 &&
+    givenPhone === last10Digits(order.customerPhone);
+
+  if (!match) {
+    throw new NotFoundError("No order found matching the provided details");
   }
 
   return {
@@ -642,17 +649,8 @@ export const trackOrder = async (orderNumber: string, phone?: string) => {
     shippedAt: order.shippedAt,
     deliveredAt: order.deliveredAt,
     cancelledAt: order.cancelledAt,
-    customerName: order.customerName,
     itemCount: order.items?.length || 0,
-    grandTotal: String(order.grandTotal),
-    advanceAmount: String(order.advanceAmount ?? "0.00"),
-    dueAmount: String(order.dueAmount ?? order.grandTotal),
-    isAdvanceRequired: Boolean(order.isAdvanceRequired),
-    isFreeShipping: Boolean(order.isFreeShipping),
-    paymentMethod: order.paymentMethod,
-    paymentStatus: order.paymentStatus,
     shippingMethodName: order.shippingMethodName,
-    shippingZoneName: order.shippingZoneName,
     shipment: order.shipment
       ? {
           status: order.shipment.status,
@@ -663,19 +661,6 @@ export const trackOrder = async (orderNumber: string, phone?: string) => {
           deliveredAt: order.shipment.deliveredAt,
         }
       : null,
-    items: (order.items || []).map((i: any) => ({
-      id: i.id,
-      productName: i.productName,
-      productSlug: i.productSlug,
-      imageUrl: i.product?.images?.[0]?.imageUrl ?? null,
-      quantity: i.quantity,
-      unitPrice: String(i.unitPrice),
-      lineTotal: String(i.lineTotal),
-      attributes: i.attributes || [],
-    })),
-    deliveryDistrict:
-      order.addresses?.find((a: any) => a.type === "SHIPPING")?.district ||
-      "Bangladesh",
   };
 };
 
@@ -702,19 +687,38 @@ export const transition = async (
   }
   const orderResult = await db.transaction(async (tx: any) => {
     if (toStatus === "CANCELLED") {
-      for (const item of current.items) {
-        if (!item.variantId) continue;
-        await inventory.releaseStock(item.variantId, item.quantity, tx, {
-          referenceType: "ORDER",
-          referenceId: current.orderNumber,
-        });
+      const stockCommitted =
+        Boolean(current.shippedAt) ||
+        (await inventory.isOrderStockCommitted(current.orderNumber, tx));
+      if (stockCommitted) {
+        await inventory.createReturnForOrder(
+          current.id,
+          current.orderNumber,
+          tx,
+          {
+            note:
+              note ||
+              "Order cancelled after stock commit; awaiting return inspection",
+            changedById,
+          },
+        );
+      } else {
+        for (const item of current.items) {
+          if (!item.variantId) continue;
+          await inventory.releaseStock(item.variantId, item.quantity, tx, {
+            referenceType: "ORDER",
+            referenceId: current.orderNumber,
+          });
+        }
       }
     }
     const now = Temporal.Now.instant();
     if (toStatus === "SHIPPED") {
-      if (!current.shippedAt) {
-        await commitOrderFulfillment(tx, current.id, current.orderNumber);
-      }
+      await inventory.ensureOrderStockCommitted(
+        current.id,
+        current.orderNumber,
+        tx,
+      );
       const ship: any = await tx.orm.public.Shipment.select(
         "id",
         "status",
@@ -740,6 +744,11 @@ export const transition = async (
     if (toStatus === "SHIPPED") data.shippedAt = now;
     if (toStatus === "DELIVERED") {
       data.deliveredAt = now;
+      await inventory.ensureOrderStockCommitted(
+        current.id,
+        current.orderNumber,
+        tx,
+      );
       if (
         (current.paymentMethod === "CASH_ON_DELIVERY" ||
           current.paymentMethod === "PARTIAL_COD") &&
@@ -747,6 +756,7 @@ export const transition = async (
           current.paymentStatus === "PARTIALLY_PAID")
       ) {
         data.paymentStatus = "PAID";
+        data.dueAmount = "0.00";
       }
       const ship: any = await tx.orm.public.Shipment.select(
         "id",

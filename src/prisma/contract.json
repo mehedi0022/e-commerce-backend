@@ -52,6 +52,10 @@
       "model": "CourierProviderConfig",
       "namespace": "public"
     },
+    "courier_webhook_event": {
+      "model": "CourierWebhookEvent",
+      "namespace": "public"
+    },
     "inventory": {
       "model": "Inventory",
       "namespace": "public"
@@ -2469,6 +2473,137 @@
               },
               "namespaceId": "public",
               "table": "courier_provider_config"
+            }
+          },
+          "CourierWebhookEvent": {
+            "fields": {
+              "consignmentId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "courierCode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "error": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "event": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "headers": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "merchantOrderId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "outcome": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "payload": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "receivedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "trackingCode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "consignmentId": {
+                  "column": "consignmentId"
+                },
+                "courierCode": {
+                  "column": "courierCode"
+                },
+                "error": {
+                  "column": "error"
+                },
+                "event": {
+                  "column": "event"
+                },
+                "headers": {
+                  "column": "headers"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "merchantOrderId": {
+                  "column": "merchantOrderId"
+                },
+                "outcome": {
+                  "column": "outcome"
+                },
+                "payload": {
+                  "column": "payload"
+                },
+                "receivedAt": {
+                  "column": "receivedAt"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "trackingCode": {
+                  "column": "trackingCode"
+                }
+              },
+              "namespaceId": "public",
+              "table": "courier_webhook_event"
             }
           },
           "Inventory": {
@@ -7686,6 +7821,13 @@
                   "kind": "scalar"
                 }
               },
+              "lastDispatchError": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "note": {
                 "nullable": true,
                 "type": {
@@ -7823,6 +7965,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "lastDispatchError": {
+                  "column": "lastDispatchError"
                 },
                 "note": {
                   "column": "note"
@@ -11017,6 +11162,112 @@
                   ]
                 }
               ]
+            },
+            "courier_webhook_event": {
+              "columns": {
+                "consignmentId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "courierCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "error": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "event": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "headers": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "merchantOrderId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "outcome": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "payload": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "receivedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "trackingCode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "consignmentId"
+                  ],
+                  "name": "courier_webhook_event_consignmentId_idx_f3252185",
+                  "prefix": "courier_webhook_event_consignmentId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "courierCode",
+                    "receivedAt"
+                  ],
+                  "name": "courier_webhook_event_courierCode_receivedAt_idx_320dc77f",
+                  "prefix": "courier_webhook_event_courierCode_receivedAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "merchantOrderId"
+                  ],
+                  "name": "courier_webhook_event_merchantOrderId_idx_1327195c",
+                  "prefix": "courier_webhook_event_merchantOrderId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
             },
             "inventory": {
               "columns": {
@@ -15603,6 +15854,11 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "lastDispatchError": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "note": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -15679,6 +15935,14 @@
                 }
               ],
               "indexes": [
+                {
+                  "columns": [
+                    "consignmentId"
+                  ],
+                  "name": "shipment_consignmentId_idx_f3252185",
+                  "prefix": "shipment_consignmentId_idx",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "createdAt"
@@ -17270,7 +17534,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "bec62e13c82eb5e569059a5062a5c0c61503e15122aa7abdbb5e37bacaf2d3cf"
+    "storageHash": "5276e22a2119246fd52bb60eeb9445ebabe8b30d096fc92a3b9c944a91014eb5"
   },
   "execution": {
     "executionHash": "edfc49ee1694acf76296712287549c57f3ff59dfd27e9c3c75391632784b6eef",

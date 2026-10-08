@@ -43,6 +43,8 @@ export interface CourierBookingParams {
   };
   customNote?: string;
   itemWeightKg?: number;
+  recipientCityId?: number;
+  recipientZoneId?: number;
 }
 
 export interface CourierBookingResult {

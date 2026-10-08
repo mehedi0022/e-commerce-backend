@@ -18,7 +18,7 @@ export const guestOrderSchema = z.object({
 export const trackOrderSchema = z.object({
   query: z.object({
     orderNumber: z.string().trim().min(3).max(80),
-    phone: z.string().trim().min(5).max(30).optional(),
+    phone: z.string().trim().min(10).max(30),
   }),
 });
 
@@ -29,12 +29,15 @@ export const orderListSchema = z.object({
       limit: z.coerce.number().int().positive().max(100).default(20),
       status: z
         .enum([
+          "ALL",
           "PENDING",
           "CONFIRMED",
           "PROCESSING",
+          "READY_TO_SHIP",
           "SHIPPED",
           "DELIVERED",
           "CANCELLED",
+          "RETURNED",
         ])
         .optional(),
       paymentStatus: z

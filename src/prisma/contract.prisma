@@ -1126,6 +1126,7 @@ model Shipment {
   shippedAt      DateTime?
   deliveredAt    DateTime?
   failedAt       DateTime?
+  lastDispatchError String?
   returnedAt     DateTime?
   cancelledAt    DateTime?
 
@@ -1137,6 +1138,7 @@ model Shipment {
   updatedAt      temporal.updatedAt()
 
   @@index([status])
+  @@index([consignmentId])
   @@index([trackingNumber])
   @@index([createdAt])
 
@@ -1532,5 +1534,25 @@ model StoreSetting {
 
   @@index([key])
   @@map("store_setting")
+}
+
+model CourierWebhookEvent {
+  id              Int      @id @default(autoincrement())
+  courierCode     String
+  event           String?
+  status          String?
+  consignmentId   String?
+  trackingCode    String?
+  merchantOrderId String?
+  payload         Json?
+  headers         Json?
+  outcome         String?
+  error           String?
+  receivedAt      DateTime @default(now())
+
+  @@index([courierCode, receivedAt])
+  @@index([consignmentId])
+  @@index([merchantOrderId])
+  @@map("courier_webhook_event")
 }
 

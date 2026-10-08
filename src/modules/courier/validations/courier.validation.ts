@@ -39,8 +39,33 @@ export const trackParcelSchema = z.object({
   }),
 });
 
+export const publicTrackParcelSchema = z.object({
+  params: z.object({
+    orderNumber: z.string().trim().min(1).max(50),
+  }),
+  query: z.object({
+    phone: z.string().trim().min(10).max(20),
+  }),
+});
+
 export const courierCodeSchema = z.object({
   params: z.object({
     code: z.string().trim().min(1),
+  }),
+});
+
+export const bulkBookParcelsSchema = z.object({
+  body: z.object({
+    orderNumbers: z.array(z.string().trim().min(1)).min(1).max(100),
+    courierCode: z.string().trim().optional(),
+    customNote: z.string().trim().max(300).optional(),
+    itemWeightKg: z.coerce.number().positive().max(50).optional(),
+  }),
+});
+
+export const courierZonesSchema = z.object({
+  params: z.object({
+    code: z.string().trim().min(1),
+    cityId: z.coerce.number().int().positive(),
   }),
 });

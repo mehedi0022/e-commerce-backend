@@ -116,6 +116,10 @@ const rawEnvSchema = z.object({
   UPLOAD_ALLOWED_MIME_TYPES: z.string().default("image/jpeg,image/png,image/webp"),
   UPLOAD_CLOUDINARY_FOLDER: z.string().trim().regex(/^[a-zA-Z0-9][a-zA-Z0-9_/-]{0,119}$/).default("e-commerce-backend"),
   RETURN_WINDOW_DAYS: z.coerce.number().int().positive().default(7),
+  PATHAO_WEBHOOK_INTEGRATION_SECRET: optionalText,
+  PATHAO_WEBHOOK_SECRET: optionalText,
+  STEADFAST_WEBHOOK_SECRET: optionalText,
+  CRON_SECRET: optionalText,
 }).superRefine((value, context) => {
   for (const [key, url] of [["DATABASE_URL", value.DATABASE_URL], ["DATABASE_MIGRATION_URL", value.DATABASE_MIGRATION_URL]] as const) {
     if (!url) continue;

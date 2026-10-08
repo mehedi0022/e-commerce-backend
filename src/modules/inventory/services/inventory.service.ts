@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+import { Temporal } from "temporal-polyfill";
 import { db } from "../../../prisma/db.js";
 import * as repo from "../repositories/inventory.repository.js";
 import {
@@ -168,3 +170,139 @@ export const restockStock = async (variantId: number, quantity: number, tx?: any
   const execute = async (client: any) => { const updated = await repo.restockAtomic(client, x.id, quantity); if (!updated) throw new NotFoundError("Inventory is not initialized"); await repo.movement(client, x.id, { type: reference?.movementType ?? "RETURN", quantity, referenceType: reference?.referenceType ?? null, referenceId: reference?.referenceId ?? null, note: reference?.note ?? null }); return updated; };
   return tx ? execute(tx) : db.transaction(execute);
 };
+
+export const recordDamagedAuditMovement = async (
+  variantId: number,
+  params: {
+    referenceType?: string;
+    referenceId?: string;
+    note?: string;
+  },
+  tx?: any,
+) => {
+  const x = await requireInventory(variantId);
+  const execute = async (client: any) => {
+    return repo.movement(client, x.id, {
+      type: "DAMAGED",
+      quantity: 0,
+      note: params.note ?? null,
+      referenceType: params.referenceType ?? null,
+      referenceId: params.referenceId ?? null,
+    });
+  };
+  return tx ? execute(tx) : db.transaction(execute);
+};
+
+export const isOrderStockCommitted = async (
+  orderNumber: string,
+  tx?: any,
+): Promise<boolean> => {
+  const client = tx || db;
+  const existing = await client.orm.public.InventoryMovement.first({
+    referenceType: "ORDER",
+    referenceId: orderNumber,
+  });
+  return Boolean(existing);
+};
+
+export const ensureOrderStockCommitted = async (
+  orderId: number,
+  orderNumber: string,
+  tx?: any,
+) => {
+  const execute = async (client: any) => {
+    // Idempotent: check if stock was already committed for this order
+    const alreadyCommitted = await client.orm.public.InventoryMovement.first({
+      referenceType: "ORDER",
+      referenceId: orderNumber,
+    });
+    if (alreadyCommitted) {
+      return;
+    }
+
+    const items: any[] = await client.orm.public.OrderItem.select(
+      "id",
+      "variantId",
+      "quantity",
+    )
+      .where({ orderId })
+      .all();
+
+    items.sort(
+      (a, b) =>
+        (a.variantId ?? Number.MAX_SAFE_INTEGER) -
+        (b.variantId ?? Number.MAX_SAFE_INTEGER),
+    );
+
+    for (const item of items) {
+      if (!item.variantId) continue;
+      await commitReservedStock(
+        item.variantId,
+        item.quantity,
+        { referenceType: "ORDER", referenceId: orderNumber },
+        client,
+      );
+    }
+  };
+
+  return tx ? execute(tx) : db.transaction(execute);
+};
+
+export const createReturnForOrder = async (
+  orderId: number,
+  orderNumber: string,
+  tx?: any,
+  options?: { note?: string; changedById?: number },
+) => {
+  const execute = async (client: any) => {
+    const existing = await client.orm.public.Return.first({ orderId });
+    if (existing) {
+      return existing;
+    }
+
+    const order = await client.orm.public.Order.first({ id: orderId });
+    if (!order) return null;
+
+    const items: any[] = await client.orm.public.OrderItem.where({ orderId }).all();
+    if (!items.length) return null;
+
+    const now = Temporal.Now.instant();
+    const retNum = `RET-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${randomBytes(4).toString("hex").toUpperCase()}`;
+
+    const createdReturn = await client.orm.public.Return.create({
+      returnNumber: retNum,
+      orderId: order.id,
+      userId: order.userId || null,
+      status: "RECEIVED",
+      customerNote: null,
+      adminNote: options?.note || "Automated return record awaiting physical inspection",
+      receivedAt: now,
+    });
+
+    for (const item of items) {
+      await client.orm.public.ReturnItem.create({
+        returnId: createdReturn.id,
+        orderItemId: item.id,
+        quantity: item.quantity,
+        reason: "OTHER",
+        customerNote: null,
+        adminNote: null,
+        restockStatus: "PENDING",
+        restockQuantity: 0,
+      });
+    }
+
+    await client.orm.public.ReturnStatusHistory.create({
+      returnId: createdReturn.id,
+      fromStatus: null,
+      toStatus: "RECEIVED",
+      note: options?.note || "Awaiting physical inspection",
+      changedById: options?.changedById ?? null,
+    });
+
+    return createdReturn;
+  };
+
+  return tx ? execute(tx) : db.transaction(execute);
+};
+

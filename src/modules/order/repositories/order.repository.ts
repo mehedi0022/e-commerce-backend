@@ -150,7 +150,56 @@ export const update = (tx: any, id: number, data: any) =>
 export const list = async (query: any) => {
   let filter: any = db.orm.public.Order;
   if (query.userId) filter = filter.where({ userId: query.userId });
-  if (query.status) filter = filter.where({ status: query.status });
+  if (query.status && query.status !== "ALL") {
+    if (query.status === "RETURNED") {
+      const allShipments = await db.orm.public.Shipment.all();
+      const allReturns = await db.orm.public.Return.all();
+      const orderIds = Array.from(
+        new Set([
+          ...allShipments
+            .filter((s: any) => s.status === "RETURNED" || s.status === "FAILED")
+            .map((s: any) => s.orderId),
+          ...allReturns.map((r: any) => r.orderId),
+        ].filter(Boolean)),
+      );
+      if (orderIds.length === 0) {
+        filter = filter.where({ id: -1 });
+      } else {
+        filter = filter.where((o: any) => o.id.in(orderIds));
+      }
+    } else if (query.status === "READY_TO_SHIP") {
+      const allShipments = await db.orm.public.Shipment.all();
+      const orderIds = allShipments
+        .filter((s: any) => s.status === "READY_TO_SHIP")
+        .map((s: any) => s.orderId)
+        .filter(Boolean);
+      if (orderIds.length === 0) {
+        filter = filter.where({ id: -1 });
+      } else {
+        filter = filter.where((o: any) => o.id.in(orderIds));
+      }
+    } else if (query.status === "CANCELLED") {
+      const allShipments = await db.orm.public.Shipment.all();
+      const allReturns = await db.orm.public.Return.all();
+      const returnedOrderIds = new Set([
+        ...allShipments
+          .filter((s: any) => s.status === "RETURNED" || s.status === "FAILED")
+          .map((s: any) => s.orderId),
+        ...allReturns.map((r: any) => r.orderId),
+      ].filter(Boolean));
+      const allCancelled = await db.orm.public.Order.where({ status: "CANCELLED" }).all();
+      const pureCancelledIds = allCancelled
+        .filter((o: any) => !returnedOrderIds.has(o.id))
+        .map((o: any) => o.id);
+      if (pureCancelledIds.length === 0) {
+        filter = filter.where({ id: -1 });
+      } else {
+        filter = filter.where((o: any) => o.id.in(pureCancelledIds));
+      }
+    } else {
+      filter = filter.where({ status: query.status });
+    }
+  }
   if (query.paymentStatus) filter = filter.where({ paymentStatus: query.paymentStatus });
 
   if (query.search) {
@@ -257,3 +306,59 @@ export const list = async (query: any) => {
 
   return { rows, total: countRes?.total ?? rows.length };
 };
+
+export const countByStatuses = async () => {
+  const [
+    all,
+    pending,
+    confirmed,
+    processing,
+    shipped,
+    delivered,
+    cancelledOrders,
+    allShipments,
+    allReturns,
+  ] = await Promise.all([
+    db.orm.public.Order.aggregate((a: any) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "PENDING" }).aggregate((a: any) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "CONFIRMED" }).aggregate((a: any) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "PROCESSING" }).aggregate((a: any) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "SHIPPED" }).aggregate((a: any) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "DELIVERED" }).aggregate((a: any) => ({ total: a.count() })),
+    db.orm.public.Order.where({ status: "CANCELLED" }).all(),
+    db.orm.public.Shipment.all(),
+    db.orm.public.Return.all(),
+  ]);
+
+  const returnedOrderIds = new Set([
+    ...allShipments
+      .filter((s: any) => s.status === "RETURNED" || s.status === "FAILED")
+      .map((s: any) => s.orderId),
+    ...allReturns.map((r: any) => r.orderId),
+  ].filter(Boolean));
+
+  const readyToShipOrderIds = new Set(
+    allShipments
+      .filter((s: any) => s.status === "READY_TO_SHIP")
+      .map((s: any) => s.orderId)
+      .filter(Boolean)
+  );
+
+  // Pure cancelled count = cancelled orders that are NOT in returned shipments / returns
+  const pureCancelledCount = cancelledOrders.filter(
+    (o: any) => !returnedOrderIds.has(o.id)
+  ).length;
+
+  return {
+    ALL: all?.total ?? 0,
+    PENDING: pending?.total ?? 0,
+    CONFIRMED: confirmed?.total ?? 0,
+    PROCESSING: processing?.total ?? 0,
+    READY_TO_SHIP: readyToShipOrderIds.size,
+    SHIPPED: shipped?.total ?? 0,
+    DELIVERED: delivered?.total ?? 0,
+    CANCELLED: pureCancelledCount,
+    RETURNED: returnedOrderIds.size,
+  };
+};
+

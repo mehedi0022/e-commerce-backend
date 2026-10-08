@@ -27,4 +27,13 @@ export interface CourierAdapter {
   getStores?(
     config: CourierProviderConfig,
   ): Promise<any[]>;
+
+  getCities?(
+    config: CourierProviderConfig,
+  ): Promise<any[]>;
+
+  getZones?(
+    config: CourierProviderConfig,
+    cityId: number,
+  ): Promise<any[]>;
 }
