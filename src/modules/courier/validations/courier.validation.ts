@@ -29,6 +29,7 @@ export const bookParcelSchema = z.object({
       note: z.string().trim().max(300).optional(),
       itemWeightKg: z.coerce.number().positive().max(50).optional(),
       weight: z.coerce.number().positive().max(50).optional(),
+      forceRebook: z.boolean().optional(),
     })
     .optional(),
 });
@@ -69,3 +70,4 @@ export const courierZonesSchema = z.object({
     cityId: z.coerce.number().int().positive(),
   }),
 });
+

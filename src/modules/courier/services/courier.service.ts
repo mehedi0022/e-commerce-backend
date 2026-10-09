@@ -96,6 +96,7 @@ export const bookParcel = async (
     itemWeightKg?: number;
     recipientCityId?: number;
     recipientZoneId?: number;
+    forceRebook?: boolean;
   },
 ) => {
   const order = await db.orm.public.Order.first({ orderNumber });
@@ -148,7 +149,21 @@ export const bookParcel = async (
   const existingShipment: any = await db.orm.public.Shipment.first({
     orderId: order.id,
   });
-  if (existingShipment?.consignmentId) {
+
+  const normCourierStatus = String(existingShipment?.courierStatus ?? "").toLowerCase();
+  const isCancelledOrFailed =
+    existingShipment?.status === "CANCELLED" ||
+    existingShipment?.status === "FAILED" ||
+    normCourierStatus.includes("cancel") ||
+    normCourierStatus.includes("fail") ||
+    normCourierStatus === "cancelled_by_admin";
+
+  const isRebookable =
+    !existingShipment?.consignmentId ||
+    isCancelledOrFailed ||
+    Boolean(options?.forceRebook);
+
+  if (existingShipment?.consignmentId && !isRebookable) {
     return {
       success: true,
       message: `Order already booked with ${existingShipment.courierName} (Consignment: ${existingShipment.consignmentId})`,
@@ -214,20 +229,11 @@ export const bookParcel = async (
       recipientZoneId: options?.recipientZoneId,
     });
   } catch (err: any) {
-    // Record failure in shipment to support retry without changing order status
+    // Record error on existing shipment if one was already tracked, without changing order status
     const errorMsg = String(err?.message || "Courier booking failed");
     const now = Temporal.Now.instant();
     if (existingShipment) {
       await db.orm.public.Shipment.where({ id: existingShipment.id }).update({
-        lastDispatchError: errorMsg,
-        failedAt: now,
-      });
-    } else {
-      await db.orm.public.Shipment.create({
-        orderId: order.id,
-        status: "PENDING",
-        courierName: courierConfig.name,
-        courierCode: courierConfig.code,
         lastDispatchError: errorMsg,
         failedAt: now,
       });
@@ -253,6 +259,8 @@ export const bookParcel = async (
         courierPayload: bookingResult.rawResponse || null,
         lastDispatchError: null,
         readyAt: now,
+        cancelledAt: null,
+        failedAt: null,
       });
     } else {
       const created = await tx.orm.public.Shipment.create({
@@ -508,7 +516,12 @@ const COURIER_STATUS_MAPS: Record<
     in_review: null,
     delivered: { shipmentStatus: "DELIVERED", orderStatus: "DELIVERED" },
     cancelled: { shipmentStatus: "RETURNED", orderStatus: "CANCELLED" },
+    cancel: { shipmentStatus: "CANCELLED" },
     hold: { shipmentStatus: "FAILED" },
+    pickup_cancelled: { shipmentStatus: "CANCELLED" },
+    pickup_cancel: { shipmentStatus: "CANCELLED" },
+    pickup_failed: { shipmentStatus: "FAILED" },
+    pickup_fail: { shipmentStatus: "FAILED" },
     // *_approval_pending, unknown → final না, তাই ignore
   },
   pathao: {
@@ -518,8 +531,13 @@ const COURIER_STATUS_MAPS: Record<
     pickup_requested: null,
     assigned_for_pickup: null,
     pickup_assigned: null,
-    pickup_failed: null,
-    pickup_cancelled: null,
+    pickup_failed: { shipmentStatus: "FAILED" },
+    pickup_fail: { shipmentStatus: "FAILED" },
+    pickup_cancelled: { shipmentStatus: "CANCELLED" },
+    pickup_cancel: { shipmentStatus: "CANCELLED" },
+    cancelled: { shipmentStatus: "CANCELLED" },
+    cancel: { shipmentStatus: "CANCELLED" },
+    order_cancelled: { shipmentStatus: "CANCELLED" },
     pickup: IN_TRANSIT,
     picked: IN_TRANSIT,
     picked_up: IN_TRANSIT,
@@ -635,7 +653,8 @@ export const applyShipmentCourierStatusUpdate = (
       let targetShipmentStatus = norm.shipmentStatus;
       if (
         targetShipmentStatus !== "RETURNED" &&
-        targetShipmentStatus !== "FAILED"
+        targetShipmentStatus !== "FAILED" &&
+        targetShipmentStatus !== "CANCELLED"
       ) {
         const currentRank = SHIPMENT_STATUS_RANK[shipment.status] ?? -1;
         const targetRank = SHIPMENT_STATUS_RANK[targetShipmentStatus] ?? -1;
@@ -660,6 +679,7 @@ export const applyShipmentCourierStatusUpdate = (
         if (targetShipmentStatus === "DELIVERED") sData.deliveredAt = now;
         if (targetShipmentStatus === "RETURNED") sData.returnedAt = now;
         if (targetShipmentStatus === "FAILED") sData.failedAt = now;
+        if (targetShipmentStatus === "CANCELLED") sData.cancelledAt = now;
       }
       await tx.orm.public.Shipment.where({ id: shipment.id }).update(sData);
       if (shipmentChanged) {
@@ -683,6 +703,26 @@ export const applyShipmentCourierStatusUpdate = (
 
       // 2. Order Status Update
       let orderChanged = false;
+
+      // If courier cancelled pickup prior to physical shipment, return PROCESSING order to CONFIRMED so merchant can re-dispatch
+      if (
+        targetShipmentStatus === "CANCELLED" &&
+        order.status === "PROCESSING" &&
+        !order.shippedAt
+      ) {
+        await tx.orm.public.Order.where({ id: order.id }).update({
+          status: "CONFIRMED",
+          updatedAt: now,
+        });
+        await tx.orm.public.OrderStatusHistory.create({
+          orderId: order.id,
+          fromStatus: order.status,
+          toStatus: "CONFIRMED",
+          note: `Courier reported pickup cancelled (${rawStatus}). Order returned to CONFIRMED for re-dispatch.`,
+        });
+        orderChanged = true;
+      }
+
       if (
         norm.orderStatus &&
         order.status !== norm.orderStatus &&
@@ -1048,4 +1088,5 @@ export const trackParcelPublic = async (orderNumber: string, phone: string) => {
     courierStatus: shipment?.courierStatus ?? null,
   };
 };
+
 

@@ -93,6 +93,13 @@ export const findAll = async (
                 "isActive",
                 "sortOrder",
               )
+              .include("attributeValues", (av: any) =>
+                av.include("attributeValue", (val: any) =>
+                  val
+                    .include("attribute", (a: any) => a.select("id", "name", "slug"))
+                    .select("id", "value", "slug", "attributeId"),
+                ),
+              )
               .where({ isActive: true })
               .orderBy((v) => v.sortOrder.asc()),
           )

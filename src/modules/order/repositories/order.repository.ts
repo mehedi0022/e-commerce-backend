@@ -157,7 +157,7 @@ export const list = async (query: any) => {
       const orderIds = Array.from(
         new Set([
           ...allShipments
-            .filter((s: any) => s.status === "RETURNED" || s.status === "FAILED")
+            .filter((s: any) => s.status === "RETURNED")
             .map((s: any) => s.orderId),
           ...allReturns.map((r: any) => r.orderId),
         ].filter(Boolean)),
@@ -183,7 +183,7 @@ export const list = async (query: any) => {
       const allReturns = await db.orm.public.Return.all();
       const returnedOrderIds = new Set([
         ...allShipments
-          .filter((s: any) => s.status === "RETURNED" || s.status === "FAILED")
+          .filter((s: any) => s.status === "RETURNED")
           .map((s: any) => s.orderId),
         ...allReturns.map((r: any) => r.orderId),
       ].filter(Boolean));
@@ -332,7 +332,7 @@ export const countByStatuses = async () => {
 
   const returnedOrderIds = new Set([
     ...allShipments
-      .filter((s: any) => s.status === "RETURNED" || s.status === "FAILED")
+      .filter((s: any) => s.status === "RETURNED")
       .map((s: any) => s.orderId),
     ...allReturns.map((r: any) => r.orderId),
   ].filter(Boolean));
