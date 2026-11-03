@@ -56,6 +56,10 @@
       "model": "CourierWebhookEvent",
       "namespace": "public"
     },
+    "incomplete_order": {
+      "model": "IncompleteOrder",
+      "namespace": "public"
+    },
     "inventory": {
       "model": "Inventory",
       "namespace": "public"
@@ -2614,6 +2618,206 @@
               "table": "courier_webhook_event"
             }
           },
+          "IncompleteOrder": {
+            "fields": {
+              "cartItems": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "convertedOrderId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "crmNotes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "customerEmail": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "customerName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "customerPhone": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sessionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "shippingAddress": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "shippingFee": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "source": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "subtotal": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "totalAmount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "convertedOrder": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "convertedOrderId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Order",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "cartItems": {
+                  "column": "cartItems"
+                },
+                "convertedOrderId": {
+                  "column": "convertedOrderId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "crmNotes": {
+                  "column": "crmNotes"
+                },
+                "customerEmail": {
+                  "column": "customerEmail"
+                },
+                "customerName": {
+                  "column": "customerName"
+                },
+                "customerPhone": {
+                  "column": "customerPhone"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "sessionId": {
+                  "column": "sessionId"
+                },
+                "shippingAddress": {
+                  "column": "shippingAddress"
+                },
+                "shippingFee": {
+                  "column": "shippingFee"
+                },
+                "source": {
+                  "column": "source"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "subtotal": {
+                  "column": "subtotal"
+                },
+                "totalAmount": {
+                  "column": "totalAmount"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "incomplete_order"
+            }
+          },
           "Inventory": {
             "fields": {
               "createdAt": {
@@ -4059,6 +4263,21 @@
                 },
                 "to": {
                   "model": "CouponUsage",
+                  "namespace": "public"
+                }
+              },
+              "incompleteOrders": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "convertedOrderId"
+                  ]
+                },
+                "to": {
+                  "model": "IncompleteOrder",
                   "namespace": "public"
                 }
               },
@@ -11653,6 +11872,197 @@
               },
               "uniques": []
             },
+            "incomplete_order": {
+              "columns": {
+                "cartItems": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": false
+                },
+                "convertedOrderId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "crmNotes": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "customerEmail": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "customerName": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "customerPhone": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "sessionId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "shippingAddress": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": true
+                },
+                "shippingFee": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0.00"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "source": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "CHECKOUT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "PENDING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "subtotal": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0.00"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "totalAmount": {
+                  "codecId": "pg/numeric@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "0.00"
+                  },
+                  "nativeType": "numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "convertedOrderId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "incomplete_order"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "order"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "convertedOrderId"
+                  ],
+                  "name": "incomplete_order_convertedOrderId_idx_ad673000",
+                  "prefix": "incomplete_order_convertedOrderId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "incomplete_order_createdAt_idx_9575dbd7",
+                  "prefix": "incomplete_order_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "customerPhone"
+                  ],
+                  "name": "incomplete_order_customerPhone_idx_1a740fd5",
+                  "prefix": "incomplete_order_customerPhone_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sessionId"
+                  ],
+                  "name": "incomplete_order_sessionId_idx_29f415d4",
+                  "prefix": "incomplete_order_sessionId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "incomplete_order_status_idx_e98638ab",
+                  "prefix": "incomplete_order_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "inventory": {
               "columns": {
                 "createdAt": {
@@ -18173,10 +18583,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "67f9194339c7573cd86312d08d54111978eb3dcceaa57459f8451d5cc3a0f97c"
+    "storageHash": "540d001922bf8ac3d9d740500a9d9408660e81b139e9622a30743ade0ad7bb25"
   },
   "execution": {
-    "executionHash": "b2591bde7bfafc7b891e3743f33110daba83b9adca1ce7605613787c897c3b83",
+    "executionHash": "77dc1f8fd5a043cc90f82898b3c1d3a48e843b332954988dfa5fd79908ddfcda",
     "mutations": {
       "defaults": [
         {
@@ -18325,6 +18735,21 @@
           },
           "ref": {
             "entry": "courier_provider_config",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "incomplete_order",
             "field": "updatedAt",
             "namespace": "public"
           }

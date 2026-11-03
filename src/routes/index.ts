@@ -30,6 +30,7 @@ import settingRoutes from "../modules/setting/setting.route.js";
 import analyticsRoutes from "../modules/analytics/analytics.route.js";
 import sizeChartRoutes from "../modules/size-chart/size-chart.route.js";
 import landingPageRoutes from "../modules/landing-page/landing-page.route.js";
+import incompleteOrderRoutes from "../modules/incomplete-order/incomplete-order.route.js";
 
 const router = Router();
 
@@ -44,6 +45,7 @@ router.use(reviewRoutes);
 router.use("/products", productRoutes);
 router.use("/size-charts", sizeChartRoutes);
 router.use("/landing-pages", landingPageRoutes);
+router.use("/incomplete-orders", incompleteOrderRoutes);
 router.use(inventoryRoutes);
 router.use(productImageRoutes);
 router.use(cartRoutes);

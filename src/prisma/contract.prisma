@@ -250,42 +250,42 @@ model RolePermission {
 }
 
 model User {
-  id                      Int                     @id @default(autoincrement())
-  phone                   String?                 @unique
-  email                   String?                 @unique
-  userName                String?
-  fullName                String?
-  password                String
-  mustChangePassword      Boolean                 @default(false)
-  createdAt               DateTime                @default(now())
-  updatedAt               temporal.updatedAt()
-  roleId                  Int
-  rbacRole                Role                    @relation(fields:[roleId], references:[id], onDelete: Restrict)
-  isActive                Boolean                 @default(true)
-  emailVerifiedAt         DateTime?
+  id                          Int                       @id @default(autoincrement())
+  phone                       String?                   @unique
+  email                       String?                   @unique
+  userName                    String?
+  fullName                    String?
+  password                    String
+  mustChangePassword          Boolean                   @default(false)
+  createdAt                   DateTime                  @default(now())
+  updatedAt                   temporal.updatedAt()
+  roleId                      Int
+  rbacRole                    Role                      @relation(fields:[roleId], references:[id], onDelete: Restrict)
+  isActive                    Boolean                   @default(true)
+  emailVerifiedAt             DateTime?
 
-  sessions                Session[]
-  accountTokens           AccountToken[]
-  carts                   Cart[]
-  addresses               Address[]
-  orders                  Order[]
-  couponUsages            CouponUsage[]
-  changedOrderStatuses    OrderStatusHistory[]    @relation("OrderStatusChangedBy")
-  shipmentStatusChanges   ShipmentStatusHistory[] @relation("ShipmentStatusChangedBy")
+  sessions                    Session[]
+  accountTokens               AccountToken[]
+  carts                       Cart[]
+  addresses                   Address[]
+  orders                      Order[]
+  couponUsages                CouponUsage[]
+  changedOrderStatuses        OrderStatusHistory[]      @relation("OrderStatusChangedBy")
+  shipmentStatusChanges       ShipmentStatusHistory[]   @relation("ShipmentStatusChangedBy")
 
-  returns                 Return[]
+  returns                     Return[]
 
-  returnStatusChanges     ReturnStatusHistory[]   @relation("ReturnStatusChangedBy")
+  returnStatusChanges         ReturnStatusHistory[]     @relation("ReturnStatusChangedBy")
 
-  processedRefunds        Refund[]                @relation("RefundProcessedBy")
+  processedRefunds            Refund[]                  @relation("RefundProcessedBy")
 
-  refundStatusChanges     RefundStatusHistory[]   @relation("RefundStatusChangedBy")
+  refundStatusChanges         RefundStatusHistory[]     @relation("RefundStatusChangedBy")
 
-  productReviews          ProductReview[]         @relation("ProductReviewUser")
+  productReviews              ProductReview[]           @relation("ProductReviewUser")
 
-  moderatedProductReviews ProductReview[]         @relation("ProductReviewModerator")
+  moderatedProductReviews     ProductReview[]           @relation("ProductReviewModerator")
 
-  wishlistItems           WishlistItem[]
+  wishlistItems               WishlistItem[]
 
   verifiedPaymentTransactions OrderPaymentTransaction[] @relation("PaymentVerifiedByUser")
 
@@ -431,35 +431,35 @@ model CategoryAttribute {
 }
 
 model Product {
-  id                Int                  @id @default(autoincrement())
-  name              String
-  slug              String               @unique
-  shortDescription  String?
-  description       String?
-  specifications    String?
-  sizeChartId       Int?
-  sizeChart         SizeChart?           @relation(fields:[sizeChartId], references:[id], onDelete: SetNull)
+  id                     Int                  @id @default(autoincrement())
+  name                   String
+  slug                   String               @unique
+  shortDescription       String?
+  description            String?
+  specifications         String?
+  sizeChartId            Int?
+  sizeChart              SizeChart?           @relation(fields:[sizeChartId], references:[id], onDelete: SetNull)
 
-  brandId           Int?
-  brand             Brand?               @relation(fields:[brandId], references:[id], onDelete: SetNull)
+  brandId                Int?
+  brand                  Brand?               @relation(fields:[brandId], references:[id], onDelete: SetNull)
 
-  status            ProductStatus        @default(DRAFT)
-  isFeatured        Boolean              @default(false)
-  isFreeShipping    Boolean              @default(false)
-  isCodAvailable    Boolean              @default(true)
-  requiresAdvancePayment Boolean         @default(false)
-  advancePaymentAmount Numeric(10, 2)?
+  status                 ProductStatus        @default(DRAFT)
+  isFeatured             Boolean              @default(false)
+  isFreeShipping         Boolean              @default(false)
+  isCodAvailable         Boolean              @default(true)
+  requiresAdvancePayment Boolean              @default(false)
+  advancePaymentAmount   Numeric(10, 2)?
 
-  createdAt         DateTime             @default(now())
-  updatedAt         temporal.updatedAt()
+  createdAt              DateTime             @default(now())
+  updatedAt              temporal.updatedAt()
 
-  categories        ProductCategory[]
-  variants          ProductVariant[]
-  images            ProductImage[]
-  reviews           ProductReview[]
-  wishlistItems     WishlistItem[]
-  navigationEntries NavigationEntry[]
-  landingPages      LandingPage[]
+  categories             ProductCategory[]
+  variants               ProductVariant[]
+  images                 ProductImage[]
+  reviews                ProductReview[]
+  wishlistItems          WishlistItem[]
+  navigationEntries      NavigationEntry[]
+  landingPages           LandingPage[]
 
   @@index([brandId])
   @@index([status])
@@ -814,18 +814,18 @@ model ShippingZone {
 }
 
 model ShippingZoneLocation {
-  id          Int                  @id @default(autoincrement())
-  zoneId      Int
+  id         Int                  @id @default(autoincrement())
+  zoneId     Int
 
-  divisionId  String?
-  districtId  String?
-  upazilaId   String?
-  unionId     String?
+  divisionId String?
+  districtId String?
+  upazilaId  String?
+  unionId    String?
 
-  zone        ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
+  zone       ShippingZone         @relation(fields:[zoneId], references:[id], onDelete: Cascade)
 
-  createdAt   DateTime             @default(now())
-  updatedAt   temporal.updatedAt()
+  createdAt  DateTime             @default(now())
+  updatedAt  temporal.updatedAt()
 
   @@index([zoneId])
   @@index([divisionId])
@@ -881,9 +881,9 @@ model ShippingZoneMethod {
 }
 
 model Order {
-  id                        Int                  @id @default(autoincrement())
-  orderNumber               String               @unique
-  guestAccessTokenHash      String?              @unique
+  id                        Int                       @id @default(autoincrement())
+  orderNumber               String                    @unique
+  guestAccessTokenHash      String?                   @unique
   guestAccessTokenExpiresAt DateTime?
 
   // Nullable because guest checkout is supported
@@ -894,9 +894,9 @@ model Order {
   customerEmail             String?
   customerPhone             String
 
-  status                    OrderStatus          @default(PENDING)
+  status                    OrderStatus               @default(PENDING)
   paymentMethod             OrderPaymentMethod
-  paymentStatus             OrderPaymentStatus   @default(UNPAID)
+  paymentStatus             OrderPaymentStatus        @default(UNPAID)
 
   couponId                  Int?
   couponCode                String?
@@ -904,15 +904,15 @@ model Order {
   // Financial snapshot
   subtotal                  Numeric(12, 2)
   shippingCharge            Numeric(12, 2)
-  discountAmount            Numeric(12, 2)       @default(0)
-  taxAmount                 Numeric(12, 2)       @default(0)
+  discountAmount            Numeric(12, 2)            @default(0)
+  taxAmount                 Numeric(12, 2)            @default(0)
   grandTotal                Numeric(12, 2)
-  advanceAmount             Numeric(12, 2)       @default(0)
-  dueAmount                 Numeric(12, 2)       @default(0)
-  isAdvanceRequired         Boolean              @default(false)
-  isFreeShipping            Boolean              @default(false)
+  advanceAmount             Numeric(12, 2)            @default(0)
+  dueAmount                 Numeric(12, 2)            @default(0)
+  isAdvanceRequired         Boolean                   @default(false)
+  isFreeShipping            Boolean                   @default(false)
 
-  coupon                    Coupon?              @relation(fields:[couponId], references:[id], onDelete: SetNull)
+  coupon                    Coupon?                   @relation(fields:[couponId], references:[id], onDelete: SetNull)
   couponUsages              CouponUsage[]
   shipment                  Shipment?
 
@@ -927,17 +927,17 @@ model Order {
   customerNote              String?
   adminNote                 String?
 
-  placedAt                  DateTime             @default(now())
+  placedAt                  DateTime                  @default(now())
   confirmedAt               DateTime?
   shippedAt                 DateTime?
   deliveredAt               DateTime?
   cancelledAt               DateTime?
 
-  user                      User?                @relation(fields:[userId], references:[id], onDelete: SetNull)
+  user                      User?                     @relation(fields:[userId], references:[id], onDelete: SetNull)
 
-  shippingZone              ShippingZone?        @relation(fields:[shippingZoneId], references:[id], onDelete: SetNull)
+  shippingZone              ShippingZone?             @relation(fields:[shippingZoneId], references:[id], onDelete: SetNull)
 
-  shippingMethod            ShippingMethod?      @relation(fields:[shippingMethodId], references:[id], onDelete: SetNull)
+  shippingMethod            ShippingMethod?           @relation(fields:[shippingMethodId], references:[id], onDelete: SetNull)
 
   items                     OrderItem[]
   addresses                 OrderAddress[]
@@ -945,8 +945,9 @@ model Order {
   returns                   Return[]
   refunds                   Refund[]
   paymentTransactions       OrderPaymentTransaction[]
+  incompleteOrders          IncompleteOrder[]
 
-  createdAt                 DateTime             @default(now())
+  createdAt                 DateTime                  @default(now())
   updatedAt                 temporal.updatedAt()
 
   @@index([couponId])
@@ -1109,37 +1110,37 @@ model CouponUsage {
 }
 
 model Shipment {
-  id             Int                     @id @default(autoincrement())
+  id                Int                     @id @default(autoincrement())
 
-  orderId        Int                     @unique
+  orderId           Int                     @unique
 
-  status         ShipmentStatus          @default(PENDING)
+  status            ShipmentStatus          @default(PENDING)
 
-  courierName    String?
-  courierCode    String?
-  consignmentId  String?
-  trackingNumber String?
-  trackingUrl    String?
-  codAmount      Numeric(12, 2)?
-  courierStatus  String?
-  courierPayload Json?
+  courierName       String?
+  courierCode       String?
+  consignmentId     String?
+  trackingNumber    String?
+  trackingUrl       String?
+  codAmount         Numeric(12, 2)?
+  courierStatus     String?
+  courierPayload    Json?
 
-  note           String?
+  note              String?
 
-  readyAt        DateTime?
-  shippedAt      DateTime?
-  deliveredAt    DateTime?
-  failedAt       DateTime?
+  readyAt           DateTime?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  failedAt          DateTime?
   lastDispatchError String?
-  returnedAt     DateTime?
-  cancelledAt    DateTime?
+  returnedAt        DateTime?
+  cancelledAt       DateTime?
 
-  order          Order                   @relation(fields:[orderId], references:[id], onDelete: Cascade)
+  order             Order                   @relation(fields:[orderId], references:[id], onDelete: Cascade)
 
-  statusHistory  ShipmentStatusHistory[]
+  statusHistory     ShipmentStatusHistory[]
 
-  createdAt      DateTime                @default(now())
-  updatedAt      temporal.updatedAt()
+  createdAt         DateTime                @default(now())
+  updatedAt         temporal.updatedAt()
 
   @@index([status])
   @@index([consignmentId])
@@ -1395,24 +1396,24 @@ model WishlistItem {
 }
 
 model PaymentMethodConfig {
-  id               Int                @id @default(autoincrement())
-  code             String             @unique
+  id               Int                       @id @default(autoincrement())
+  code             String                    @unique
   name             String
-  type             PaymentMethodType  @default(MANUAL_MFS)
-  accountType      PaymentAccountType @default(PERSONAL)
+  type             PaymentMethodType         @default(MANUAL_MFS)
+  accountType      PaymentAccountType        @default(PERSONAL)
   accountNumber    String?
   bankName         String?
   branchName       String?
   routingNumber    String?
   instructions     String?
   qrCodeUrl        String?
-  chargePercentage Numeric(5, 2)      @default(0)
-  chargeFlat       Numeric(10, 2)     @default(0)
-  isActive         Boolean            @default(true)
-  isLive           Boolean            @default(false)
+  chargePercentage Numeric(5, 2)             @default(0)
+  chargeFlat       Numeric(10, 2)            @default(0)
+  isActive         Boolean                   @default(true)
+  isLive           Boolean                   @default(false)
   credentials      Json?
-  sortOrder        Int                @default(0)
-  createdAt        DateTime           @default(now())
+  sortOrder        Int                       @default(0)
+  createdAt        DateTime                  @default(now())
   updatedAt        temporal.updatedAt()
 
   transactions     OrderPaymentTransaction[]
@@ -1455,51 +1456,51 @@ model OrderPaymentTransaction {
 }
 
 model SmsProviderConfig {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
-  name        String
-  senderId    String?
-  apiKey      String?
-  apiSecret   String?
-  apiUrl      String?
-  isActive    Boolean  @default(false)
-  isDefault   Boolean  @default(false)
-  settings    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   temporal.updatedAt()
+  id        Int                  @id @default(autoincrement())
+  code      String               @unique
+  name      String
+  senderId  String?
+  apiKey    String?
+  apiSecret String?
+  apiUrl    String?
+  isActive  Boolean              @default(false)
+  isDefault Boolean              @default(false)
+  settings  Json?
+  createdAt DateTime             @default(now())
+  updatedAt temporal.updatedAt()
 
-  logs        SmsLog[]
+  logs      SmsLog[]
 
   @@index([isActive])
   @@map("sms_provider_config")
 }
 
 model NotificationTemplate {
-  id              Int      @id @default(autoincrement())
-  event           String   @unique
-  name            String
-  smsEnabled      Boolean  @default(true)
-  smsTemplate     String
-  emailEnabled    Boolean  @default(true)
-  emailSubject    String
-  emailTemplate   String?
-  availableVars   String?
-  createdAt       DateTime @default(now())
-  updatedAt       temporal.updatedAt()
+  id            Int                  @id @default(autoincrement())
+  event         String               @unique
+  name          String
+  smsEnabled    Boolean              @default(true)
+  smsTemplate   String
+  emailEnabled  Boolean              @default(true)
+  emailSubject  String
+  emailTemplate String?
+  availableVars String?
+  createdAt     DateTime             @default(now())
+  updatedAt     temporal.updatedAt()
 
   @@map("notification_template")
 }
 
 model SmsLog {
-  id                  Int               @id @default(autoincrement())
+  id                  Int                @id @default(autoincrement())
   smsProviderConfigId Int?
   providerCode        String
   recipientPhone      String
   message             String
-  status              SmsDeliveryStatus @default(PENDING)
+  status              SmsDeliveryStatus  @default(PENDING)
   responsePayload     Json?
   orderId             Int?
-  createdAt           DateTime          @default(now())
+  createdAt           DateTime           @default(now())
 
   provider            SmsProviderConfig? @relation(fields:[smsProviderConfigId], references:[id], onDelete: SetNull)
 
@@ -1511,29 +1512,29 @@ model SmsLog {
 }
 
 model CourierProviderConfig {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
-  name        String
-  apiKey      String?
-  apiSecret   String?
-  apiUrl      String?
-  isActive    Boolean  @default(false)
-  isDefault   Boolean  @default(false)
-  isLive      Boolean  @default(false)
-  settings    Json?
-  createdAt   DateTime @default(now())
-  updatedAt   temporal.updatedAt()
+  id        Int                  @id @default(autoincrement())
+  code      String               @unique
+  name      String
+  apiKey    String?
+  apiSecret String?
+  apiUrl    String?
+  isActive  Boolean              @default(false)
+  isDefault Boolean              @default(false)
+  isLive    Boolean              @default(false)
+  settings  Json?
+  createdAt DateTime             @default(now())
+  updatedAt temporal.updatedAt()
 
   @@index([isActive])
   @@map("courier_provider_config")
 }
 
 model StoreSetting {
-  id          Int      @id @default(autoincrement())
-  key         String   @unique
+  id          Int                  @id @default(autoincrement())
+  key         String               @unique
   value       Json
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime             @default(now())
   updatedAt   temporal.updatedAt()
 
   @@index([key])
@@ -1560,17 +1561,16 @@ model CourierWebhookEvent {
   @@map("courier_webhook_event")
 }
 
-
 model SizeChart {
-  id          Int       @id @default(autoincrement())
+  id          Int                  @id @default(autoincrement())
   name        String
   description String?
-  unit        String    @default("inches")
+  unit        String               @default("inches")
   columns     Json
   rows        Json
   tips        String?
   image       String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime             @default(now())
   updatedAt   temporal.updatedAt()
 
   products    Product[]
@@ -1579,24 +1579,50 @@ model SizeChart {
 }
 
 model LandingPage {
-  id               Int       @id @default(autoincrement())
-  title            String
-  slug             String    @unique
-  productId        Int
-  product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  badgeText        String?
-  headline         String?
-  subHeadline      String?
-  videoUrl         String?
-  countdownTarget  DateTime?
-  features         Json
-  gallery          Json
-  faqs             Json
-  customContent    String?
-  isPublished      Boolean   @default(true)
-  viewsCount       Int       @default(0)
-  createdAt        DateTime  @default(now())
-  updatedAt        temporal.updatedAt()
+  id              Int                  @id @default(autoincrement())
+  title           String
+  slug            String               @unique
+  productId       Int
+  product         Product              @relation(fields:[productId], references:[id], onDelete: Cascade)
+  badgeText       String?
+  headline        String?
+  subHeadline     String?
+  videoUrl        String?
+  countdownTarget DateTime?
+  features        Json
+  gallery         Json
+  faqs            Json
+  customContent   String?
+  isPublished     Boolean              @default(true)
+  viewsCount      Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
 
   @@map("landing_page")
+}
+
+model IncompleteOrder {
+  id               Int                  @id @default(autoincrement())
+  sessionId        String
+  customerName     String?
+  customerPhone    String
+  customerEmail    String?
+  shippingAddress  Json?
+  cartItems        Json
+  subtotal         Numeric(12, 2)       @default(0.00)
+  shippingFee      Numeric(12, 2)       @default(0.00)
+  totalAmount      Numeric(12, 2)       @default(0.00)
+  source           String               @default("CHECKOUT")
+  status           String               @default("PENDING")
+  crmNotes         String?
+  convertedOrderId Int?
+  convertedOrder   Order?               @relation(fields:[convertedOrderId], references:[id], onDelete: SetNull)
+  createdAt        DateTime             @default(now())
+  updatedAt        temporal.updatedAt()
+
+  @@index([sessionId])
+  @@index([customerPhone])
+  @@index([status])
+  @@index([createdAt])
+  @@map("incomplete_order")
 }

@@ -21,6 +21,7 @@ import { createGuestAccountCreatedEmail } from "../../email/templates/guest-acco
 import { config } from "../../../config/env.js";
 import { logger } from "../../../config/logger.js";
 import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
+import * as incompleteOrderRepo from "../../incomplete-order/repositories/incomplete-order.repository.js";
 import type { OrderListQuery } from "../order.types.js";
 
 const tokenHash = (token: string) =>
@@ -531,6 +532,9 @@ export const checkout = async (
     isFreeShipping: Boolean(result.isFreeShipping),
     ...(accessToken ? { guestAccessToken: accessToken } : {}),
   };
+
+  // Automatically mark any pending incomplete order (abandoned cart) as converted
+  void incompleteOrderRepo.markConverted(guestToken || "", ship.phone || "", result.id);
 
   // Trigger event notification (SMS & Email) asynchronously only if order is finalized (non-automated gateway)
   if (paymentConfig?.type !== "AUTOMATED_GATEWAY") {
