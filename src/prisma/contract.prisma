@@ -459,6 +459,7 @@ model Product {
   reviews           ProductReview[]
   wishlistItems     WishlistItem[]
   navigationEntries NavigationEntry[]
+  landingPages      LandingPage[]
 
   @@index([brandId])
   @@index([status])
@@ -1575,4 +1576,27 @@ model SizeChart {
   products    Product[]
 
   @@map("size_chart")
+}
+
+model LandingPage {
+  id               Int       @id @default(autoincrement())
+  title            String
+  slug             String    @unique
+  productId        Int
+  product          Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  badgeText        String?
+  headline         String?
+  subHeadline      String?
+  videoUrl         String?
+  countdownTarget  DateTime?
+  features         Json
+  gallery          Json
+  faqs             Json
+  customContent    String?
+  isPublished      Boolean   @default(true)
+  viewsCount       Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        temporal.updatedAt()
+
+  @@map("landing_page")
 }

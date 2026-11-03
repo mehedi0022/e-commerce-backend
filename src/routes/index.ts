@@ -29,6 +29,7 @@ import courierRoutes from "../modules/courier/courier.route.js";
 import settingRoutes from "../modules/setting/setting.route.js";
 import analyticsRoutes from "../modules/analytics/analytics.route.js";
 import sizeChartRoutes from "../modules/size-chart/size-chart.route.js";
+import landingPageRoutes from "../modules/landing-page/landing-page.route.js";
 
 const router = Router();
 
@@ -42,6 +43,7 @@ router.use("/attributes", attributeRoutes);
 router.use(reviewRoutes);
 router.use("/products", productRoutes);
 router.use("/size-charts", sizeChartRoutes);
+router.use("/landing-pages", landingPageRoutes);
 router.use(inventoryRoutes);
 router.use(productImageRoutes);
 router.use(cartRoutes);

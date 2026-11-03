@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'3c1a2fd9506cdc0e715d71f89e43b76d5f405ec1c44d6479e1755c12db6ad009'>;
+  StorageHashBase<'67f9194339c7573cd86312d08d54111978eb3dcceaa57459f8451d5cc3a0f97c'>;
 export type ExecutionHash =
-  ExecutionHashBase<'3f0edc195e7edfef0125cfeb01e01a2e85ac69014d0f758af8a455f12ea2a46b'>;
+  ExecutionHashBase<'b2591bde7bfafc7b891e3743f33110daba83b9adca1ce7605613787c897c3b83'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -428,6 +428,25 @@ export type FieldOutputTypes = {
         | 'RETURN'
         | 'DAMAGED'
         | 'ADJUSTMENT';
+    };
+    readonly LandingPage: {
+      readonly badgeText: CodecTypes['pg/text@1']['output'] | null;
+      readonly countdownTarget: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly customContent: CodecTypes['pg/text@1']['output'] | null;
+      readonly faqs: CodecTypes['pg/json@1']['output'];
+      readonly features: CodecTypes['pg/json@1']['output'];
+      readonly gallery: CodecTypes['pg/json@1']['output'];
+      readonly headline: CodecTypes['pg/text@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly isPublished: CodecTypes['pg/bool@1']['output'];
+      readonly productId: CodecTypes['pg/int4@1']['output'];
+      readonly slug: CodecTypes['pg/text@1']['output'];
+      readonly subHeadline: CodecTypes['pg/text@1']['output'] | null;
+      readonly title: CodecTypes['pg/text@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly videoUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly viewsCount: CodecTypes['pg/int4@1']['output'];
     };
     readonly NavigationEntry: {
       readonly categoryId: CodecTypes['pg/int4@1']['output'] | null;
@@ -1206,6 +1225,25 @@ export type FieldInputTypes = {
         | 'DAMAGED'
         | 'ADJUSTMENT';
     };
+    readonly LandingPage: {
+      readonly badgeText: CodecTypes['pg/text@1']['input'] | null;
+      readonly countdownTarget: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly customContent: CodecTypes['pg/text@1']['input'] | null;
+      readonly faqs: CodecTypes['pg/json@1']['input'];
+      readonly features: CodecTypes['pg/json@1']['input'];
+      readonly gallery: CodecTypes['pg/json@1']['input'];
+      readonly headline: CodecTypes['pg/text@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly isPublished: CodecTypes['pg/bool@1']['input'];
+      readonly productId: CodecTypes['pg/int4@1']['input'];
+      readonly slug: CodecTypes['pg/text@1']['input'];
+      readonly subHeadline: CodecTypes['pg/text@1']['input'] | null;
+      readonly title: CodecTypes['pg/text@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly videoUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly viewsCount: CodecTypes['pg/int4@1']['input'];
+    };
     readonly NavigationEntry: {
       readonly categoryId: CodecTypes['pg/int4@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1983,6 +2021,25 @@ export type StorageColumnTypes = {
         | 'DAMAGED'
         | 'ADJUSTMENT';
     };
+    readonly landing_page: {
+      readonly badgeText: CodecTypes['pg/text@1']['output'] | null;
+      readonly countdownTarget: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly customContent: CodecTypes['pg/text@1']['output'] | null;
+      readonly faqs: CodecTypes['pg/json@1']['output'];
+      readonly features: CodecTypes['pg/json@1']['output'];
+      readonly gallery: CodecTypes['pg/json@1']['output'];
+      readonly headline: CodecTypes['pg/text@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly isPublished: CodecTypes['pg/bool@1']['output'];
+      readonly productId: CodecTypes['pg/int4@1']['output'];
+      readonly slug: CodecTypes['pg/text@1']['output'];
+      readonly subHeadline: CodecTypes['pg/text@1']['output'] | null;
+      readonly title: CodecTypes['pg/text@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly videoUrl: CodecTypes['pg/text@1']['output'] | null;
+      readonly viewsCount: CodecTypes['pg/int4@1']['output'];
+    };
     readonly navigation_entry: {
       readonly categoryId: CodecTypes['pg/int4@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -2759,6 +2816,25 @@ export type StorageColumnInputTypes = {
         | 'RETURN'
         | 'DAMAGED'
         | 'ADJUSTMENT';
+    };
+    readonly landing_page: {
+      readonly badgeText: CodecTypes['pg/text@1']['input'] | null;
+      readonly countdownTarget: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly customContent: CodecTypes['pg/text@1']['input'] | null;
+      readonly faqs: CodecTypes['pg/json@1']['input'];
+      readonly features: CodecTypes['pg/json@1']['input'];
+      readonly gallery: CodecTypes['pg/json@1']['input'];
+      readonly headline: CodecTypes['pg/text@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly isPublished: CodecTypes['pg/bool@1']['input'];
+      readonly productId: CodecTypes['pg/int4@1']['input'];
+      readonly slug: CodecTypes['pg/text@1']['input'];
+      readonly subHeadline: CodecTypes['pg/text@1']['input'] | null;
+      readonly title: CodecTypes['pg/text@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly videoUrl: CodecTypes['pg/text@1']['input'] | null;
+      readonly viewsCount: CodecTypes['pg/int4@1']['input'];
     };
     readonly navigation_entry: {
       readonly categoryId: CodecTypes['pg/int4@1']['input'] | null;
@@ -3580,6 +3656,27 @@ export namespace Models {
     inventory: public_Inventory;
     readonly [RelationKeys]?: 'inventory';
   };
+  export type public_LandingPage = {
+    badgeText: CodecTypes['pg/text@1']['output'] | null;
+    countdownTarget: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    customContent: CodecTypes['pg/text@1']['output'] | null;
+    faqs: CodecTypes['pg/json@1']['output'];
+    features: CodecTypes['pg/json@1']['output'];
+    gallery: CodecTypes['pg/json@1']['output'];
+    headline: CodecTypes['pg/text@1']['output'] | null;
+    id: CodecTypes['pg/int4@1']['output'];
+    isPublished: CodecTypes['pg/bool@1']['output'];
+    productId: CodecTypes['pg/int4@1']['output'];
+    slug: CodecTypes['pg/text@1']['output'];
+    subHeadline: CodecTypes['pg/text@1']['output'] | null;
+    title: CodecTypes['pg/text@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    videoUrl: CodecTypes['pg/text@1']['output'] | null;
+    viewsCount: CodecTypes['pg/int4@1']['output'];
+    product: public_Product;
+    readonly [RelationKeys]?: 'product';
+  };
   export type public_NavigationEntry = {
     categoryId: CodecTypes['pg/int4@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -3875,6 +3972,7 @@ export namespace Models {
     brand: public_Brand | null;
     categories: public_ProductCategory[];
     images: public_ProductImage[];
+    landingPages: public_LandingPage[];
     navigationEntries: public_NavigationEntry[];
     reviews: public_ProductReview[];
     sizeChart: public_SizeChart | null;
@@ -3884,6 +3982,7 @@ export namespace Models {
       | 'brand'
       | 'categories'
       | 'images'
+      | 'landingPages'
       | 'navigationEntries'
       | 'reviews'
       | 'sizeChart'
@@ -4370,6 +4469,7 @@ export declare const models: {
     CourierWebhookEvent: Models.public_CourierWebhookEvent;
     Inventory: Models.public_Inventory;
     InventoryMovement: Models.public_InventoryMovement;
+    LandingPage: Models.public_LandingPage;
     NavigationEntry: Models.public_NavigationEntry;
     NavigationItem: Models.public_NavigationItem;
     NavigationMenu: Models.public_NavigationMenu;
@@ -5837,6 +5937,132 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'inventory';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly landing_page: {
+              columns: {
+                readonly badgeText: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly countdownTarget: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly customContent: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly faqs: {
+                  readonly nativeType: 'json';
+                  readonly codecId: 'pg/json@1';
+                  readonly nullable: false;
+                };
+                readonly features: {
+                  readonly nativeType: 'json';
+                  readonly codecId: 'pg/json@1';
+                  readonly nullable: false;
+                };
+                readonly gallery: {
+                  readonly nativeType: 'json';
+                  readonly codecId: 'pg/json@1';
+                  readonly nullable: false;
+                };
+                readonly headline: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly isPublished: {
+                  readonly nativeType: 'bool';
+                  readonly codecId: 'pg/bool@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/bool@1', true>;
+                  };
+                };
+                readonly productId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+                readonly slug: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly subHeadline: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly title: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly videoUrl: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly viewsCount: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
+                  };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['slug'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'landing_page_productId_idx_5858600a';
+                  readonly prefix: 'landing_page_productId_idx';
+                  readonly columns: readonly ['productId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'landing_page';
+                    readonly columns: readonly ['productId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'product';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -10576,6 +10802,10 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'InventoryMovement';
     };
+    readonly landing_page: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'LandingPage';
+    };
     readonly navigation_entry: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'NavigationEntry';
@@ -12002,6 +12232,124 @@ type ContractBase = Omit<
                 readonly referenceId: { readonly column: 'referenceId' };
                 readonly referenceType: { readonly column: 'referenceType' };
                 readonly type: { readonly column: 'type' };
+              };
+            };
+          };
+          readonly LandingPage: {
+            readonly fields: {
+              readonly badgeText: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly countdownTarget: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly customContent: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly faqs: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
+              };
+              readonly features: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
+              };
+              readonly gallery: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/json@1' };
+              };
+              readonly headline: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly isPublished: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
+              };
+              readonly productId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly slug: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly subHeadline: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly title: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly videoUrl: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly viewsCount: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly product: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Product';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['productId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'landing_page';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly badgeText: { readonly column: 'badgeText' };
+                readonly countdownTarget: { readonly column: 'countdownTarget' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly customContent: { readonly column: 'customContent' };
+                readonly faqs: { readonly column: 'faqs' };
+                readonly features: { readonly column: 'features' };
+                readonly gallery: { readonly column: 'gallery' };
+                readonly headline: { readonly column: 'headline' };
+                readonly id: { readonly column: 'id' };
+                readonly isPublished: { readonly column: 'isPublished' };
+                readonly productId: { readonly column: 'productId' };
+                readonly slug: { readonly column: 'slug' };
+                readonly subHeadline: { readonly column: 'subHeadline' };
+                readonly title: { readonly column: 'title' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly videoUrl: { readonly column: 'videoUrl' };
+                readonly viewsCount: { readonly column: 'viewsCount' };
               };
             };
           };
@@ -13750,6 +14098,17 @@ type ContractBase = Omit<
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'ProductImage';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['productId'];
+                };
+              };
+              readonly landingPages: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'LandingPage';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
@@ -16732,6 +17091,15 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'inventory';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'landing_page';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };
