@@ -16,7 +16,9 @@ const productFields = [
   "slug",
   "shortDescription",
   "description",
+  "specifications",
   "brandId",
+  "sizeChartId",
   "status",
   "isFeatured",
   "isFreeShipping",
@@ -38,6 +40,18 @@ const categoryFields = [
 const withRelations = (q: any) =>
   q
     .include("brand", (b: any) => b.select("id", "name", "slug"))
+    .include("sizeChart", (sc: any) =>
+      sc.select(
+        "id",
+        "name",
+        "description",
+        "unit",
+        "columns",
+        "rows",
+        "tips",
+        "image"
+      )
+    )
     .include("categories", (pc: any) =>
       pc
         .select(...categoryFields)
@@ -80,36 +94,38 @@ export const findAll = async (
 ) => {
   const base = db.orm.public.Product.select(...productFields);
   let q = withRelations(
-    publicCards
-      ? base
-          .include("variants", (v) =>
-            v
-              .select(
-                "id",
-                "productId",
-                "sku",
-                "price",
-                "compareAtPrice",
-                "isActive",
-                "sortOrder",
-              )
-              .include("attributeValues", (av: any) =>
-                av.include("attributeValue", (val: any) =>
-                  val
-                    .include("attribute", (a: any) => a.select("id", "name", "slug"))
-                    .select("id", "value", "slug", "attributeId"),
-                ),
-              )
-              .where({ isActive: true })
-              .orderBy((v) => v.sortOrder.asc()),
+    base
+      .include("variants", (v) => {
+        let variantQ = v
+          .select(
+            "id",
+            "productId",
+            "sku",
+            "price",
+            "compareAtPrice",
+            "isActive",
+            "sortOrder",
           )
-          .include("images", (i) =>
-            i
-              .select("id", "imageUrl", "altText", "isPrimary", "sortOrder")
-              .orderBy((i) => i.sortOrder.asc()),
+          .include("attributeValues", (av: any) =>
+            av.include("attributeValue", (val: any) =>
+              val
+                .include("attribute", (a: any) => a.select("id", "name", "slug"))
+                .select("id", "value", "slug", "attributeId"),
+            ),
           )
-          .include("reviews", (r) => r.select("id", "rating", "status"))
-      : base,
+          .orderBy((v) => v.sortOrder.asc());
+
+        if (publicCards) {
+          variantQ = variantQ.where({ isActive: true });
+        }
+        return variantQ;
+      })
+      .include("images", (i) =>
+        i
+          .select("id", "imageUrl", "altText", "isPrimary", "sortOrder")
+          .orderBy((i) => i.sortOrder.asc()),
+      )
+      .include("reviews", (r) => r.select("id", "rating", "status")),
   );
 
   if (search) {
@@ -214,30 +230,29 @@ export const findAll = async (
     ordered.offset(pageOffset(page, limit)).limit(limit).all(),
   ]);
 
-  let products = rawProducts;
-  if (publicCards) {
-    products = rawProducts.map((p: any) => {
-      const approvedReviews = (p.reviews || []).filter(
-        (r: any) => r.status === "APPROVED",
-      );
-      const reviewCount = approvedReviews.length;
-      const averageRating = reviewCount
-        ? Number(
-            (
-              approvedReviews.reduce(
-                (sum: number, r: any) => sum + r.rating,
-                0,
-              ) / reviewCount
-            ).toFixed(1),
-          )
-        : 0;
-      return {
-        ...p,
-        averageRating,
-        reviewCount,
-      };
-    });
+  let products = rawProducts.map((p: any) => {
+    const approvedReviews = (p.reviews || []).filter(
+      (r: any) => r.status === "APPROVED",
+    );
+    const reviewCount = approvedReviews.length;
+    const averageRating = reviewCount
+      ? Number(
+          (
+            approvedReviews.reduce(
+              (sum: number, r: any) => sum + r.rating,
+              0,
+            ) / reviewCount
+          ).toFixed(1),
+        )
+      : 0;
+    return {
+      ...p,
+      averageRating,
+      reviewCount,
+    };
+  });
 
+  if (publicCards) {
     if (sortBy === "price") {
       products.sort((a: any, b: any) => {
         const minA = Math.min(

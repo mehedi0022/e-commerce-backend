@@ -200,6 +200,10 @@
       "model": "ShippingZoneMethod",
       "namespace": "public"
     },
+    "size_chart": {
+      "model": "SizeChart",
+      "namespace": "public"
+    },
     "slider": {
       "model": "Slider",
       "namespace": "public"
@@ -5610,8 +5614,22 @@
                   "kind": "scalar"
                 }
               },
+              "sizeChartId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "slug": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "specifications": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -5715,6 +5733,22 @@
                   "namespace": "public"
                 }
               },
+              "sizeChart": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "sizeChartId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SizeChart",
+                  "namespace": "public"
+                }
+              },
               "variants": {
                 "cardinality": "1:N",
                 "on": {
@@ -5781,8 +5815,14 @@
                 "shortDescription": {
                   "column": "shortDescription"
                 },
+                "sizeChartId": {
+                  "column": "sizeChartId"
+                },
                 "slug": {
                   "column": "slug"
+                },
+                "specifications": {
+                  "column": "specifications"
                 },
                 "status": {
                   "column": "status"
@@ -8614,6 +8654,133 @@
               },
               "namespaceId": "public",
               "table": "shipping_zone_method"
+            }
+          },
+          "SizeChart": {
+            "fields": {
+              "columns": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "image": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "rows": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              },
+              "tips": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "unit": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "products": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sizeChartId"
+                  ]
+                },
+                "to": {
+                  "model": "Product",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "columns": {
+                  "column": "columns"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "image": {
+                  "column": "image"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "rows": {
+                  "column": "rows"
+                },
+                "tips": {
+                  "column": "tips"
+                },
+                "unit": {
+                  "column": "unit"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "size_chart"
             }
           },
           "Slider": {
@@ -13841,10 +14008,20 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "sizeChartId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "slug": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
+                },
+                "specifications": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "status": {
                   "codecId": "pg/text@1",
@@ -13868,6 +14045,23 @@
                 }
               },
               "foreignKeys": [
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "sizeChartId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "product"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "size_chart"
+                  }
+                },
                 {
                   "onDelete": "setNull",
                   "source": {
@@ -13901,6 +14095,14 @@
                   ],
                   "name": "product_isFeatured_idx_4ec5a125",
                   "prefix": "product_isFeatured_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sizeChartId"
+                  ],
+                  "name": "product_sizeChartId_idx_2392ab03",
+                  "prefix": "product_sizeChartId_idx",
                   "unique": false
                 },
                 {
@@ -16556,6 +16758,80 @@
                 }
               ]
             },
+            "size_chart": {
+              "columns": {
+                "columns": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "image": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "name": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "rows": {
+                  "codecId": "pg/json@1",
+                  "nativeType": "json",
+                  "nullable": false
+                },
+                "tips": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "unit": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "inches"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "slider": {
               "columns": {
                 "buttonText": {
@@ -17534,10 +17810,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "5276e22a2119246fd52bb60eeb9445ebabe8b30d096fc92a3b9c944a91014eb5"
+    "storageHash": "3c1a2fd9506cdc0e715d71f89e43b76d5f405ec1c44d6479e1755c12db6ad009"
   },
   "execution": {
-    "executionHash": "edfc49ee1694acf76296712287549c57f3ff59dfd27e9c3c75391632784b6eef",
+    "executionHash": "3f0edc195e7edfef0125cfeb01e01a2e85ac69014d0f758af8a455f12ea2a46b",
     "mutations": {
       "defaults": [
         {
@@ -18053,6 +18329,21 @@
           },
           "ref": {
             "entry": "shipping_zone_method",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "size_chart",
             "field": "updatedAt",
             "namespace": "public"
           }

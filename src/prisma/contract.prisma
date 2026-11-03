@@ -436,6 +436,9 @@ model Product {
   slug              String               @unique
   shortDescription  String?
   description       String?
+  specifications    String?
+  sizeChartId       Int?
+  sizeChart         SizeChart?           @relation(fields:[sizeChartId], references:[id], onDelete: SetNull)
 
   brandId           Int?
   brand             Brand?               @relation(fields:[brandId], references:[id], onDelete: SetNull)
@@ -1556,3 +1559,20 @@ model CourierWebhookEvent {
   @@map("courier_webhook_event")
 }
 
+
+model SizeChart {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  unit        String    @default("inches")
+  columns     Json
+  rows        Json
+  tips        String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   temporal.updatedAt()
+
+  products    Product[]
+
+  @@map("size_chart")
+}

@@ -42,7 +42,15 @@ const fields = {
     .transform(sanitizeDescription)
     .nullable()
     .optional(),
+  specifications: z
+    .string()
+    .trim()
+    .max(15000)
+    .transform(sanitizeDescription)
+    .nullable()
+    .optional(),
   brandId: id.nullable().optional(),
+  sizeChartId: id.nullable().optional(),
   status: z
     .enum(["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const)
     .optional(),
