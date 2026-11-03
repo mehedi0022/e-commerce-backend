@@ -62,6 +62,10 @@ export interface ConvertIncompleteOrderInput {
   shippingAddress?: {
     fullName?: string;
     phone?: string;
+    divisionId?: string;
+    districtId?: string;
+    upazilaId?: string;
+    unionId?: string;
     division?: string;
     district?: string;
     upazila?: string;

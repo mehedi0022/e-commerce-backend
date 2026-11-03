@@ -73,6 +73,10 @@ export const convertIncompleteOrderSchema = z.object({
     shippingAddress: z.object({
       fullName: z.string().trim().max(255).optional(),
       phone: z.string().trim().max(50).optional(),
+      divisionId: z.string().trim().optional(),
+      districtId: z.string().trim().optional(),
+      upazilaId: z.string().trim().optional(),
+      unionId: z.string().trim().optional(),
       division: z.string().trim().max(100).optional(),
       district: z.string().trim().max(100).optional(),
       upazila: z.string().trim().max(100).optional(),
