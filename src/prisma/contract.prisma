@@ -69,6 +69,18 @@ enum OrderStatus {
   CANCELLED = "CANCELLED"
 }
 
+enum OrderSource {
+  @@type("pg/text@1")
+  WEBSITE = "WEBSITE"
+  LANDING_PAGE = "LANDING_PAGE"
+  PHONE_CALL = "PHONE_CALL"
+  WHATSAPP = "WHATSAPP"
+  MESSENGER = "MESSENGER"
+  OUTLET_POS = "OUTLET_POS"
+  MANUAL_OTHER = "MANUAL_OTHER"
+}
+
+
 enum OrderAddressType {
   @@type("pg/text@1")
   SHIPPING = "SHIPPING"
@@ -893,6 +905,7 @@ model Order {
   customerName              String
   customerEmail             String?
   customerPhone             String
+  source                    OrderSource               @default(WEBSITE)
 
   status                    OrderStatus               @default(PENDING)
   paymentMethod             OrderPaymentMethod
@@ -957,6 +970,7 @@ model Order {
   @@index([customerEmail])
   @@index([customerPhone])
   @@index([createdAt])
+    @@index([source])
   @@map("order")
 }
 

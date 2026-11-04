@@ -22,7 +22,8 @@ import { config } from "../../../config/env.js";
 import { logger } from "../../../config/logger.js";
 import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
 import * as incompleteOrderRepo from "../../incomplete-order/repositories/incomplete-order.repository.js";
-import type { OrderListQuery } from "../order.types.js";
+import type { OrderListQuery, CreateManualOrderInput } from "../order.types.js";
+import { or } from "@prisma/orm-postgres/orm-client";
 
 const tokenHash = (token: string) =>
   createHash("sha256").update(token).digest("hex");
@@ -824,4 +825,261 @@ export const updateAdmin = async (number: string, data: any) => {
   return db.transaction(async (tx: any) => {
     return repo.update(tx, current.id, data);
   });
+};
+
+export const searchPosProducts = async (query: string) => {
+  const q = (query || "").trim();
+  let productsQuery = db.orm.public.Product
+    .select("id", "name", "slug", "status")
+    .include("images", (img: any) =>
+      img.select("id", "imageUrl", "isPrimary", "sortOrder").orderBy((x: any) => x.sortOrder.asc())
+    )
+    .include("variants", (v: any) =>
+      v
+        .select("id", "sku", "price", "compareAtPrice", "isActive")
+        .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
+        .include("attributeValues", (av: any) =>
+          av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
+        )
+    );
+
+  if (q) {
+    productsQuery = productsQuery.where((p: any) => p.name.ilike(`%${q}%`));
+  }
+
+  const results: any[] = await productsQuery.limit(30).all();
+
+  // If search query matches variant SKU directly, search variants and prepend
+  if (q) {
+    const matchedVariants: any[] = await db.orm.public.ProductVariant
+      .select("id", "productId", "sku", "price", "compareAtPrice", "isActive")
+      .include("product", (p: any) =>
+        p
+          .select("id", "name", "slug", "status")
+          .include("images", (img: any) =>
+            img.select("id", "imageUrl", "isPrimary", "sortOrder").orderBy((x: any) => x.sortOrder.asc())
+          )
+      )
+      .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
+      .include("attributeValues", (av: any) =>
+        av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
+      )
+      .where((v: any) => v.sku.ilike(`%${q}%`))
+      .limit(10)
+      .all();
+
+    const existingIds = new Set(results.map((p) => p.id));
+    for (const mv of matchedVariants) {
+      if (mv.product && !existingIds.has(mv.product.id)) {
+        const fullProd: any = await db.orm.public.Product
+          .select("id", "name", "slug", "status")
+          .include("images", (img: any) =>
+            img.select("id", "imageUrl", "isPrimary", "sortOrder").orderBy((x: any) => x.sortOrder.asc())
+          )
+          .include("variants", (v: any) =>
+            v
+              .select("id", "sku", "price", "compareAtPrice", "isActive")
+              .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
+              .include("attributeValues", (av: any) =>
+                av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
+              )
+          )
+          .first({ id: mv.productId });
+
+        if (fullProd) {
+          results.unshift(fullProd);
+          existingIds.add(fullProd.id);
+        }
+      }
+    }
+  }
+
+  return results.map((p) => ({
+    ...p,
+    variants: (p.variants || []).map((v: any) => ({
+      ...v,
+      inventory: v.inventory
+        ? {
+            ...v.inventory,
+            availableQuantity: Math.max(0, (v.inventory.quantity ?? 0) - (v.inventory.reservedQuantity ?? 0)),
+          }
+        : { availableQuantity: 0, reservedQuantity: 0 },
+    })),
+  }));
+};
+
+export const searchPosCustomers = async (query: string) => {
+  const q = (query || "").trim();
+  if (!q) return [];
+
+  return db.orm.public.User
+    .select("id", "fullName", "phone", "email")
+    .include("addresses", (a: any) =>
+      a.select(
+        "id",
+        "fullName",
+        "phone",
+        "addressLine1",
+        "addressLine2",
+        "divisionId",
+        "districtId",
+        "upazilaId",
+        "unionId",
+        "division",
+        "district",
+        "upazila",
+        "thana",
+        "area",
+        "postalCode",
+        "countryCode",
+        "isDefaultShipping"
+      )
+    )
+    .where((u: any) => or(u.phone.ilike(`%${q}%`), u.fullName.ilike(`%${q}%`), u.email.ilike(`%${q}%`)))
+    .limit(15)
+    .all();
+};
+
+export const createManualOrder = async (input: CreateManualOrderInput, adminUserId: number) => {
+  if (!input.items || input.items.length === 0) {
+    throw new ValidationError("At least one product item is required in the order");
+  }
+
+  const source = input.source || "OUTLET_POS";
+  const isStorePickup = input.fulfillmentType === "STORE_PICKUP";
+
+  let subtotalNum = 0;
+  for (const item of input.items) {
+    subtotalNum += (Number(item.unitPrice) || 0) * (item.quantity || 1);
+  }
+
+  const shippingFeeNum = isStorePickup ? 0 : Number(input.shippingFee) || 0;
+  const discountAmountNum = Number(input.discountAmount) || 0;
+  const advanceAmountNum = Number(input.advanceAmount) || 0;
+  const grandTotalNum = Math.max(0, subtotalNum + shippingFeeNum - discountAmountNum);
+  const dueAmountNum = Math.max(0, grandTotalNum - advanceAmountNum);
+
+  const orderStatus = input.orderStatus || (isStorePickup ? "DELIVERED" : "CONFIRMED");
+  const paymentStatus =
+    input.paymentStatus ||
+    (advanceAmountNum >= grandTotalNum && grandTotalNum > 0
+      ? "PAID"
+      : isStorePickup
+      ? "PAID"
+      : advanceAmountNum > 0
+      ? "PARTIALLY_PAID"
+      : "UNPAID");
+
+  const now = Temporal.Now.instant();
+
+  const createdOrder = await db.transaction(async (tx: any) => {
+    // 1. Create order record
+    const created = await tx.orm.public.Order.create({
+      orderNumber: "TEMP",
+      userId: input.customerId || null,
+      customerName: input.customerName.trim(),
+      customerEmail: input.customerEmail?.trim() || null,
+      customerPhone: input.customerPhone.trim(),
+      status: orderStatus,
+      source,
+      paymentMethod: input.paymentMethod || "CASH_ON_DELIVERY",
+      paymentStatus,
+      subtotal: subtotalNum.toFixed(2),
+      shippingCharge: shippingFeeNum.toFixed(2),
+      discountAmount: discountAmountNum.toFixed(2),
+      taxAmount: "0.00",
+      grandTotal: grandTotalNum.toFixed(2),
+      advanceAmount: advanceAmountNum.toFixed(2),
+      dueAmount: dueAmountNum.toFixed(2),
+      isAdvanceRequired: false,
+      isFreeShipping: shippingFeeNum === 0,
+      customerNote: input.customerNote || null,
+      adminNote:
+        input.adminNote ||
+        (isStorePickup
+          ? `Counter POS Sale by Admin #${adminUserId}`
+          : `Manual Order created via ${source} by Admin #${adminUserId}`),
+      confirmedAt: ["CONFIRMED", "PROCESSING", "DELIVERED"].includes(orderStatus) ? now : null,
+      deliveredAt: orderStatus === "DELIVERED" ? now : null,
+    });
+
+    const finalOrderNumber = `ORD-${1000 + parseInt(created.id)}`;
+    await tx.orm.public.Order.where({ id: created.id }).update({ orderNumber: finalOrderNumber });
+    created.orderNumber = finalOrderNumber;
+
+    // 2. Create items & manage inventory
+    for (const it of input.items) {
+      let resolvedProductId = it.productId || null;
+      let resolvedVariantId = it.variantId || null;
+
+      if (!resolvedProductId && resolvedVariantId) {
+        const v: any = await tx.orm.public.ProductVariant.select("productId").first({ id: resolvedVariantId });
+        if (v) resolvedProductId = v.productId;
+      }
+
+      await tx.orm.public.OrderItem.create({
+        orderId: created.id,
+        productId: resolvedProductId,
+        variantId: resolvedVariantId,
+        productName: it.productName || "Product",
+        sku: it.sku || "SKU-MANUAL",
+        unitPrice: String(it.unitPrice || 0),
+        quantity: it.quantity,
+        lineTotal: String((Number(it.unitPrice) || 0) * (it.quantity || 1)),
+      });
+
+      if (resolvedVariantId) {
+        try {
+          await inventory.reserveStock(resolvedVariantId, it.quantity, tx);
+          if (orderStatus === "DELIVERED") {
+            await inventory.commitReservedStock(
+              resolvedVariantId,
+              it.quantity,
+              { referenceType: "ORDER", referenceId: finalOrderNumber },
+              tx
+            );
+          }
+        } catch (invErr) {
+          logger.warn({ invErr, variantId: resolvedVariantId }, "POS inventory reservation warning");
+        }
+      }
+    }
+
+    // 3. Create Address snapshot
+    const addr = input.shippingAddress;
+    await tx.orm.public.OrderAddress.create({
+      orderId: created.id,
+      type: "SHIPPING",
+      fullName: input.customerName.trim(),
+      phone: input.customerPhone.trim(),
+      addressLine1: isStorePickup
+        ? "Store Pickup / Counter Sale (Outlet POS)"
+        : addr?.addressLine1 || "Address confirmed on call",
+      addressLine2: addr?.addressLine2 || null,
+      divisionId: addr?.divisionId || null,
+      districtId: addr?.districtId || null,
+      upazilaId: addr?.upazilaId || null,
+      unionId: addr?.unionId || null,
+      division: addr?.division || null,
+      district: isStorePickup ? "Outlet" : addr?.district || "Dhaka",
+      upazila: addr?.upazila || null,
+      thana: addr?.thana || null,
+      area: addr?.area || null,
+      postalCode: addr?.postalCode || null,
+      countryCode: addr?.countryCode || "BD",
+    });
+
+    // 4. Status history
+    await tx.orm.public.OrderStatusHistory.create({
+      orderId: created.id,
+      fromStatus: "PENDING",
+      toStatus: orderStatus,
+      changedById: adminUserId,
+      note: isStorePickup ? "POS Counter Sale Completed" : `Manual Order created via ${source}`,
+    });
+
+    return created;
+  });
+
+  return repo.findByNumber(createdOrder.orderNumber);
 };

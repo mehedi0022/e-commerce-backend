@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'540d001922bf8ac3d9d740500a9d9408660e81b139e9622a30743ade0ad7bb25'>;
+  StorageHashBase<'1d073c74c887a4d6b20efc95c6cb92571b8c85d5cff095451746a3b2d6b4d869'>;
 export type ExecutionHash =
   ExecutionHashBase<'77dc1f8fd5a043cc90f82898b3c1d3a48e843b332954988dfa5fd79908ddfcda'>;
 export type ProfileHash =
@@ -555,6 +555,14 @@ export type FieldOutputTypes = {
       readonly shippingMethodName: CodecTypes['pg/text@1']['output'] | null;
       readonly shippingZoneId: CodecTypes['pg/int4@1']['output'] | null;
       readonly shippingZoneName: CodecTypes['pg/text@1']['output'] | null;
+      readonly source:
+        | 'WEBSITE'
+        | 'LANDING_PAGE'
+        | 'PHONE_CALL'
+        | 'WHATSAPP'
+        | 'MESSENGER'
+        | 'OUTLET_POS'
+        | 'MANUAL_OTHER';
       readonly status:
         'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
       readonly subtotal: Numeric<12, 2>;
@@ -1369,6 +1377,14 @@ export type FieldInputTypes = {
       readonly shippingMethodName: CodecTypes['pg/text@1']['input'] | null;
       readonly shippingZoneId: CodecTypes['pg/int4@1']['input'] | null;
       readonly shippingZoneName: CodecTypes['pg/text@1']['input'] | null;
+      readonly source:
+        | 'WEBSITE'
+        | 'LANDING_PAGE'
+        | 'PHONE_CALL'
+        | 'WHATSAPP'
+        | 'MESSENGER'
+        | 'OUTLET_POS'
+        | 'MANUAL_OTHER';
       readonly status:
         'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
       readonly subtotal: CodecTypes['pg/numeric@1']['input'];
@@ -2183,6 +2199,14 @@ export type StorageColumnTypes = {
       readonly shippingMethodName: CodecTypes['pg/text@1']['output'] | null;
       readonly shippingZoneId: CodecTypes['pg/int4@1']['output'] | null;
       readonly shippingZoneName: CodecTypes['pg/text@1']['output'] | null;
+      readonly source:
+        | 'WEBSITE'
+        | 'LANDING_PAGE'
+        | 'PHONE_CALL'
+        | 'WHATSAPP'
+        | 'MESSENGER'
+        | 'OUTLET_POS'
+        | 'MANUAL_OTHER';
       readonly status:
         'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
       readonly subtotal: Numeric<12, 2>;
@@ -2997,6 +3021,14 @@ export type StorageColumnInputTypes = {
       readonly shippingMethodName: CodecTypes['pg/text@1']['input'] | null;
       readonly shippingZoneId: CodecTypes['pg/int4@1']['input'] | null;
       readonly shippingZoneName: CodecTypes['pg/text@1']['input'] | null;
+      readonly source:
+        | 'WEBSITE'
+        | 'LANDING_PAGE'
+        | 'PHONE_CALL'
+        | 'WHATSAPP'
+        | 'MESSENGER'
+        | 'OUTLET_POS'
+        | 'MANUAL_OTHER';
       readonly status:
         'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
       readonly subtotal: CodecTypes['pg/numeric@1']['input'];
@@ -3871,6 +3903,14 @@ export namespace Models {
     shippingMethodName: CodecTypes['pg/text@1']['output'] | null;
     shippingZoneId: CodecTypes['pg/int4@1']['output'] | null;
     shippingZoneName: CodecTypes['pg/text@1']['output'] | null;
+    source:
+      | 'WEBSITE'
+      | 'LANDING_PAGE'
+      | 'PHONE_CALL'
+      | 'WHATSAPP'
+      | 'MESSENGER'
+      | 'OUTLET_POS'
+      | 'MANUAL_OTHER';
     status: 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
     subtotal: Numeric<12, 2>;
     taxAmount: Numeric<12, 2>;
@@ -6993,6 +7033,15 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                 };
+                readonly source: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'WEBSITE'>;
+                  };
+                };
                 readonly status: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
@@ -7075,6 +7124,12 @@ type ContractBase = Omit<
                   readonly name: 'order_shippingZoneId_idx_b9f57c25';
                   readonly prefix: 'order_shippingZoneId_idx';
                   readonly columns: readonly ['shippingZoneId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'order_source_idx_c937a07d';
+                  readonly prefix: 'order_source_idx';
+                  readonly columns: readonly ['source'];
                   readonly unique: false;
                 },
                 {
@@ -10896,6 +10951,18 @@ type ContractBase = Omit<
                 'REFUNDED',
               ];
             };
+            readonly OrderSource: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'WEBSITE',
+                'LANDING_PAGE',
+                'PHONE_CALL',
+                'WHATSAPP',
+                'MESSENGER',
+                'OUTLET_POS',
+                'MANUAL_OTHER',
+              ];
+            };
             readonly OrderStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly [
@@ -13326,6 +13393,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly source: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly status: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -13541,6 +13612,7 @@ type ContractBase = Omit<
                 readonly shippingMethodName: { readonly column: 'shippingMethodName' };
                 readonly shippingZoneId: { readonly column: 'shippingZoneId' };
                 readonly shippingZoneName: { readonly column: 'shippingZoneName' };
+                readonly source: { readonly column: 'source' };
                 readonly status: { readonly column: 'status' };
                 readonly subtotal: { readonly column: 'subtotal' };
                 readonly taxAmount: { readonly column: 'taxAmount' };
@@ -17200,6 +17272,18 @@ type ContractBase = Omit<
               { readonly name: 'PAID'; readonly value: 'PAID' },
               { readonly name: 'FAILED'; readonly value: 'FAILED' },
               { readonly name: 'REFUNDED'; readonly value: 'REFUNDED' },
+            ];
+          };
+          readonly OrderSource: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'WEBSITE'; readonly value: 'WEBSITE' },
+              { readonly name: 'LANDING_PAGE'; readonly value: 'LANDING_PAGE' },
+              { readonly name: 'PHONE_CALL'; readonly value: 'PHONE_CALL' },
+              { readonly name: 'WHATSAPP'; readonly value: 'WHATSAPP' },
+              { readonly name: 'MESSENGER'; readonly value: 'MESSENGER' },
+              { readonly name: 'OUTLET_POS'; readonly value: 'OUTLET_POS' },
+              { readonly name: 'MANUAL_OTHER'; readonly value: 'MANUAL_OTHER' },
             ];
           };
           readonly OrderStatus: {

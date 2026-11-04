@@ -414,6 +414,39 @@
               }
             ]
           },
+          "OrderSource": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "WEBSITE",
+                "value": "WEBSITE"
+              },
+              {
+                "name": "LANDING_PAGE",
+                "value": "LANDING_PAGE"
+              },
+              {
+                "name": "PHONE_CALL",
+                "value": "PHONE_CALL"
+              },
+              {
+                "name": "WHATSAPP",
+                "value": "WHATSAPP"
+              },
+              {
+                "name": "MESSENGER",
+                "value": "MESSENGER"
+              },
+              {
+                "name": "OUTLET_POS",
+                "value": "OUTLET_POS"
+              },
+              {
+                "name": "MANUAL_OTHER",
+                "value": "MANUAL_OTHER"
+              }
+            ]
+          },
           "OrderStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -4169,6 +4202,19 @@
                   "kind": "scalar"
                 }
               },
+              "source": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "OrderSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -4512,6 +4558,9 @@
                 },
                 "shippingZoneName": {
                   "column": "shippingZoneName"
+                },
+                "source": {
+                  "column": "source"
                 },
                 "status": {
                   "column": "status"
@@ -13040,6 +13089,11 @@
                   "prefix": "order_paymentStatus_check"
                 },
                 {
+                  "expression": "\"source\" IN ('WEBSITE', 'LANDING_PAGE', 'PHONE_CALL', 'WHATSAPP', 'MESSENGER', 'OUTLET_POS', 'MANUAL_OTHER')",
+                  "name": "order_source_check_aff71fc3",
+                  "prefix": "order_source_check"
+                },
+                {
                   "expression": "\"status\" IN ('PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED')",
                   "name": "order_status_check_90625984",
                   "prefix": "order_status_check"
@@ -13264,6 +13318,21 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "source": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "WEBSITE"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "OrderSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -13437,6 +13506,14 @@
                   ],
                   "name": "order_shippingZoneId_idx_b9f57c25",
                   "prefix": "order_shippingZoneId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "source"
+                  ],
+                  "name": "order_source_idx_c937a07d",
+                  "prefix": "order_source_idx",
                   "unique": false
                 },
                 {
@@ -18423,6 +18500,18 @@
                 "REFUNDED"
               ]
             },
+            "OrderSource": {
+              "kind": "valueSet",
+              "values": [
+                "WEBSITE",
+                "LANDING_PAGE",
+                "PHONE_CALL",
+                "WHATSAPP",
+                "MESSENGER",
+                "OUTLET_POS",
+                "MANUAL_OTHER"
+              ]
+            },
             "OrderStatus": {
               "kind": "valueSet",
               "values": [
@@ -18583,7 +18672,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "540d001922bf8ac3d9d740500a9d9408660e81b139e9622a30743ade0ad7bb25"
+    "storageHash": "1d073c74c887a4d6b20efc95c6cb92571b8c85d5cff095451746a3b2d6b4d869"
   },
   "execution": {
     "executionHash": "77dc1f8fd5a043cc90f82898b3c1d3a48e843b332954988dfa5fd79908ddfcda",

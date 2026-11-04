@@ -47,3 +47,20 @@ export const adminStatusCounts = asyncHandler(async (_req: Request, res: Respons
   res.json(successResponse("Order status counts fetched successfully", counts));
 });
 
+export const searchPosProducts = asyncHandler(async (req: Request, res: Response) => {
+  const q = String(req.query.q || req.query.query || "");
+  const products = await service.searchPosProducts(q);
+  res.json(successResponse("POS products fetched successfully", products));
+});
+
+export const searchPosCustomers = asyncHandler(async (req: Request, res: Response) => {
+  const q = String(req.query.q || req.query.query || "");
+  const customers = await service.searchPosCustomers(q);
+  res.json(successResponse("POS customers fetched successfully", customers));
+});
+
+export const createManualOrder = asyncHandler(async (req: Request, res: Response) => {
+  const order = await service.createManualOrder(req.body, req.auth!.userId);
+  res.status(201).json(successResponse("Manual order created successfully", order));
+});
+

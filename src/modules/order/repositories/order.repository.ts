@@ -8,6 +8,7 @@ const fields = [
   "customerEmail",
   "customerPhone",
   "status",
+  "source",
   "paymentMethod",
   "paymentStatus",
   "couponId",
@@ -201,6 +202,7 @@ export const list = async (query: any) => {
     }
   }
   if (query.paymentStatus) filter = filter.where({ paymentStatus: query.paymentStatus });
+  if (query.source) filter = filter.where({ source: query.source });
 
   if (query.search) {
     const term = String(query.search).trim();

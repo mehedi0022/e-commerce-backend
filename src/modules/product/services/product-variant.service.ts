@@ -17,6 +17,44 @@ const combinationExists = async (productId: number, ids: number[], exclude?: num
 const syncValues = async (tx: any, variantId: number, ids: number[] | undefined) => { if (!ids) return; await repo.clearValues(tx, variantId); for (const id of ids) await repo.addValue(tx, variantId, id); };
 export const list = async (productId: number) => { await product(productId); return repo.list(productId); };
 export const get = async (productId: number, variantId: number) => { await product(productId); const v = await repo.findVariant(productId, variantId); if (!v) throw new NotFoundError("Product variant not found"); return v; };
-export const create = async (productId: number, data: CreateVariantInput) => { await product(productId); const sku = await repo.findBySku(data.sku); if (sku) throw new ConflictError("SKU already exists"); await validateValues(productId, data.attributeValueIds); if (await combinationExists(productId, data.attributeValueIds)) throw new ConflictError("This attribute combination already exists"); return db.transaction(async (tx) => { const v = await repo.create(tx, productId, data); await syncValues(tx, v.id, data.attributeValueIds); return v; }); };
-export const update = async (productId: number, variantId: number, data: UpdateVariantInput) => { await get(productId, variantId); if (data.sku) { const sku = await repo.findBySku(data.sku); if (sku && sku.id !== variantId) throw new ConflictError("SKU already exists"); } if (data.attributeValueIds) { await validateValues(productId, data.attributeValueIds); if (await combinationExists(productId, data.attributeValueIds, variantId)) throw new ConflictError("This attribute combination already exists"); } const { attributeValueIds: _attributeValueIds, ...variantData } = data; return db.transaction(async (tx) => { const v = await repo.update(tx, variantId, variantData); await syncValues(tx, variantId, data.attributeValueIds); return v; }); };
+export const create = async (productId: number, data: CreateVariantInput) => {
+  await product(productId);
+  let effectiveSku = (data.sku || "").trim();
+  if (!effectiveSku) {
+    effectiveSku = `SKU-${productId}-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+    data.sku = effectiveSku;
+  }
+  const sku = await repo.findBySku(effectiveSku);
+  if (sku) throw new ConflictError("SKU already exists");
+  await validateValues(productId, data.attributeValueIds);
+  if (await combinationExists(productId, data.attributeValueIds)) throw new ConflictError("This attribute combination already exists");
+  return db.transaction(async (tx) => {
+    const v = await repo.create(tx, productId, data);
+    await syncValues(tx, v.id, data.attributeValueIds);
+    return v;
+  });
+};
+export const update = async (productId: number, variantId: number, data: UpdateVariantInput) => {
+  const existing = await get(productId, variantId);
+  if (data.sku && existing.sku && data.sku.trim().toLowerCase() !== existing.sku.trim().toLowerCase()) {
+    throw new ValidationError("SKU cannot be changed once assigned to a product variant");
+  }
+  if (data.sku) {
+    const sku = await repo.findBySku(data.sku);
+    if (sku && sku.id !== variantId) throw new ConflictError("SKU already exists");
+  }
+  if (data.attributeValueIds) {
+    await validateValues(productId, data.attributeValueIds);
+    if (await combinationExists(productId, data.attributeValueIds, variantId)) throw new ConflictError("This attribute combination already exists");
+  }
+  const { attributeValueIds: _attributeValueIds, ...variantData } = data;
+  if (existing.sku) {
+    delete variantData.sku;
+  }
+  return db.transaction(async (tx) => {
+    const v = await repo.update(tx, variantId, variantData);
+    await syncValues(tx, variantId, data.attributeValueIds);
+    return v;
+  });
+};
 export const remove = async (productId: number, variantId: number) => { await get(productId, variantId); await db.transaction((tx) => repo.remove(tx, variantId)); };

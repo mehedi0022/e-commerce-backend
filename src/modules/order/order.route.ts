@@ -5,7 +5,7 @@ import { requirePermission } from "../../middlewares/authorization.middleware.js
 import { validate } from "../../middlewares/validate.middleware.js";
 import rateLimit from "express-rate-limit";
 import * as c from "./controllers/order.controller.js";
-import { guestOrderSchema, orderListSchema, orderNumberSchema, orderTransitionSchema, trackOrderSchema, updateAdminOrderSchema } from "./validations/order.validation.js";
+import { guestOrderSchema, manualOrderSchema, orderListSchema, orderNumberSchema, orderTransitionSchema, trackOrderSchema, updateAdminOrderSchema } from "./validations/order.validation.js";
 
 const router = Router();
 
@@ -26,6 +26,9 @@ router.get("/orders", validate(orderListSchema), c.list);
 router.get("/orders/:orderNumber", validate(orderNumberSchema), c.detail);
 router.get("/admin/orders", validate(orderListSchema), requirePermission(permissions.ordersReadAny), c.adminList);
 router.get("/admin/orders/counts", requirePermission(permissions.ordersReadAny), c.adminStatusCounts);
+router.get("/admin/orders/pos/products", requirePermission(permissions.ordersManage), c.searchPosProducts);
+router.get("/admin/orders/pos/customers", requirePermission(permissions.ordersManage), c.searchPosCustomers);
+router.post("/admin/orders/manual", validate(manualOrderSchema), requirePermission(permissions.ordersManage), c.createManualOrder);
 router.get("/admin/orders/:orderNumber", validate(orderNumberSchema), requirePermission(permissions.ordersReadAny), c.adminDetail);
 router.patch("/admin/orders/:orderNumber", validate(updateAdminOrderSchema), requirePermission(permissions.ordersManage), c.updateAdmin);
 router.patch("/admin/orders/:orderNumber/status", validate(orderTransitionSchema), requirePermission(permissions.ordersManage), c.transition);
