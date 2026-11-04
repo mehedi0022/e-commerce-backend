@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1d073c74c887a4d6b20efc95c6cb92571b8c85d5cff095451746a3b2d6b4d869'>;
+  StorageHashBase<'befa2f0fb6de2fda2f9cd18519bc4fe9b5b8898a3fb538ba5ce099842f885106'>;
 export type ExecutionHash =
   ExecutionHashBase<'77dc1f8fd5a043cc90f82898b3c1d3a48e843b332954988dfa5fd79908ddfcda'>;
 export type ProfileHash =
@@ -746,6 +746,7 @@ export type FieldOutputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly ProductVariant: {
+      readonly barcode: CodecTypes['pg/text@1']['output'] | null;
       readonly compareAtPrice: Numeric<12, 2> | null;
       readonly costPrice: Numeric<12, 2> | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1568,6 +1569,7 @@ export type FieldInputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly ProductVariant: {
+      readonly barcode: CodecTypes['pg/text@1']['input'] | null;
       readonly compareAtPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly costPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -2390,6 +2392,7 @@ export type StorageColumnTypes = {
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly product_variant: {
+      readonly barcode: CodecTypes['pg/text@1']['output'] | null;
       readonly compareAtPrice: Numeric<12, 2> | null;
       readonly costPrice: Numeric<12, 2> | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -3212,6 +3215,7 @@ export type StorageColumnInputTypes = {
       readonly userId: CodecTypes['pg/int4@1']['input'];
     };
     readonly product_variant: {
+      readonly barcode: CodecTypes['pg/text@1']['input'] | null;
       readonly compareAtPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly costPrice: CodecTypes['pg/numeric@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -4176,6 +4180,7 @@ export namespace Models {
     readonly [RelationKeys]?: 'moderatedBy' | 'orderItem' | 'product' | 'user';
   };
   export type public_ProductVariant = {
+    barcode: CodecTypes['pg/text@1']['output'] | null;
     compareAtPrice: Numeric<12, 2> | null;
     costPrice: Numeric<12, 2> | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -8708,6 +8713,11 @@ type ContractBase = Omit<
             };
             readonly product_variant: {
               columns: {
+                readonly barcode: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
                 readonly compareAtPrice: {
                   readonly nativeType: 'numeric';
                   readonly codecId: 'pg/numeric@1';
@@ -8776,7 +8786,10 @@ type ContractBase = Omit<
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['sku'] }];
+              uniques: readonly [
+                { readonly columns: readonly ['sku'] },
+                { readonly columns: readonly ['barcode'] },
+              ];
               indexes: readonly [
                 {
                   readonly name: 'product_variant_productId_idx_5858600a';
@@ -14994,6 +15007,10 @@ type ContractBase = Omit<
           };
           readonly ProductVariant: {
             readonly fields: {
+              readonly barcode: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly compareAtPrice: {
                 readonly nullable: true;
                 readonly type: {
@@ -15105,6 +15122,7 @@ type ContractBase = Omit<
               readonly table: 'product_variant';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly barcode: { readonly column: 'barcode' };
                 readonly compareAtPrice: { readonly column: 'compareAtPrice' };
                 readonly costPrice: { readonly column: 'costPrice' };
                 readonly createdAt: { readonly column: 'createdAt' };

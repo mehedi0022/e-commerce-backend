@@ -836,7 +836,7 @@ export const searchPosProducts = async (query: string) => {
     )
     .include("variants", (v: any) =>
       v
-        .select("id", "sku", "price", "compareAtPrice", "isActive")
+        .select("id", "sku", "barcode", "price", "compareAtPrice", "isActive")
         .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
         .include("attributeValues", (av: any) =>
           av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
@@ -849,24 +849,44 @@ export const searchPosProducts = async (query: string) => {
 
   const results: any[] = await productsQuery.limit(30).all();
 
-  // If search query matches variant SKU directly, search variants and prepend
+  // If search query matches variant SKU or Barcode directly, search variants and prepend
   if (q) {
-    const matchedVariants: any[] = await db.orm.public.ProductVariant
-      .select("id", "productId", "sku", "price", "compareAtPrice", "isActive")
-      .include("product", (p: any) =>
-        p
-          .select("id", "name", "slug", "status")
-          .include("images", (img: any) =>
-            img.select("id", "imageUrl", "isPrimary", "sortOrder").orderBy((x: any) => x.sortOrder.asc())
-          )
-      )
-      .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
-      .include("attributeValues", (av: any) =>
-        av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
-      )
-      .where((v: any) => v.sku.ilike(`%${q}%`))
-      .limit(10)
-      .all();
+    const [skuMatches, barcodeMatches]: [any[], any[]] = await Promise.all([
+      db.orm.public.ProductVariant
+        .select("id", "productId", "sku", "barcode", "price", "compareAtPrice", "isActive")
+        .include("product", (p: any) =>
+          p
+            .select("id", "name", "slug", "status")
+            .include("images", (img: any) =>
+              img.select("id", "imageUrl", "isPrimary", "sortOrder").orderBy((x: any) => x.sortOrder.asc())
+            )
+        )
+        .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
+        .include("attributeValues", (av: any) =>
+          av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
+        )
+        .where((v: any) => v.sku.ilike(`%${q}%`))
+        .limit(10)
+        .all(),
+      db.orm.public.ProductVariant
+        .select("id", "productId", "sku", "barcode", "price", "compareAtPrice", "isActive")
+        .include("product", (p: any) =>
+          p
+            .select("id", "name", "slug", "status")
+            .include("images", (img: any) =>
+              img.select("id", "imageUrl", "isPrimary", "sortOrder").orderBy((x: any) => x.sortOrder.asc())
+            )
+        )
+        .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
+        .include("attributeValues", (av: any) =>
+          av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))
+        )
+        .where((v: any) => v.barcode.ilike(`%${q}%`))
+        .limit(10)
+        .all(),
+    ]);
+
+    const matchedVariants: any[] = [...skuMatches, ...barcodeMatches];
 
     const existingIds = new Set(results.map((p) => p.id));
     for (const mv of matchedVariants) {
@@ -878,7 +898,7 @@ export const searchPosProducts = async (query: string) => {
           )
           .include("variants", (v: any) =>
             v
-              .select("id", "sku", "price", "compareAtPrice", "isActive")
+              .select("id", "sku", "barcode", "price", "compareAtPrice", "isActive")
               .include("inventory", (inv: any) => inv.select("id", "quantity", "reservedQuantity"))
               .include("attributeValues", (av: any) =>
                 av.select("variantId", "attributeValueId").include("attributeValue", (val: any) => val.select("id", "value"))

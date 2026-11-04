@@ -501,6 +501,7 @@ model ProductVariant {
   id              Int                     @id @default(autoincrement())
   productId       Int
   sku             String                  @unique
+  barcode         String?                 @unique
 
   price           Numeric(12, 2)
   compareAtPrice  Numeric(12, 2)?

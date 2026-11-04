@@ -49,8 +49,8 @@ const withRelations = (q: any) =>
         "columns",
         "rows",
         "tips",
-        "image"
-      )
+        "image",
+      ),
     )
     .include("categories", (pc: any) =>
       pc
@@ -101,6 +101,7 @@ export const findAll = async (
             "id",
             "productId",
             "sku",
+            "barcode",
             "price",
             "compareAtPrice",
             "isActive",
@@ -109,7 +110,9 @@ export const findAll = async (
           .include("attributeValues", (av: any) =>
             av.include("attributeValue", (val: any) =>
               val
-                .include("attribute", (a: any) => a.select("id", "name", "slug"))
+                .include("attribute", (a: any) =>
+                  a.select("id", "name", "slug"),
+                )
                 .select("id", "value", "slug", "attributeId"),
             ),
           )
@@ -153,9 +156,14 @@ export const findAll = async (
   }
 
   if (categorySlug) {
-    const slugs = categorySlug.split(",").map((s: string) => s.trim()).filter(Boolean);
+    const slugs = categorySlug
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter(Boolean);
     if (slugs.length) {
-      const cats = await db.orm.public.Category.where((c: any) => c.slug.in(slugs)).all();
+      const cats = await db.orm.public.Category.where((c: any) =>
+        c.slug.in(slugs),
+      ).all();
       for (const cat of cats) {
         for (const id of descendantCategoryIds(hier, cat.id)) {
           allCategoryIds.add(id);
@@ -238,10 +246,8 @@ export const findAll = async (
     const averageRating = reviewCount
       ? Number(
           (
-            approvedReviews.reduce(
-              (sum: number, r: any) => sum + r.rating,
-              0,
-            ) / reviewCount
+            approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) /
+            reviewCount
           ).toFixed(1),
         )
       : 0;

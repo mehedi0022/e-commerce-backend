@@ -6835,6 +6835,13 @@
           },
           "ProductVariant": {
             "fields": {
+              "barcode": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "compareAtPrice": {
                 "nullable": true,
                 "type": {
@@ -6984,6 +6991,9 @@
             },
             "storage": {
               "fields": {
+                "barcode": {
+                  "column": "barcode"
+                },
                 "compareAtPrice": {
                   "column": "compareAtPrice"
                 },
@@ -15534,6 +15544,11 @@
             },
             "product_variant": {
               "columns": {
+                "barcode": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "compareAtPrice": {
                   "codecId": "pg/numeric@1",
                   "nativeType": "numeric",
@@ -15660,6 +15675,11 @@
                 {
                   "columns": [
                     "sku"
+                  ]
+                },
+                {
+                  "columns": [
+                    "barcode"
                   ]
                 }
               ]
@@ -18672,7 +18692,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1d073c74c887a4d6b20efc95c6cb92571b8c85d5cff095451746a3b2d6b4d869"
+    "storageHash": "befa2f0fb6de2fda2f9cd18519bc4fe9b5b8898a3fb538ba5ce099842f885106"
   },
   "execution": {
     "executionHash": "77dc1f8fd5a043cc90f82898b3c1d3a48e843b332954988dfa5fd79908ddfcda",
