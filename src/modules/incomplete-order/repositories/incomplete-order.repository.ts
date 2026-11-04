@@ -174,8 +174,19 @@ export const getMetrics = async (): Promise<IncompleteOrderMetrics> => {
   let potentialRevenueNum = 0;
   let recoveredRevenueNum = 0;
 
+  const statusCounts: Record<string, number> = {
+    PENDING: 0,
+    CALLED_NO_RESPONSE: 0,
+    CONTACTED: 0,
+    CONVERTED: 0,
+    CANCELLED: 0,
+  };
+
   for (const item of all) {
     const amt = Number(item.totalAmount) || 0;
+    if (item.status && statusCounts[item.status] !== undefined) {
+      statusCounts[item.status]++;
+    }
     if (item.status === "PENDING" || item.status === "CALLED_NO_RESPONSE") {
       pendingCalls++;
       potentialRevenueNum += amt;
@@ -195,6 +206,7 @@ export const getMetrics = async (): Promise<IncompleteOrderMetrics> => {
     pendingCalls,
     contactedCount,
     convertedCount,
+    statusCounts,
     potentialRevenue: potentialRevenueNum.toFixed(2),
     recoveredRevenue: recoveredRevenueNum.toFixed(2),
     conversionRate: `${conversionRate}%`,

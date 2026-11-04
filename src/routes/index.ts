@@ -31,6 +31,7 @@ import analyticsRoutes from "../modules/analytics/analytics.route.js";
 import sizeChartRoutes from "../modules/size-chart/size-chart.route.js";
 import landingPageRoutes from "../modules/landing-page/landing-page.route.js";
 import incompleteOrderRoutes from "../modules/incomplete-order/incomplete-order.route.js";
+import marketingRoutes from "../modules/marketing/marketing.route.js";
 
 const router = Router();
 
@@ -56,6 +57,7 @@ router.use("/payments", paymentRoutes);
 router.use("/notifications", smsRoutes);
 router.use("/courier", courierRoutes);
 router.use("/settings", settingRoutes);
+router.use("/marketing", marketingRoutes);
 router.use("/analytics", analyticsRoutes);
 router.use(couponRoutes);
 router.use(shipmentRoutes);

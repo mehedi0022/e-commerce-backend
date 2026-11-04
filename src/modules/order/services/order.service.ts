@@ -22,6 +22,7 @@ import { config } from "../../../config/env.js";
 import { logger } from "../../../config/logger.js";
 import { triggerNotification } from "../../sms/services/notification-trigger.service.js";
 import * as incompleteOrderRepo from "../../incomplete-order/repositories/incomplete-order.repository.js";
+import { marketingService } from "../../marketing/services/marketing.service.js";
 import type { OrderListQuery, CreateManualOrderInput } from "../order.types.js";
 import { or } from "@prisma/orm-postgres/orm-client";
 
@@ -514,6 +515,18 @@ export const checkout = async (
 
     return order;
   });
+
+  // Asynchronously dispatch Server-Side Conversion API (CAPI) events with deterministic event_id
+  marketingService.dispatchServerPurchaseEvents({
+    order: result,
+    customer: input.customer || {
+      name: input.shippingAddress?.fullName,
+      phone: input.shippingAddress?.phone,
+      email: input.customer?.email,
+    },
+    items: input.items || null,
+  });
+
   const safe = {
     id: result.id,
     orderNumber: result.orderNumber,
