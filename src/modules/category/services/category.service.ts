@@ -17,16 +17,19 @@ import { categoryMetadata } from "../category-tree.js";
 const ensureParent = async (
   parentId: number | null | undefined,
   id?: number,
+  allowMigration?: boolean,
 ) => {
   if (parentId == null) return;
   if (id === parentId)
     throw new ValidationError("A category cannot be its own parent");
   if (!(await repo.findById(parentId)))
     throw new NotFoundError("Parent category not found");
-  if (await repo.findPrimaryProduct(parentId))
-    throw new ConflictError("This category is a primary category for products. Move those products before adding or moving a subcategory here.");
-  if (await repo.findAttributeAssignment(parentId))
-    throw new ConflictError("This category has variant attributes. Clear its assignments before turning it into a parent category, then assign attributes to its leaf categories.");
+  if (!allowMigration && (await repo.findPrimaryProduct(parentId))) {
+    const count = await repo.countProducts(parentId);
+    throw new ConflictError(
+      `Category has ${count} existing product(s). Move them to a subcategory or enable automatic migration.`,
+    );
+  }
   let cursor = parentId;
   const visited = new Set<number>();
   while (cursor) {
@@ -66,12 +69,33 @@ export const get = async (id: number) => {
 };
 
 export const create = async (data: CreateCategoryInput) => {
-  await ensureParent(data.parentId);
-  await ensureUnique(data);
+  const { migrateParentProducts, ...categoryData } = data;
+  await ensureParent(data.parentId, undefined, Boolean(migrateParentProducts));
+  await ensureUnique(categoryData);
   const slug = await uniqueSlug(data.name, async (value) =>
     Boolean(await repo.findBySlug(value)),
   );
-  return repo.create({ ...data, slug });
+  const created = await repo.create({ ...categoryData, slug });
+  if (migrateParentProducts && data.parentId) {
+    await repo.migrateProducts(data.parentId, created.id);
+  }
+  return created;
+};
+
+export const migrateCategoryProducts = async (
+  fromCategoryId: number,
+  toCategoryId: number,
+) => {
+  if (fromCategoryId === toCategoryId) {
+    throw new ValidationError("Source and target categories must be different");
+  }
+  const from = await repo.findById(fromCategoryId);
+  if (!from) throw new NotFoundError("Source category not found");
+  const to = await repo.findById(toCategoryId);
+  if (!to) throw new NotFoundError("Target category not found");
+
+  const migratedCount = await repo.migrateProducts(fromCategoryId, toCategoryId);
+  return { migratedCount };
 };
 
 export const update = async (id: number, data: UpdateCategoryInput) => {

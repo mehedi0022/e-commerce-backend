@@ -24,6 +24,19 @@ export const createCategorySchema = z.object({
       image: fields.image,
       parentId,
       sortOrder: z.coerce.number().int().min(0).optional(),
+      migrateParentProducts: z.boolean().optional(),
+    })
+    .strict(),
+});
+
+export const migrateProductsSchema = z.object({
+  params,
+  body: z
+    .object({
+      targetCategoryId: z.coerce
+        .number()
+        .int()
+        .positive("Target category ID must be a positive integer"),
     })
     .strict(),
 });

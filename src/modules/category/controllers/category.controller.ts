@@ -75,6 +75,18 @@ export const reorder = asyncHandler(async (req, res) =>
   ),
 );
 
+export const migrateProducts = asyncHandler(async (req, res) =>
+  res.json(
+    successResponse(
+      "Category products migrated successfully",
+      await service.migrateCategoryProducts(
+        Number(req.params.id),
+        Number(req.body.targetCategoryId),
+      ),
+    ),
+  ),
+);
+
 export const uploadImage = asyncHandler(async (req, res) =>
   res.json(
     successResponse(

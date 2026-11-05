@@ -39,7 +39,7 @@ const categoryFields = [
 
 const withRelations = (q: any) =>
   q
-    .include("brand", (b: any) => b.select("id", "name", "slug"))
+    .include("brand", (b: any) => b.select("id", "name", "slug", "logo"))
     .include("sizeChart", (sc: any) =>
       sc.select(
         "id",
@@ -287,9 +287,15 @@ export const create = (tx: any, data: CreateProductInput & { slug: string }) =>
     slug: data.slug,
     shortDescription: data.shortDescription ?? null,
     description: data.description ?? null,
+    specifications: data.specifications ?? null,
     brandId: data.brandId ?? null,
+    sizeChartId: data.sizeChartId ?? null,
     status: data.status ?? "DRAFT",
     isFeatured: data.isFeatured ?? false,
+    isFreeShipping: data.isFreeShipping ?? false,
+    isCodAvailable: data.isCodAvailable ?? true,
+    requiresAdvancePayment: data.requiresAdvancePayment ?? false,
+    advancePaymentAmount: data.advancePaymentAmount ?? null,
   });
 
 export const update = (

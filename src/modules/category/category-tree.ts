@@ -11,6 +11,19 @@ export function descendantCategoryIds(nodes: Node[], rootId: number): number[] {
   return [...found];
 }
 
+export function ancestorCategoryIds(nodes: Node[], categoryId: number): number[] {
+  const byId = new Map(nodes.map(node => [node.id, node]));
+  const ancestors: number[] = [categoryId];
+  const visited = new Set<number>([categoryId]);
+  let current = byId.get(categoryId);
+  while (current && current.parentId !== null && !visited.has(current.parentId)) {
+    visited.add(current.parentId);
+    ancestors.push(current.parentId);
+    current = byId.get(current.parentId);
+  }
+  return ancestors;
+}
+
 export function categoryMetadata(nodes: Node[]) {
   const byId = new Map(nodes.map(node => [node.id, node]));
   const parents = new Set(nodes.map(node => node.parentId));

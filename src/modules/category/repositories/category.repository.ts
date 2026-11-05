@@ -116,3 +116,31 @@ export const hierarchy = () => db.orm.public.Category.select("id", "parentId", "
 export const findChild = (parentId: number) => db.orm.public.Category.select("id").first({ parentId });
 export const findProductAssignment = (categoryId: number) => db.orm.public.ProductCategory.select("productId").first({ categoryId });
 export const findPrimaryProduct = (categoryId: number) => db.orm.public.ProductCategory.select("productId").first({ categoryId, isPrimary: true });
+
+export const countProducts = async (categoryId: number) => {
+  const result = await db.orm.public.ProductCategory.where({ categoryId }).aggregate((a: any) => ({ count: a.count() }));
+  return result.count;
+};
+
+export const migrateProducts = async (fromCategoryId: number, toCategoryId: number) => {
+  const assignments = await db.orm.public.ProductCategory.select("productId", "isPrimary", "sortOrder").where({ categoryId: fromCategoryId }).all();
+  if (!assignments.length) return 0;
+
+  return db.transaction(async (tx: any) => {
+    while (await tx.orm.public.ProductCategory.where({ categoryId: fromCategoryId }).select("productId").delete()) {}
+    let count = 0;
+    for (const a of assignments) {
+      const existing = await tx.orm.public.ProductCategory.select("productId").first({ productId: a.productId, categoryId: toCategoryId });
+      if (!existing) {
+        await tx.orm.public.ProductCategory.create({
+          productId: a.productId,
+          categoryId: toCategoryId,
+          isPrimary: a.isPrimary,
+          sortOrder: a.sortOrder,
+        });
+        count++;
+      }
+    }
+    return count;
+  });
+};

@@ -25,6 +25,12 @@ export const list = (categoryId: number) =>
     .orderBy([(x) => x.sortOrder.asc(), (x) => x.id.asc()])
     .include("attribute", a => a.select("id", "name", "isActive").include("values", v => v.select("id", "value", "isActive", "sortOrder").orderBy(x => x.sortOrder.asc())))
     .all();
+export const listByCategories = (categoryIds: number[]) =>
+  db.orm.public.CategoryAttribute.select(...fields)
+    .where((x: any) => x.categoryId.in(categoryIds))
+    .orderBy([(x) => x.sortOrder.asc(), (x) => x.id.asc()])
+    .include("attribute", a => a.select("id", "name", "isActive").include("values", v => v.select("id", "value", "isActive", "sortOrder").orderBy(x => x.sortOrder.asc())))
+    .all();
 export const primaryVariants = async (categoryId: number) => {
   const products = await db.orm.public.ProductCategory.select("productId").where({ categoryId, isPrimary: true }).all();
   if (!products.length) return [];

@@ -65,6 +65,13 @@ router.patch(
 );
 
 router.post(
+  "/:id/migrate-products",
+  validate(v.migrateProductsSchema),
+  requirePermission(permissions.categoriesUpdateAny),
+  c.migrateProducts,
+);
+
+router.post(
   "/:id/image",
   validate(v.categoryIdSchema),
   requirePermission(permissions.categoriesUpdateAny),

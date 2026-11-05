@@ -9,6 +9,8 @@ import type {
   CreateVariantInput,
   UpdateVariantInput,
 } from "../product-variant.types.js";
+import { hierarchy } from "../../category/repositories/category.repository.js";
+import { ancestorCategoryIds } from "../../category/category-tree.js";
 const product = async (id: number) => {
   if (!(await repo.findProduct(id)))
     throw new NotFoundError("Product not found");
@@ -36,7 +38,9 @@ const validateValues = async (productId: number, ids: number[]) => {
     throw new ValidationError(
       "Product must have a category before creating variants",
     );
-  const allowed = await repo.findAllowedAttributes([primary.categoryId]);
+  const nodes = await hierarchy();
+  const ancestors = ancestorCategoryIds(nodes, primary.categoryId);
+  const allowed = await repo.findAllowedAttributes(ancestors);
   const allowedIds = new Set(allowed.map((x: any) => x.attributeId));
   if (values.some((v: any) => !allowedIds.has(v.attributeId)))
     throw new ConflictError(
